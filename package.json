@@ -1,0 +1,19 @@
+{
+  "name": "malevic",
+  "version": "0.0.0",
+  "description": "Malevič.js - minimalistic reactive UI library",
+  "author": "Alexander Shutov <shutovby@gmail.com> (http://shutov.by/)",
+  "license": "MIT",
+  "scripts": {
+    "build": "gulp"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "merge-stream": "^1.0.1",
+    "rollup": "^0.50.0",
+    "rollup-plugin-typescript": "^0.8.1",
+    "rollup-stream": "^1.24.1",
+    "typescript": "^2.5.2",
+    "vinyl-source-stream": "^1.1.0"
+  }
+}
