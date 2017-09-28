@@ -7,7 +7,6 @@ const typescript = require('rollup-plugin-typescript');
 function build(options, dir, file) {
     let stream = rollup(Object.assign({
         strict: true,
-        exports: 'named',
         format: 'umd',
         rollup: require('rollup'),
         plugins: [
@@ -31,12 +30,10 @@ gulp.task('default', () => {
         build({
             input: './plugins/animation.ts',
             name: 'MalevicAnimation',
-            exports: 'default'
         }, './plugins/', 'animation.js'),
         build({
             input: './plugins/svg.ts',
             name: 'MalevicSVG',
-            exports: 'default'
         }, './plugins/', 'svg.js')
     );
 });

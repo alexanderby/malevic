@@ -28,7 +28,7 @@ import animationPlugin, { animate } from '../plugins/animation';
         count: number;
         onIncrement: () => void;
     }) {
-        return html('div', { class: 'component' },
+        return html('div', { class: 'view' },
             Heading(`Count: ${props.count}`),
             Button({
                 onClick: props.onIncrement,
@@ -94,7 +94,6 @@ animationPlugin(malevic);
         )
     }
 
-    const target = document.getElementById('svg-animation');
     const curve1 = [
         { x: 10, y: 50 },
         { x: 30, y: 50 },
@@ -107,8 +106,9 @@ animationPlugin(malevic);
         { x: 60, y: 60 },
         { x: 90, y: 90 }
     ];
-
     let points = curve1;
+
+    const target = document.getElementById('svg-animation');
     render(target, Snake(points));
 
     setInterval(function () {

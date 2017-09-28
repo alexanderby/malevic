@@ -10,7 +10,8 @@ export function renderToString(declaration: NodeDeclaration) {
         const tag = d.tag;
         const attrs = Object.keys(d.attrs)
             .filter(key => (
-                (typeof d.attrs[key] === 'string') &&
+                (key !== 'data') &&
+                (key !== 'native') &&
                 (key.indexOf('on') !== 0)
             ))
             .map(key => ` ${key}="${d.attrs[key]}"`).join('');
