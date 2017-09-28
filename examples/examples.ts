@@ -1,6 +1,6 @@
 import malevic, { html, render } from '../index';
-import svgPlugin from '../plugins/svg';
-import animationPlugin, { animate } from '../plugins/animation';
+import svgPlugin from '../svg';
+import animationPlugin, { animate } from '../animation';
 
 // Core
 // --------------------------------------------

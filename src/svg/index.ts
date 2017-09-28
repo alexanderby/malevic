@@ -1,5 +1,5 @@
 import { SVG_TAGS, VOID_TAGS } from './tags';
-import malevic from '../../../index';
+import malevic from '../../index';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 

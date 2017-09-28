@@ -1,3 +1,4 @@
 *
 !index.js
-!plugins/**/*.js
+!animation.js
+!svg.js

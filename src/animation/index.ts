@@ -1,5 +1,5 @@
 import { interpolateNumbers, interpolateNumbersInString } from './interpolate';
-import malevic from '../../../index';
+import malevic from '../../index';
 
 export default function animationPlugin(lib: typeof malevic) {
     const getAttrs = lib.getAttrs;

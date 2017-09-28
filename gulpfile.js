@@ -28,13 +28,13 @@ gulp.task('default', () => {
             name: 'Malevic'
         }, './', 'index.js'),
         build({
-            input: './plugins/animation.ts',
+            input: './animation.ts',
             name: 'MalevicAnimation',
-        }, './plugins/', 'animation.js'),
+        }, './', 'animation.js'),
         build({
-            input: './plugins/svg.ts',
+            input: './svg.ts',
             name: 'MalevicSVG',
-        }, './plugins/', 'svg.js')
+        }, './', 'svg.js')
     );
 });
 

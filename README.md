@@ -4,7 +4,7 @@
 
 > Minimalistic reactive UI library
 
-As simple as possible 4KB minified.
+As simple as possible. Extendable. 4KB minified.
 
 ### Simple example
 
@@ -60,8 +60,8 @@ setState({ count: 0 });
 
 ```javascript
 import malevic, { html, render } from 'malevic';
-import svgPlugin from 'malevic/plugins/svg';
-import animationPlugin, { animate } from 'malevic/plugins/animation';
+import svgPlugin from 'malevic/svg';
+import animationPlugin, { animate } from 'malevic/animation';
 
 svgPlugin(malevic);
 animationPlugin(malevic);
