@@ -1,6 +1,38 @@
 import { interpolateNumbers, interpolateNumbersInString } from './interpolate';
 import malevic from '../../../index';
 
+export default function animationPlugin(lib: typeof malevic) {
+    const getAttrs = lib.getAttrs;
+    lib.plugins.render.setAttribute.add(({ element, attr, value }) => {
+        if (!(value instanceof AnimationDeclaration)) {
+            clearAnimation(element, attr);
+            return null;
+        }
+        const animated = animations.get(element);
+        if (animated && animated[attr]) {
+            const prev = animated[attr];
+            clearAnimation(element, attr);
+            scheduleAnimation(element, prev.lastValue, attr, value);
+            return true;
+        }
+        let prevValue = null;
+        if (value._from != null) {
+            prevValue = value._from;
+        } else {
+            const declaration = getAttrs(element)[attr];
+            if (declaration && declaration._to != null) {
+                prevValue = declaration._to;
+            }
+        }
+        scheduleAnimation(element, prevValue, attr, value);
+        return true;
+    });
+}
+
+export function animate(to: any) {
+    return new AnimationDeclaration(null, to);
+}
+
 const animations = new WeakMap<Element, { [attr: string]: Animation }>();
 const scheduledAnimations = new Map<Animation, boolean>();
 
@@ -12,6 +44,10 @@ function scheduleAnimation(element: Element, from: any, attr: string, props: Ani
     if (!animated) {
         animated = {};
         animations.set(element, animated);
+    }
+    if (from == null) {
+        setAttr(element, attr, props._to);
+        return;
     }
     animated[attr] = new Animation(element, from, attr, props, () => {
         clearAnimation(element, attr);
@@ -81,18 +117,6 @@ class AnimationDeclaration {
         this._easing = easing;
         return this;
     }
-
-    static animate(to: any) {
-        return new AnimationDeclaration(null, to);
-    }
-
-    static from(from: any) {
-        return {
-            to(to: any) {
-                return new AnimationDeclaration(from, to);
-            }
-        };
-    }
 }
 
 // Todo: easing function [0,1]->[0,1]
@@ -138,37 +162,3 @@ class Animation {
         return this.lastValue;
     }
 }
-let getAttrs: (element: Element) => { [attr: string]: any };
-
-interface Plugin {
-    (lib: typeof malevic): void;
-    animate?: typeof AnimationDeclaration.animate;
-    from?: typeof AnimationDeclaration.from;
-}
-
-const animationPlugin: Plugin = (lib: typeof malevic) => {
-    getAttrs = lib.getAttrs;
-    lib.plugins.render.setAttribute.add(({ element, attr, value }) => {
-        if (!(value instanceof AnimationDeclaration)) {
-            clearAnimation(element, attr);
-            return false;
-        }
-        const animated = animations.get(element);
-        if (animated) {
-            const prev = animated[attr];
-            clearAnimation(element, attr);
-            scheduleAnimation(element, prev.lastValue, attr, value);
-            return true;
-        }
-        const prevValue = value._from == null ? getAttrs(element)[attr] : value._from;
-        if (prevValue == null) {
-            return false;
-        }
-        scheduleAnimation(element, prevValue, attr, value);
-        return true;
-    });
-};
-animationPlugin.animate = AnimationDeclaration.animate;
-animationPlugin.from = AnimationDeclaration.from;
-
-export default animationPlugin;

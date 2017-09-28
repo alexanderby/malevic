@@ -5,7 +5,8 @@
   "author": "Alexander Shutov <shutovby@gmail.com> (http://shutov.by/)",
   "license": "MIT",
   "scripts": {
-    "build": "gulp"
+    "build": "gulp",
+    "dev": "gulp build-examples"
   },
   "devDependencies": {
     "gulp": "^3.9.1",

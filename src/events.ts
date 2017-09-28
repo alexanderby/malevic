@@ -15,19 +15,23 @@ export function addListener(node: Element, event: string, listener: DomEventList
         eventListeners.set(node, listeners);
     }
     if (listeners[event] !== listener) {
-        node.removeEventListener(event, listeners[event]);
+        if (event in listeners) {
+            node.removeEventListener(event, listeners[event]);
+        }
         node.addEventListener(event, listener);
         listeners[event] = listener;
     }
 }
 
-export function removeListener(node: Element, event: string, listener: DomEventListener) {
+export function removeListener(node: Element, event: string) {
     let listeners: EventListenersCollection;
     if (eventListeners.has(node)) {
         listeners = eventListeners.get(node);
     } else {
         return;
     }
-    node.removeEventListener(event, listeners[event]);
-    delete listeners[event];
+    if (event in listeners) {
+        node.removeEventListener(event, listeners[event]);
+        delete listeners[event];
+    }
 }

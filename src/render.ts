@@ -32,14 +32,40 @@ export const pluginsCreateElement = createPlugins<NodeDeclaration, Element>();
 pluginsCreateElement.add((d) => document.createElement(d.tag));
 
 export const pluginsSetAttribute = createPlugins<{ element: Element; attr: string; value: any; }, boolean>();
-pluginsSetAttribute.add(({ element, attr, value }) => {
-    if (value == null) {
-        element.removeAttribute(attr);
-    } else {
-        element.setAttribute(attr, String(value));
-    }
-    return true;
-});
+pluginsSetAttribute
+    .add(({ element, attr, value }) => {
+        if (value == null) {
+            element.removeAttribute(attr);
+        } else {
+            element.setAttribute(attr, String(value));
+        }
+        return true;
+    })
+    .add(({ attr, value }) => {
+        if (attr === 'native' && value === true) {
+            return true;
+        }
+        return null;
+    })
+    .add(({ element, attr, value }) => {
+        if (attr.indexOf('on') === 0) {
+            const event = attr.substring(2);
+            if (typeof value === 'function') {
+                addListener(element, event, value);
+            } else {
+                removeListener(element, event);
+            }
+            return true;
+        }
+        return null;
+    })
+    .add(({ element, attr, value }) => {
+        if (attr === 'data') {
+            setData(element, value);
+            return true;
+        }
+        return null;
+    });
 
 const elementsAttrs = new WeakMap<Element, { [attr: string]: any }>();
 
@@ -48,24 +74,18 @@ export function getAttrs(element: Element) {
 }
 
 function createNode(d: NodeDeclaration) {
-    const node = pluginsCreateElement.apply(d);
-    const nodeAttrs = {};
-    elementsAttrs.set(node, nodeAttrs);
-    Object.keys(d.attrs).forEach(key => {
-        const value = d.attrs[key];
+    const element = pluginsCreateElement.apply(d);
+    const elementAttrs = {};
+    elementsAttrs.set(element, elementAttrs);
+    Object.keys(d.attrs).forEach((attr) => {
+        const value = d.attrs[attr];
         if (value == null) {
             return;
         }
-        if (key === 'data') {
-            setData(node, value);
-        } else if (key.indexOf('on') === 0 && typeof value === 'function') {
-            addListener(node, key.substring(2), value);
-        } else if (key !== 'native') {
-            pluginsSetAttribute.apply({ element: node, attr: key, value });
-            nodeAttrs[key] = value;
-        }
+        pluginsSetAttribute.apply({ element, attr, value });
+        elementAttrs[attr] = value;
     });
-    return node;
+    return element;
 }
 
 function iterate(
@@ -92,6 +112,8 @@ function iterate(
         }
         return null;
     } else {
+        d.attrs = d.attrs || {};
+        d.children = d.children || [];
         const existing = parentNode.childNodes.item(index) as Element;
         if (!(
             existing &&
@@ -120,19 +142,9 @@ function iterate(
         });
         attrNames.forEach((key) => {
             const value = d.attrs[key];
-            if (key === 'data') {
-                setData(existing, value);
-            } else if (key.indexOf('on') === 0) {
-                if (typeof value === 'function') {
-                    addListener(existing, key.substring(2), value);
-                } else {
-                    removeListener(existing, key.substring(2), value);
-                }
-            } else if (key !== 'native') {
-                if (existingAttrs[key] !== value) {
-                    pluginsSetAttribute.apply({ element: existing, attr: key, value });
-                    existingAttrNames[key] = value;
-                }
+            if (existingAttrs[key] !== value) {
+                pluginsSetAttribute.apply({ element: existing, attr: key, value });
+                existingAttrs[key] = value;
             }
         });
 
@@ -147,5 +159,8 @@ function iterate(
 }
 
 export function render(target: Element, declaration: NodeDeclaration | string) {
+    if (!(target instanceof Element)) {
+        throw new Error('Wrong rendering target');
+    }
     walkTree(declaration, target, iterate);
 }

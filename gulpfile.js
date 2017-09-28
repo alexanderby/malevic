@@ -40,3 +40,14 @@ gulp.task('default', () => {
         }, './plugins/', 'svg.js')
     );
 });
+
+gulp.task('build-examples', () => {
+    merge(
+        build({
+            input: './examples/examples.ts',
+            format: 'iife',
+            exports: 'none',
+            sourcemap: true
+        }, './examples/', 'examples.js')
+    );
+});

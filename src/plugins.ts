@@ -7,6 +7,7 @@ export function createPlugins<P, R>() {
     return {
         add(plugin: Plugin<P, R>) {
             plugins.push(plugin);
+            return this;
         },
         apply(props: P): R {
             let result: R;

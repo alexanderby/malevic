@@ -4,7 +4,7 @@ import { createPlugins } from './plugins';
 export const pluginsIsVoidTag = createPlugins<string, boolean>();
 pluginsIsVoidTag.add((tag) => tag in VOID_TAGS);
 
-export function renderToStaticMarkup(declaration: NodeDeclaration) {
+export function renderToString(declaration: NodeDeclaration) {
 
     function buildHtml(d: NodeDeclaration, tabs: string) {
         const tag = d.tag;

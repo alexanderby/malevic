@@ -19,7 +19,7 @@ function getNumPositions(line: string) {
     const regexp = createNumRegExp();
     let match: RegExpExecArray;
     while (match = regexp.exec(line)) {
-        positions.push({ index: match.index, length: match.length });
+        positions.push({ index: match.index, length: match[0].length });
     }
     return positions;
 }

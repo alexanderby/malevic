@@ -20,6 +20,6 @@ export default function svgPlugin(lib: typeof malevic) {
     });
 
     lib.plugins.static.isVoidTag.add((tag) => {
-        return tag in VOID_TAGS;
+        return tag in VOID_TAGS ? true : null;
     });
 }
