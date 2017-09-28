@@ -1,6 +1,6 @@
 # Malevič.js
 
-![Malevič.js logo](examples/malevic-js.png)
+![Malevič.js logo](examples/malevic-js.svg)
 
 > Minimalistic reactive UI library
 
