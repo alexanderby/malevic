@@ -1,10 +1,11 @@
 # Malevič.js
 
+> Minimalistic reactive UI library.
+> As simple as possible.
+> Extendable.
+> 4KB minified.
+
 ![Malevič.js logo](examples/malevic-js.svg)
-
-> Minimalistic reactive UI library
-
-As simple as possible. Extendable. 4KB minified.
 
 ### Simple example
 
@@ -122,11 +123,11 @@ setInterval(function () {
 
 ### JSX
 
-Should work with JSX (though not tested) using `html` pragma.
+Works with JSX using `html` pragma.
 
 ```jsx
 import { html, render } from 'malevic';
-function Button(text, onClick) {
+function Button({text, onClick}) {
     return (
         <button class="btn" onclick={onClick}>
             {text}
