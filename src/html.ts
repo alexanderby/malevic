@@ -17,7 +17,7 @@ export function html(
         return { tag: tagOrComponent, attrs, children: normalized };
     }
     if (typeof tagOrComponent === 'function') {
-        return tagOrComponent(attrs, ...children);
+        return tagOrComponent(attrs, ...normalized);
     }
     return null;
 }
