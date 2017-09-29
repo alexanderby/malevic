@@ -1,13 +1,18 @@
 # Malevič.js
 
-> Minimalistic reactive UI library.
-> As simple as possible.
-> Extendable.
-> 4KB minified.
+Minimalistic reactive UI library.
+As simple as possible.
+Extendable.
+*4KB minified*.
 
 ![Malevič.js logo](examples/malevic-js.svg)
 
-### Simple example
+## Basic example
+
+- `html()` function creates DOM element declaration that looks like `{tag, attrs, children}`.
+- `render()` function renders nodes inside a DOM element.
+If differences with existing DOM nodes are found,
+necessary nodes or attributes are replaced.
 
 ```javascript
 import { html, render } from 'malevic';
@@ -57,9 +62,14 @@ function setState(newState) {
 setState({ count: 0 });
 ```
 
-### SVG and Animation plugins
+## SVG and Animation plug-ins + JSX
 
-```javascript
+There are some built-in plug-ins.
+- **SVG plug-in** simply creates elements in SVG namespace.
+- **Animation plugin** makes it possible to schedule animations.
+- `html` pragma should be used to make it work with **JSX**.
+
+```jsx
 import malevic, { html, render } from 'malevic';
 import svgPlugin from 'malevic/svg';
 import animationPlugin, { animate } from 'malevic/animation';
@@ -70,32 +80,30 @@ animationPlugin(malevic);
 const DURATION = 1000;
 
 function Circle({ x, y }) {
-    return html('circle', {
-        cx: animate(x).duration(DURATION),
-        cy: animate(y).duration(DURATION),
-        r: 5,
-        fill: '#567'
-    });
+    return (
+        <circle
+            cx={animate(x).duration(DURATION)}
+            cy={animate(y).duration(DURATION)}
+            r={5}
+            fill='#567'
+        />
+    );
 }
 
-function Snake(points) {
+function Snake({ points }) {
     const [p0, c0, c1, p1] = points;
     const p = ({ x, y }) => `${x},${y}`;
-    return html('svg',
-        {
-            width: 100,
-            height: 100
-        },
-        html('path', {
-            d: animate(`M${p(p0)} C${p(c0)} ${p(c1)} ${p(p1)}`)
-                .duration(DURATION),
-            fill: 'none',
-            stroke: '#234',
-            'stroke-width': 4
-        }),
-        Circle(p0),
-        Circle(p1),
-    )
+    return <svg width={100} height={100}>
+        <path
+            d={animate(`M${p(p0)} C${p(c0)} ${p(c1)} ${p(p1)}`)
+                .duration(DURATION)}
+            fill='none'
+            stroke='#234'
+            stroke-width={4}
+        />
+        <Circle x={p0.x} y={p0.y} />
+        <Circle x={p1.x} y={p1.y} />
+    </svg>
 }
 
 const curve1 = [
@@ -113,31 +121,28 @@ const curve2 = [
 let points = curve1;
 
 const target = document.getElementById('svg-animation');
-render(target, Snake(points));
 
+function draw() {
+    render(target, <Snake points={points} />);
+}
+
+draw();
 setInterval(function () {
     points = points === curve1 ? curve2 : curve1;
-    render(target, Snake(points));
+    draw();
 }, DURATION);
 ```
 
-### JSX
+## Listening to events
 
-Works with JSX using `html` pragma.
+If attribute starts with `on`,
+the corresponding event listener is added
+(or removed if value is `null`) to DOM element.
 
-```jsx
-import { html, render } from 'malevic';
-function Button({text, onClick}) {
-    return (
-        <button class="btn" onclick={onClick}>
-            {text}
-        </button>
-    );
-}
-render(document.body, <Button text="Alert" onClick={(e) => alert(e.button)} />);
-```
+## Assigning data to element
 
-### Assign data to element
+`data` attribute assigns data to DOM element.
+It can be retrieved in event handlers by calling `getData(domElement)`.
 
 ```javascript
 import { html, getData } from 'malevic';
@@ -159,7 +164,10 @@ function List(props) {
 }
 ```
 
-### Server-side rendering
+## Server-side rendering
+
+Malevič.js can simply render inside existing HTML
+without unnecessary DOM tree modifications.
 
 ```javascript
 import { html, renderToString, classes } from 'malevic';
@@ -172,10 +180,15 @@ const declaration = Icon({cls: 'x-icon'});
 const markup = renderToString(declaration);
 ```
 
-### Plug-ins
+## Plug-ins
+
+There is API for adding custom logic
+and making things more complex.
+- `Plugins.add()` method extends plugins list.
+- If plugin returns `null` or `undefined` the next plugin (added earlier) will be used.
 
 ```javascript
-import { plugins } from 'malevic';
+import { plugins, classes } from 'malevic';
 
 const map = new WeakMap();
 
@@ -188,8 +201,8 @@ plugins.render.setAttribute
         return null;
     })
     .add(function ({element, attr, value}) {
-        if (attr === 'active') {
-            element.classList.toggle('x-active', value);
+        if (attr === 'class' && typeof value === 'object') {
+            element.setAttribute('class', classes(value));
             return true;
         }
         return null;

@@ -83,10 +83,15 @@ gulp.task('default', () => {
 gulp.task('build-examples', () => {
     merge(
         build({
-            input: './examples/examples.ts',
+            input: './examples/examples.tsx',
             format: 'iife',
             exports: 'none',
-            sourcemap: true
-        }, './examples/', 'examples.js')
+            sourcemap: 'inline'
+        }, './examples/', 'examples.js', {
+                ts: {
+                    jsx: 'react',
+                    jsxFactory: 'html'
+                }
+            })
     );
 });
