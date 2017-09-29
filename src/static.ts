@@ -4,17 +4,39 @@ import { createPlugins } from './plugins';
 export const pluginsIsVoidTag = createPlugins<string, boolean>();
 pluginsIsVoidTag.add((tag) => tag in VOID_TAGS);
 
+export const pluginsSkipAttr = createPlugins<string, boolean>();
+pluginsSkipAttr.add((attr) => (
+    attr === 'data' ||
+    attr === 'native' ||
+    attr.indexOf('on') === 0
+));
+
+function escapeHtml(s) {
+    return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+export const pluginsStringifyAttr = createPlugins<{ attr: string; value: any; }, string>();
+pluginsStringifyAttr.add(({ value }) => escapeHtml(value));
+
+export const pluginsProcessText = createPlugins<string, string>();
+pluginsProcessText.add((text) => escapeHtml(text));
+
 export function renderToString(declaration: NodeDeclaration) {
 
     function buildHtml(d: NodeDeclaration, tabs: string) {
         const tag = d.tag;
         const attrs = Object.keys(d.attrs)
-            .filter(key => (
-                (key !== 'data') &&
-                (key !== 'native') &&
-                (key.indexOf('on') !== 0)
-            ))
-            .map(key => ` ${key}="${d.attrs[key]}"`).join('');
+            .filter((key) => pluginsSkipAttr.apply(key))
+            .map((key) => {
+                const value = pluginsStringifyAttr.apply({ attr: key, value: d.attrs[key] });
+                return ` ${key}="${value}"`;
+            })
+            .join('');
 
         const isVoidTag = pluginsIsVoidTag.apply(tag);
         if (isVoidTag) {
@@ -23,9 +45,9 @@ export function renderToString(declaration: NodeDeclaration) {
 
         let htmlText = `${tabs}<${tag}${attrs}>`;
         let shouldIndentClosingTag = false;
-        d.children.forEach(c => {
+        d.children.forEach((c) => {
             if (typeof c === 'string') {
-                htmlText += c;
+                htmlText += pluginsProcessText.apply(c);
             } else {
                 shouldIndentClosingTag = true;
                 htmlText += `\n${buildHtml(c, `${tabs}    `)}`;

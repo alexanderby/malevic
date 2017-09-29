@@ -28,6 +28,12 @@ export default function animationPlugin(lib: typeof malevic) {
         scheduleAnimation(element, prevValue, attr, value);
         return true;
     });
+    lib.plugins.static.stringifyAttr.add(({ value }) => {
+        if (value instanceof AnimationDeclaration) {
+            return value._to;
+        }
+        return null;
+    });
 }
 
 export function animate(to: any) {

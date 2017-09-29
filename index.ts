@@ -5,7 +5,7 @@ export { getData } from './src/data';
 export { renderToString } from './src/static';
 
 import { pluginsCreateElement, pluginsSetAttribute } from './src/render';
-import { pluginsIsVoidTag } from './src/static';
+import { pluginsIsVoidTag, pluginsSkipAttr, pluginsStringifyAttr, pluginsProcessText } from './src/static';
 
 export const plugins = {
     render: {
@@ -13,7 +13,10 @@ export const plugins = {
         setAttribute: pluginsSetAttribute
     },
     static: {
-        isVoidTag: pluginsIsVoidTag
+        isVoidTag: pluginsIsVoidTag,
+        skipAttr: pluginsSkipAttr,
+        stringifyAttr: pluginsStringifyAttr,
+        processText: pluginsProcessText
     }
 };
 
