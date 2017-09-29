@@ -126,7 +126,6 @@ class AnimationDeclaration {
     }
 }
 
-// Todo: easing function [0,1]->[0,1]
 class Animation {
     element: Element;
     attr: string;
