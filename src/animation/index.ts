@@ -1,4 +1,5 @@
 import { interpolateNumbers, interpolateNumbersInString } from './interpolate';
+import { easing, createEasingFunction } from './easing';
 import malevic from '../../index';
 
 export default function animationPlugin(lib: typeof malevic) {
@@ -100,20 +101,20 @@ function setAttr(element: Element, attr: string, value: any) {
 
 class AnimationDeclaration {
     _duration: number;
-    _easing: string;
+    _easing: string | number[];
     _from: any;
     _to: any;
     constructor(from: any, to: any) {
         this._from = from;
         this._to = to;
         this._duration = 750;
-        this._easing = 'ease-in-out';
+        this._easing = 'ease';
     }
     duration(duration: number) {
         this._duration = duration;
         return this;
     }
-    easing(easing: string) {
+    easing(easing: string | number[]) {
         this._easing = easing;
         return this;
     }
@@ -129,11 +130,14 @@ class Animation {
     startTime: number;
     lastValue: any;
     interpolate: (t: number) => any;
+    easing: string | number[];
+    ease: (t: number) => number;
     finished: () => void;
     constructor(element: Element, from: any, attr: string, props: AnimationDeclaration, finished: () => void) {
         this.element = element;
         this.attr = attr;
         this.duration = props._duration;
+        this.easing = props._easing;
         this.from = from;
         this.to = props._to;
         this.finished = finished;
@@ -149,12 +153,18 @@ class Animation {
             default:
                 throw new Error('Unable to animate value');
         }
+        if (Array.isArray(this.easing)) {
+            this.ease = createEasingFunction([0, this.easing[0], this.easing[1], 1]);
+        } else {
+            this.ease = easing[this.easing];
+        }
         this.startTime = now;
     }
     tick(now: number) {
         const start = this.startTime;
         const duration = this.duration;
-        const t = Math.min(1, (now - start) / duration);
+        const q = Math.min(1, (now - start) / duration);
+        const t = this.ease(q);
         if (t === 1) {
             this.finished();
         }
