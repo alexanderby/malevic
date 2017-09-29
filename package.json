@@ -1,6 +1,6 @@
 {
   "name": "malevic",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Malevič.js - minimalistic reactive UI library",
   "author": "Alexander Shutov <shutovby@gmail.com> (http://shutov.by/)",
   "license": "MIT",
