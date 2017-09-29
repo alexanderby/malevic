@@ -182,10 +182,7 @@ const map = new WeakMap();
 plugins.render.setAttribute
     .add(function ({element, attr, value}) {
         if (attr === 'data') {
-            const values = map.get(element) || {};
-            map.set(element, Object.assign(values, {
-                [attr]: value
-            }));
+            map.set(element, data);
             return true;
         }
         return null;
