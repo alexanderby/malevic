@@ -3,17 +3,26 @@ const merge = require('merge-stream');
 const rollup = require('rollup-stream');
 const source = require('vinyl-source-stream');
 const typescript = require('rollup-plugin-typescript');
+const package = require('./package');
 
-function build(options, dir, file) {
+const date = (new Date()).toLocaleDateString('en-us', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+const banner = `/* ${package.name}@${package.version} - ${date} */`;
+
+function build(options, dir, file, { ts = {}, uglify = false } = {}) {
     let stream = rollup(Object.assign({
         strict: true,
         format: 'umd',
+        banner,
         rollup: require('rollup'),
         plugins: [
-            require('rollup-plugin-typescript')({
-                typescript: require('typescript')
-            })
-        ]
+            require('rollup-plugin-typescript')(Object.assign({
+                typescript: require('typescript'),
+                removeComments: true
+            }, ts)),
+            uglify ? require('rollup-plugin-uglify')({
+                output: { preamble: banner }
+            }) : null
+        ].filter((p) => p)
     }, options));
 
     return stream
@@ -23,18 +32,51 @@ function build(options, dir, file) {
 
 gulp.task('default', () => {
     merge(
+
         build({
-            input: './index.ts',
+            input: './entries/index.ts',
+            format: 'es',
+        }, './', 'index.js', { ts: { target: 'es6' } }),
+        build({
+            input: './entries/index-umd.ts',
+            format: 'umd',
             name: 'Malevic'
-        }, './', 'index.js'),
+        }, './umd', 'index.js'),
         build({
-            input: './animation.ts',
-            name: 'MalevicAnimation',
-        }, './', 'animation.js'),
+            input: './entries/index-umd.ts',
+            format: 'umd',
+            name: 'Malevic'
+        }, './umd', 'index.min.js', { uglify: true }),
+
         build({
-            input: './svg.ts',
-            name: 'MalevicSVG',
-        }, './', 'svg.js')
+            input: './entries/animation.ts',
+            format: 'es',
+        }, './', 'animation.js', { ts: { target: 'es6' } }),
+        build({
+            input: './entries/animation-umd.ts',
+            format: 'umd',
+            name: 'MalevicAnimation'
+        }, './umd', 'animation.js'),
+        build({
+            input: './entries/animation-umd.ts',
+            format: 'umd',
+            name: 'MalevicAnimation'
+        }, './umd', 'animation.min.js', { uglify: true }),
+
+        build({
+            input: './entries/svg.ts',
+            format: 'es',
+        }, './', 'svg.js', { ts: { target: 'es6' } }),
+        build({
+            input: './entries/svg.ts',
+            format: 'umd',
+            name: 'MalevicSVG'
+        }, './umd', 'svg.js'),
+        build({
+            input: './entries/svg.ts',
+            format: 'umd',
+            name: 'MalevicSVG'
+        }, './umd', 'svg.min.js', { uglify: true })
     );
 });
 

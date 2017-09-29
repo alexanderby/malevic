@@ -15,11 +15,14 @@
   "bugs": {
     "url": "https://github.com/alexanderby/malevic/issues"
   },
+  "main": "umd/index.js",
+  "module": "index.js",
   "devDependencies": {
     "gulp": "^3.9.1",
     "merge-stream": "^1.0.1",
     "rollup": "^0.50.0",
     "rollup-plugin-typescript": "^0.8.1",
+    "rollup-plugin-uglify": "^2.0.1",
     "rollup-stream": "^1.24.1",
     "typescript": "^2.5.2",
     "vinyl-source-stream": "^1.1.0"

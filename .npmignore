@@ -2,3 +2,7 @@
 !index.js
 !animation.js
 !svg.js
+!cjs/**
+!umd/**
+!examples/**
+examples/*.ts
