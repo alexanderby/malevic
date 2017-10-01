@@ -9,7 +9,7 @@ export default function animationPlugin(lib: typeof malevic) {
             clearAnimation(element, attr);
             return null;
         }
-        const animated = animations.get(element);
+        const animated = elementsAnimations.get(element);
         if (animated && animated[attr]) {
             const prev = animated[attr];
             clearAnimation(element, attr);
@@ -17,13 +17,11 @@ export default function animationPlugin(lib: typeof malevic) {
             return true;
         }
         let prevValue = null;
-        if (value._from != null) {
+        const prevDeclaration = getAttrs(element)[attr];
+        if (prevDeclaration && prevDeclaration._to != null) {
+            prevValue = prevDeclaration._to;
+        } else if (value._from != null) {
             prevValue = value._from;
-        } else {
-            const declaration = getAttrs(element)[attr];
-            if (declaration && declaration._to != null) {
-                prevValue = declaration._to;
-            }
         }
         scheduleAnimation(element, prevValue, attr, value);
         return true;
@@ -40,17 +38,17 @@ export function animate(to: any) {
     return new AnimationDeclaration(null, to);
 }
 
-const animations = new WeakMap<Element, { [attr: string]: Animation }>();
+const elementsAnimations = new WeakMap<Element, { [attr: string]: Animation }>();
 const scheduledAnimations = new Map<Animation, boolean>();
 
 let frameId: number = null;
 let currentFrameTime: number = null;
 
 function scheduleAnimation(element: Element, from: any, attr: string, props: AnimationDeclaration) {
-    let animated = animations.get(element);
+    let animated = elementsAnimations.get(element);
     if (!animated) {
         animated = {};
-        animations.set(element, animated);
+        elementsAnimations.set(element, animated);
     }
     if (from == null) {
         setAttr(element, attr, props._to);
@@ -84,16 +82,17 @@ function requestFrame() {
 }
 
 function clearAnimation(element: Element, attr: string) {
-    const animated = animations.get(element);
+    const animated = elementsAnimations.get(element);
     if (animated) {
         scheduledAnimations.delete(animated[attr]);
         delete animated[attr];
         if (Object.keys(animated).length === 0) {
-            animations.delete(element);
+            elementsAnimations.delete(element);
         }
     }
     if (frameId && scheduledAnimations.size === 0) {
         cancelAnimationFrame(frameId);
+        frameId = null;
     }
 }
 
@@ -122,6 +121,10 @@ class AnimationDeclaration {
     }
     easing(easing: string | number[]) {
         this._easing = easing;
+        return this;
+    }
+    initial(from: any) {
+        this._from = from;
         return this;
     }
 }

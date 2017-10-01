@@ -62,30 +62,38 @@ animationPlugin(malevic);
 
     const DURATION = 1000;
 
-    function Circle({ x, y }) {
+    function Circle({ x, y, x0, y0 }) {
         return (
             <circle
-                cx={animate(x).duration(DURATION)}
-                cy={animate(y).duration(DURATION)}
+                cx={animate(x).initial(x0).duration(DURATION)}
+                cy={animate(y).initial(y0).duration(DURATION)}
                 r={5}
                 fill='#567'
             />
         );
     }
 
+    function getCurve(p: { x, y }[]) {
+        return [
+            `M${p[0].x},${p[0].y}`,
+            `C${p[1].x},${p[1].y}`,
+            `${p[2].x},${p[2].y}`,
+            `${p[3].x},${p[3].y}`
+        ].join(' ');
+    }
+
     function Snake({ points }) {
-        const [p0, c0, c1, p1] = points;
-        const p = ({ x, y }) => `${x},${y}`;
         return <svg width={100} height={100}>
             <path
-                d={animate(`M${p(p0)} C${p(c0)} ${p(c1)} ${p(p1)}`)
+                d={animate(getCurve(points))
+                    .initial(getCurve(curve1))
                     .duration(DURATION)}
                 fill='none'
                 stroke='#234'
                 stroke-width={4}
             />
-            <Circle x={p0.x} y={p0.y} />
-            <Circle x={p1.x} y={p1.y} />
+            <Circle x={points[0].x} y={points[0].y} x0={curve1[0].x} y0={curve1[0].y} />
+            <Circle x={points[3].x} y={points[3].y} x0={curve1[3].x} y0={curve1[3].y} />
         </svg>
     }
 
@@ -101,7 +109,7 @@ animationPlugin(malevic);
         { x: 60, y: 60 },
         { x: 90, y: 90 }
     ];
-    let points = curve1;
+    let points = curve2;
 
     const target = document.getElementById('svg-animation');
 
