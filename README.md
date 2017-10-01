@@ -164,6 +164,29 @@ function List(props) {
 }
 ```
 
+## Lifecycle management
+
+- `didmount` handler will be invoked after DOM node is created and appended to parent.
+- `didupdate` handler will be invoked after all attributes of existing DOM node were synchronized.
+- `willunmount` handler will be invoked be invoked before DOM node is removed.
+- `native` set to `true` will prevent Malevič.js from touching DOM node's children.
+
+```javascript
+function PrintSize() {
+    return (
+        <h4
+            native={true}
+            didmount={(domNode: Element) => {
+                const width = document.documentElement.clientWidth;
+                const height = document.documentElement.clientHeight;
+                render(domNode, `${width}x${height}`);
+            }}
+        ></h4>
+    );
+}
+render(document.body, <PrintSize />);
+```
+
 ## Server-side rendering
 
 Malevič.js can simply render inside existing HTML

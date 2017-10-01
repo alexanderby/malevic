@@ -10,5 +10,8 @@ export interface DomEventListener {
 
 export interface Attrs {
     native?: boolean;
+    didmount?: (el: Element) => void;
+    didupdate?: (el: Element) => void;
+    willunmount?: (el: Element) => void;
     [attr: string]: any | DomEventListener;
 }

@@ -21,12 +21,22 @@ function walkTree(
         node !== null &&
         Array.isArray(node.children)
     ) {
-        if ('native' in node.attrs) {
+        if (nativeContainers.has(result)) {
             return;
         }
         node.children.forEach((c, i) => walkTree(c, result, iteratee, i, node.children));
     }
 }
+
+const nativeContainers = new WeakMap<Element, boolean>();
+const didMountHandlers = new WeakMap<Element, (el: Element) => void>();
+const didUpdateHandlers = new WeakMap<Element, (el: Element) => void>();
+const willUnmountHandlers = new WeakMap<Element, (el: Element) => void>();
+const lifecycleHandlers: { [event: string]: WeakMap<Element, (el: Element) => void> } = {
+    'didmount': didMountHandlers,
+    'didupdate': didUpdateHandlers,
+    'willunmount': willUnmountHandlers
+};
 
 export const pluginsCreateElement = createPlugins<NodeDeclaration, Element>();
 pluginsCreateElement.add((d) => document.createElement(d.tag));
@@ -41,12 +51,6 @@ pluginsSetAttribute
         }
         return true;
     })
-    .add(({ attr, value }) => {
-        if (attr === 'native' && value === true) {
-            return true;
-        }
-        return null;
-    })
     .add(({ element, attr, value }) => {
         if (attr.indexOf('on') === 0) {
             const event = attr.substring(2);
@@ -54,6 +58,26 @@ pluginsSetAttribute
                 addListener(element, event, value);
             } else {
                 removeListener(element, event);
+            }
+            return true;
+        }
+        return null;
+    })
+    .add(({ element, attr, value }) => {
+        if (attr === 'native' && value === true) {
+            if (value === true) {
+                nativeContainers.set(element, true);
+            } else {
+                nativeContainers.delete(element);
+            }
+            return true;
+        }
+        if (attr in lifecycleHandlers) {
+            const handlers = lifecycleHandlers[attr];
+            if (value) {
+                handlers.set(element, value);
+            } else {
+                handlers.delete(element);
             }
             return true;
         }
@@ -123,9 +147,15 @@ function iterate(
             // Create new node
             const node = createNode(d);
             if (existing) {
+                if (willUnmountHandlers.has(existing)) {
+                    willUnmountHandlers.get(existing)(existing);
+                }
                 parentNode.replaceChild(node, existing);
             } else {
                 parentNode.appendChild(node);
+            }
+            if (didMountHandlers.has(node)) {
+                didMountHandlers.get(node)(node);
             }
             return node;
         }
@@ -136,7 +166,7 @@ function iterate(
         const existingAttrNames = Object.keys(existingAttrs);
         existingAttrNames.forEach((key) => {
             if (!(key in d.attrs)) {
-                pluginsSetAttribute.apply({ element: null, attr: key, value: null });
+                pluginsSetAttribute.apply({ element: existing, attr: key, value: null });
                 delete existingAttrs[key];
             }
         });
@@ -147,11 +177,22 @@ function iterate(
                 existingAttrs[key] = value;
             }
         });
+        if (didUpdateHandlers.has(existing)) {
+            didUpdateHandlers.get(existing)(existing);
+        }
 
+        if (nativeContainers.has(existing)) {
+            return existing;
+        }
         // Remove overflown nodes
         const childNodes = existing.childNodes;
+        let child: Element;
         while (childNodes.length > d.children.length) {
-            existing.removeChild(childNodes.item(childNodes.length - 1));
+            child = childNodes.item(childNodes.length - 1) as Element;
+            if (willUnmountHandlers.has(child)) {
+                willUnmountHandlers.get(child)(child);
+            }
+            existing.removeChild(child);
         }
 
         return existing;

@@ -19,12 +19,26 @@ import animationPlugin, { animate } from '../entries/animation';
         );
     }
 
+    function PrintSize() {
+        return (
+            <h4
+                native={true}
+                didmount={(domNode: Element) => {
+                    const width = document.documentElement.clientWidth;
+                    const height = document.documentElement.clientHeight;
+                    render(domNode, `${width}x${height}`);
+                }}
+            ></h4>
+        );
+    }
+
     function View(props: {
         count: number;
         onIncrement: () => void;
     }) {
         return (
             <div class='view'>
+                <PrintSize />
                 <Heading text={`Count: ${props.count}`} />
                 <Button
                     onClick={props.onIncrement}
