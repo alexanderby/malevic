@@ -65,8 +65,8 @@ setState({ count: 0 });
 ## SVG and Animation plug-ins + JSX
 
 There are some built-in plug-ins.
-- **SVG plug-in** simply creates elements in SVG namespace.
-- **Animation plugin** makes it possible to schedule animations.
+- **SVG plug-in** simply creates elements in SVG namespace using SVG tag name or `svg:` prefix (some SVG tags overlap with HTML tags).
+- **Animation plugin** makes it possible to schedule animations like `attr={animate(to).initial(from).duration(ms).easing('ease-in-out')}`.
 - `html` pragma should be used to make it work with **JSX**.
 
 ```jsx
@@ -209,6 +209,16 @@ There is API for adding custom logic
 and making things more complex.
 - `Plugins.add()` method extends plugins list.
 - If plugin returns `null` or `undefined` the next plugin (added earlier) will be used.
+
+### Extendable plug-ins:
+- `render.createElement` creates DOM node.
+- `render.mountElement` inserts created element into DOM.
+- `render.setAttribute` sets element attribute.
+- `render.unmountElement` removes element from DOM.
+- `static.isVoidTag` determines if self-closing tag should be used.
+- `static.processText` returns text content.
+- `static.skipAttr` determines whether attribute should be skipped.
+- `static.stringifyAttr` converts attribute to string.
 
 ```javascript
 import { plugins, classes } from 'malevic';

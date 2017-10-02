@@ -1,17 +1,22 @@
 import { NodeDeclaration } from './defs';
 import { createPlugins } from './plugins';
 
-export const pluginsIsVoidTag = createPlugins<string, boolean>();
-pluginsIsVoidTag.add((tag) => tag in VOID_TAGS);
+export const pluginsIsVoidTag = createPlugins<string, boolean>()
+    .add((tag) => tag in VOID_TAGS);
 
-export const pluginsSkipAttr = createPlugins<string, boolean>();
-pluginsSkipAttr.add((attr) => (
-    attr === 'data' ||
-    attr === 'native' ||
-    attr.indexOf('on') === 0
-));
+export const pluginsSkipAttr = createPlugins<string, boolean>()
+    .add((attr) => (
+        [
+            'data',
+            'native',
+            'didmount',
+            'didupdate',
+            'willunmount',
+        ].indexOf(attr) >= 0 ||
+        attr.indexOf('on') === 0
+    ));
 
-function escapeHtml(s) {
+export function escapeHtml(s) {
     return String(s)
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
@@ -20,11 +25,11 @@ function escapeHtml(s) {
         .replace(/'/g, '&#039;');
 }
 
-export const pluginsStringifyAttr = createPlugins<{ attr: string; value: any; }, string>();
-pluginsStringifyAttr.add(({ value }) => escapeHtml(value));
+export const pluginsStringifyAttr = createPlugins<{ attr: string; value: any; }, string>()
+    .add(({ value }) => escapeHtml(value));
 
-export const pluginsProcessText = createPlugins<string, string>();
-pluginsProcessText.add((text) => escapeHtml(text));
+export const pluginsProcessText = createPlugins<string, string>()
+    .add((text) => escapeHtml(text));
 
 export function renderToString(declaration: NodeDeclaration) {
 

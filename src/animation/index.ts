@@ -1,9 +1,10 @@
 import { interpolateNumbers, interpolateNumbersInString } from './interpolate';
 import { easing, createEasingFunction } from './easing';
-import malevic from '../../index';
+import malevic from '../index';
 
 export default function animationPlugin(lib: typeof malevic) {
     const getAttrs = lib.getAttrs;
+    const escapeHtml = lib.escapeHtml;
     lib.plugins.render.setAttribute.add(({ element, attr, value }) => {
         if (!(value instanceof AnimationDeclaration)) {
             clearAnimation(element, attr);
@@ -28,7 +29,12 @@ export default function animationPlugin(lib: typeof malevic) {
     });
     lib.plugins.static.stringifyAttr.add(({ value }) => {
         if (value instanceof AnimationDeclaration) {
-            return value._to;
+            if (value._from != null) {
+                return escapeHtml(value._from);
+            }
+            if (value._to != null) {
+                return escapeHtml(value._to);
+            }
         }
         return null;
     });

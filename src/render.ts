@@ -38,11 +38,22 @@ const lifecycleHandlers: { [event: string]: WeakMap<Element, (el: Element) => vo
     'willunmount': willUnmountHandlers
 };
 
-export const pluginsCreateElement = createPlugins<NodeDeclaration, Element>();
-pluginsCreateElement.add((d) => document.createElement(d.tag));
+export const pluginsCreateElement = createPlugins<NodeDeclaration, Element>()
+    .add((d) => document.createElement(d.tag));
 
-export const pluginsSetAttribute = createPlugins<{ element: Element; attr: string; value: any; }, boolean>();
-pluginsSetAttribute
+export const pluginsMountElement = createPlugins<{ element: Element; parent: Element; next: Node; }, boolean>()
+    .add(({ element, parent, next }) => {
+        parent.insertBefore(element, next);
+        return true;
+    });
+
+export const pluginsUnmountElement = createPlugins<{ element: Element; parent: Element; }, boolean>()
+    .add(({ element, parent }) => {
+        parent.removeChild(element);
+        return true;
+    });
+
+export const pluginsSetAttribute = createPlugins<{ element: Element; attr: string; value: any; }, boolean>()
     .add(({ element, attr, value }) => {
         if (value == null) {
             element.removeAttribute(attr);
@@ -139,6 +150,7 @@ function iterate(
         d.attrs = d.attrs || {};
         d.children = d.children || [];
         const existing = parentNode.childNodes.item(index) as Element;
+        let next: Node = null;
         if (!(
             existing &&
             existing instanceof Element &&
@@ -147,13 +159,14 @@ function iterate(
             // Create new node
             const node = createNode(d);
             if (existing) {
+                // Remove existing node
                 if (willUnmountHandlers.has(existing)) {
                     willUnmountHandlers.get(existing)(existing);
                 }
-                parentNode.replaceChild(node, existing);
-            } else {
-                parentNode.appendChild(node);
+                next = existing.nextSibling;
+                pluginsUnmountElement.apply({ element: existing, parent: parentNode });
             }
+            pluginsMountElement.apply({ element: node, parent: parentNode, next });
             if (didMountHandlers.has(node)) {
                 didMountHandlers.get(node)(node);
             }
@@ -181,10 +194,11 @@ function iterate(
             didUpdateHandlers.get(existing)(existing);
         }
 
+        // Remove overflown nodes
         if (nativeContainers.has(existing)) {
+            // Children of nodes marked as native should not be removed
             return existing;
         }
-        // Remove overflown nodes
         const childNodes = existing.childNodes;
         let child: Element;
         while (childNodes.length > d.children.length) {
@@ -192,7 +206,7 @@ function iterate(
             if (willUnmountHandlers.has(child)) {
                 willUnmountHandlers.get(child)(child);
             }
-            existing.removeChild(child);
+            pluginsUnmountElement.apply({ element: child, parent: existing });
         }
 
         return existing;
