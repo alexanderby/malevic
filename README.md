@@ -5,7 +5,7 @@ As simple as possible.
 Extendable.
 *4KB minified*.
 
-![Malevič.js logo](https://cdn.rawgit.com/alexanderby/malevic/master/logo.svg)
+![Malevič.js logo](logo-256x256.png)
 
 ## Basic example
 

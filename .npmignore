@@ -7,3 +7,4 @@
 
 !examples/**
 examples/*.js
+!logo-256x256.png
