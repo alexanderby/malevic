@@ -149,9 +149,9 @@ It is possible to get parent DOM node for tweaking children attibutes. For doing
 
 ```jsx
 function Tooltip({ text, cx, cy }) {
-    return (domNode: SVGSVGElement) => {
+    return (domNode) => {
         const temp = render(domNode, <text font-size={16}>{text}</text>);
-        const box = (temp as SVGTextElement).getBBox();
+        const box = temp.getBBox();
         return [
             <rect fill='#fe2'
                 x={cx - box.width / 2}
@@ -167,7 +167,7 @@ function Tooltip({ text, cx, cy }) {
     };
 }
 render(document.getElementById('lifecycle'), (
-    <svg width="100" height="50">
+    <svg width='100' height='50'>
         <Tooltip text='Hello' cx={50} cy={25} />
     </svg>
 ));
@@ -210,7 +210,7 @@ function PrintSize() {
     return (
         <h4
             native
-            didmount={(domNode: Element) => {
+            didmount={(domNode) => {
                 const width = document.documentElement.clientWidth;
                 const height = document.documentElement.clientHeight;
                 domNode.textContent = `${width}x${height}`;
