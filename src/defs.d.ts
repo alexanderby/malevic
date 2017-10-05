@@ -1,8 +1,12 @@
 export interface NodeDeclaration {
     tag: string;
     attrs: Attrs;
-    children: Array<NodeDeclaration | string>;
+    children: Array<ChildDeclaration | ChildFunction>;
 }
+
+export type ChildDeclaration = NodeDeclaration | string;
+
+export type ChildFunction = (parent: Element) => NodeDeclaration | string | (NodeDeclaration | string)[];
 
 export interface DomEventListener {
     (this: Element, e: Event): void;

@@ -53,7 +53,7 @@ export function renderToString(declaration: NodeDeclaration) {
         d.children.forEach((c) => {
             if (typeof c === 'string') {
                 htmlText += pluginsProcessText.apply(c);
-            } else {
+            } else if (typeof c !== 'function') {
                 shouldIndentClosingTag = true;
                 htmlText += `\n${buildHtml(c, `${tabs}    `)}`;
             }

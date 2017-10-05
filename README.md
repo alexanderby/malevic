@@ -3,7 +3,7 @@
 Minimalistic reactive UI library.
 As simple as possible.
 Extendable.
-*4KB minified*.
+*5KB minified*.
 
 ![Malevič.js logo](https://rawgit.com/alexanderby/malevic/master/logo-256x256.svg)
 
@@ -38,6 +38,10 @@ function Button(props) {
 function View(props) {
     return html('div', { class: 'view' },
         Heading(`Count: ${props.count}`),
+        (domNode) => {
+            const rect = domNode.getBoundingClientRect();
+            return Heading(`${rect.width}x${rect.height}`);
+        },
         Button({
             onClick: props.onIncrement,
             text: 'Increment'
@@ -107,15 +111,15 @@ function Snake({ points }) {
 }
 
 const curve1 = [
-    { x: 10, y: 50 },
-    { x: 30, y: 50 },
-    { x: 60, y: 40 },
+    { x: 10, y: 10 },
+    { x: 30, y: 40 },
+    { x: 70, y: 40 },
     { x: 90, y: 10 }
 ];
 const curve2 = [
-    { x: 10, y: 50 },
-    { x: 30, y: 50 },
-    { x: 60, y: 60 },
+    { x: 10, y: 90 },
+    { x: 30, y: 60 },
+    { x: 70, y: 60 },
     { x: 90, y: 90 }
 ];
 let points = curve1;
@@ -138,6 +142,36 @@ setInterval(function () {
 If attribute starts with `on`,
 the corresponding event listener is added
 (or removed if value is `null`) to DOM element.
+
+## Getting parent DOM node before rendering
+
+It is possible to get parent DOM node for tweaking children attibutes. For doing so a function returning declaration should be used instead of declaration.
+
+```jsx
+function Tooltip({ text, cx, cy }) {
+    return (domNode: SVGSVGElement) => {
+        const temp = render(domNode, <text font-size={16}>{text}</text>);
+        const box = (temp as SVGTextElement).getBBox();
+        return [
+            <rect fill='#fe2'
+                x={cx - box.width / 2}
+                y={cy - box.height / 2}
+                width={box.width}
+                height={box.height}
+            />,
+            <text font-size={16} text-anchor='middle'
+                x={cx}
+                y={cy - box.y - box.height / 2}
+            >{text}</text>
+        ];
+    };
+}
+render(document.getElementById('lifecycle'), (
+    <svg width="100" height="50">
+        <Tooltip text='Hello' cx={50} cy={25} />
+    </svg>
+));
+```
 
 ## Assigning data to element
 
@@ -171,15 +205,15 @@ function List(props) {
 - `willunmount` handler will be invoked be invoked before DOM node is removed.
 - `native` set to `true` will prevent Malevič.js from touching DOM node's children.
 
-```javascript
+```jsx
 function PrintSize() {
     return (
         <h4
-            native={true}
+            native
             didmount={(domNode: Element) => {
                 const width = document.documentElement.clientWidth;
                 const height = document.documentElement.clientHeight;
-                render(domNode, `${width}x${height}`);
+                domNode.textContent = `${width}x${height}`;
             }}
         ></h4>
     );
@@ -210,7 +244,7 @@ and making things more complex.
 - `Plugins.add()` method extends plugins list.
 - If plugin returns `null` or `undefined` the next plugin (added earlier) will be used.
 
-### Extendable plug-ins:
+Extendable plug-ins:
 - `render.createElement` creates DOM node.
 - `render.mountElement` inserts created element into DOM.
 - `render.setAttribute` sets element attribute.

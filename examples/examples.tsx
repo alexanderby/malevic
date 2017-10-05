@@ -22,11 +22,11 @@ import animationPlugin, { animate } from '../entries/animation';
     function PrintSize() {
         return (
             <h4
-                native={true}
+                native
                 didmount={(domNode: Element) => {
                     const width = document.documentElement.clientWidth;
                     const height = document.documentElement.clientHeight;
-                    render(domNode, `${width}x${height}`);
+                    render(domNode, `Window: ${width}x${height}`);
                 }}
             ></h4>
         );
@@ -37,8 +37,12 @@ import animationPlugin, { animate } from '../entries/animation';
         onIncrement: () => void;
     }) {
         return (
-            <div class='view'>
+            <div class='view' style='width: 300px; height: 200px;'>
                 <PrintSize />
+                {(domNode: Element) => {
+                    const rect = domNode.getBoundingClientRect();
+                    return <Heading text={`View: ${rect.width}x${rect.height}`} />;
+                }}
                 <Heading text={`Count: ${props.count}`} />
                 <Button
                     onClick={props.onIncrement}
@@ -112,15 +116,15 @@ animationPlugin(malevic);
     }
 
     const curve1 = [
-        { x: 10, y: 50 },
-        { x: 30, y: 50 },
-        { x: 60, y: 40 },
+        { x: 10, y: 10 },
+        { x: 30, y: 40 },
+        { x: 70, y: 40 },
         { x: 90, y: 10 }
     ];
     const curve2 = [
-        { x: 10, y: 50 },
-        { x: 30, y: 50 },
-        { x: 60, y: 60 },
+        { x: 10, y: 90 },
+        { x: 30, y: 60 },
+        { x: 70, y: 60 },
         { x: 90, y: 90 }
     ];
     let points = curve2;
@@ -136,5 +140,37 @@ animationPlugin(malevic);
         points = points === curve1 ? curve2 : curve1;
         draw();
     }, DURATION);
+
+})();
+
+// Lifecycle
+// ---------------------------------------
+
+(function () {
+
+    function Tooltip({ text, cx, cy }) {
+        return (domNode: SVGSVGElement) => {
+            const temp = render(domNode, <text font-size={16}>{text}</text>);
+            const box = (temp as SVGTextElement).getBBox();
+            return [
+                <rect fill='#fe2'
+                    x={cx - box.width / 2}
+                    y={cy - box.height / 2}
+                    width={box.width}
+                    height={box.height}
+                />,
+                <text font-size={16} text-anchor='middle'
+                    x={cx}
+                    y={cy - box.y - box.height / 2}
+                >{text}</text>
+            ];
+        };
+    }
+
+    render(document.getElementById('lifecycle'), (
+        <svg width="100" height="50">
+            <Tooltip text='Hello' cx={50} cy={25} />
+        </svg>
+    ));
 
 })();

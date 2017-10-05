@@ -1,11 +1,17 @@
-import { NodeDeclaration, DomEventListener, Attrs } from './defs';
+import {
+    NodeDeclaration,
+    ChildDeclaration,
+    ChildFunction,
+    DomEventListener,
+    Attrs
+} from './defs';
 
 export function html(
-    tagOrComponent: string | ((attrs) => NodeDeclaration),
+    tagOrComponent: string | ((attrs) => ChildDeclaration | ChildFunction | (ChildDeclaration | ChildFunction)[]),
     attrs: Attrs,
-    ...children: Array<NodeDeclaration | string | Array<NodeDeclaration | string>>
+    ...children: Array<ChildDeclaration | ChildFunction | (ChildDeclaration | ChildFunction)[]>
 ) {
-    const normalized: Array<NodeDeclaration | string> = [];
+    const normalized: Array<ChildDeclaration | ChildFunction> = [];
     children.forEach(c => {
         if (Array.isArray(c)) {
             c.forEach(c => normalized.push(c))
@@ -14,7 +20,7 @@ export function html(
         }
     });
     if (typeof tagOrComponent === 'string') {
-        return { tag: tagOrComponent, attrs, children: normalized };
+        return { tag: tagOrComponent, attrs, children: normalized } as NodeDeclaration;
     }
     if (typeof tagOrComponent === 'function') {
         return tagOrComponent(attrs, ...normalized);

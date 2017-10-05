@@ -1,31 +1,55 @@
 import { setData } from './data';
 import { addListener, removeListener } from './events';
-import { NodeDeclaration } from './defs';
+import { NodeDeclaration, ChildDeclaration, ChildFunction } from './defs';
 import { createPlugins } from './plugins';
 
 function walkTree(
-    node: NodeDeclaration | string,
+    d: NodeDeclaration | string,
     accumulator: Element,
     iteratee: (
         node: NodeDeclaration | string,
         accumulator: Element,
-        index: number,
-        siblings: (NodeDeclaration | string)[]
-    ) => Element,
-    index = 0,
-    siblings = [node]
+        index: number
+    ) => Node,
+    index = 0
 ) {
-    const result = iteratee(node, accumulator, index, siblings);
+    const element = iteratee(d, accumulator, index);
     if (
-        typeof node === 'object' &&
-        node !== null &&
-        Array.isArray(node.children)
+        typeof d === 'object' &&
+        d !== null &&
+        element instanceof Element &&
+        Array.isArray(d.children) &&
+        !nativeContainers.has(element)
     ) {
-        if (nativeContainers.has(result)) {
-            return;
+        let c: ChildDeclaration | ChildFunction;
+        let r: ChildDeclaration | ChildDeclaration[];
+        let declarations: ChildDeclaration[] = [];
+        for (let i = 0; i < d.children.length; i++) {
+            c = d.children[i];
+            if (typeof c === 'function') {
+                r = c(element);
+                if (Array.isArray(r)) {
+                    declarations.push(...r);
+                } else {
+                    declarations.push(r);
+                }
+            } else {
+                declarations.push(c);
+            }
         }
-        node.children.forEach((c, i) => walkTree(c, result, iteratee, i, node.children));
+        declarations.forEach((c, i) => walkTree(c, element, iteratee, i));
+
+        const childNodes = element.childNodes;
+        let child: Element;
+        while (childNodes.length > declarations.length) {
+            child = childNodes.item(childNodes.length - 1) as Element;
+            if (willUnmountHandlers.has(child)) {
+                willUnmountHandlers.get(child)(child);
+            }
+            pluginsUnmountElement.apply({ element: child, parent: element });
+        }
     }
+    return element;
 }
 
 const nativeContainers = new WeakMap<Element, boolean>();
@@ -126,8 +150,7 @@ function createNode(d: NodeDeclaration) {
 function iterate(
     d: NodeDeclaration | string,
     parentNode: Element,
-    index: number,
-    siblings: (NodeDeclaration | string)[]
+    index: number
 ) {
 
     for (let i = parentNode.childNodes.length, n; i >= 0; i--) {
@@ -145,7 +168,7 @@ function iterate(
         if (parentNode.textContent !== d) {
             parentNode.textContent = d;
         }
-        return null;
+        return parentNode.firstChild;
     } else {
         d.attrs = d.attrs || {};
         d.children = d.children || [];
@@ -194,21 +217,6 @@ function iterate(
             didUpdateHandlers.get(existing)(existing);
         }
 
-        // Remove overflown nodes
-        if (nativeContainers.has(existing)) {
-            // Children of nodes marked as native should not be removed
-            return existing;
-        }
-        const childNodes = existing.childNodes;
-        let child: Element;
-        while (childNodes.length > d.children.length) {
-            child = childNodes.item(childNodes.length - 1) as Element;
-            if (willUnmountHandlers.has(child)) {
-                willUnmountHandlers.get(child)(child);
-            }
-            pluginsUnmountElement.apply({ element: child, parent: existing });
-        }
-
         return existing;
     }
 }
@@ -217,5 +225,5 @@ export function render(target: Element, declaration: NodeDeclaration | string) {
     if (!(target instanceof Element)) {
         throw new Error('Wrong rendering target');
     }
-    walkTree(declaration, target, iterate);
+    return walkTree(declaration, target, iterate);
 }
