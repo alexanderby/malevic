@@ -1,6 +1,6 @@
 export { html } from './html';
 export { render, getAttrs } from './render';
-export { classes } from './classes';
+export { classes, styles } from './utils';
 export { getData } from './data';
 export { renderToString, escapeHtml } from './static';
 

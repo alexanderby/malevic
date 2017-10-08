@@ -99,7 +99,7 @@ export const pluginsSetAttribute = createPlugins<{ element: Element; attr: strin
         return null;
     })
     .add(({ element, attr, value }) => {
-        if (attr === 'native' && value === true) {
+        if (attr === 'native') {
             if (value === true) {
                 nativeContainers.set(element, true);
             } else {

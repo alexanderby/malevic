@@ -16,3 +16,10 @@ export function classes(
         });
     return classes.join(' ');
 }
+
+export function styles(declarations: { [cssProp: string]: string }) {
+    return Object.keys(declarations)
+        .filter((cssProp) => declarations[cssProp] != null)
+        .map((cssProp) => `${cssProp}: ${declarations[cssProp]};`)
+        .join(' ');
+}
