@@ -2,6 +2,7 @@ import { setData } from './data';
 import { addListener, removeListener } from './events';
 import { NodeDeclaration, ChildDeclaration, ChildFunction } from './defs';
 import { createPlugins } from './plugins';
+import { classes, styles } from './utils';
 
 function walkTree(
     d: NodeDeclaration | string,
@@ -121,6 +122,24 @@ export const pluginsSetAttribute = createPlugins<{ element: Element; attr: strin
     .add(({ element, attr, value }) => {
         if (attr === 'data') {
             setData(element, value);
+            return true;
+        }
+        return null;
+    })
+    .add(({ element, attr, value }) => {
+        if (attr === 'class' && typeof value === 'object' && value != null) {
+            if (Array.isArray(value)) {
+                element.setAttribute('class', classes(...value));
+            } else {
+                element.setAttribute('class', classes(value));
+            }
+            return true;
+        }
+        return null;
+    })
+    .add(({ element, attr, value }) => {
+        if (attr === 'style' && typeof value === 'object' && value != null) {
+            element.setAttribute('style', styles(value));
             return true;
         }
         return null;

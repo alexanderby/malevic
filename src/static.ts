@@ -1,5 +1,6 @@
 import { NodeDeclaration } from './defs';
 import { createPlugins } from './plugins';
+import { classes, styles } from './utils';
 
 export const pluginsIsVoidTag = createPlugins<string, boolean>()
     .add((tag) => tag in VOID_TAGS);
@@ -26,7 +27,23 @@ export function escapeHtml(s) {
 }
 
 export const pluginsStringifyAttr = createPlugins<{ attr: string; value: any; }, string>()
-    .add(({ value }) => escapeHtml(value));
+    .add(({ value }) => escapeHtml(value))
+    .add(({ attr, value }) => {
+        if (attr === 'class' && typeof value === 'object' && value != null) {
+            let cls: string;
+            if (Array.isArray(value)) {
+                cls = classes(...value);
+            } else {
+                cls = classes(value);
+            }
+            return escapeHtml(cls);
+        }
+    })
+    .add(({ attr, value }) => {
+        if (attr === 'style' && typeof value === 'object' && value != null) {
+            return escapeHtml(styles(value));
+        }
+    });
 
 export const pluginsProcessText = createPlugins<string, string>()
     .add((text) => escapeHtml(text));

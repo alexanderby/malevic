@@ -7,9 +7,8 @@ export function classes(
             if (typeof c === 'string') {
                 classes.push(c);
             } else if (typeof c === 'object') {
-                classes.push.apply(
-                    classes,
-                    Object.keys(c)
+                classes.push(
+                    ...Object.keys(c)
                         .filter((key) => Boolean(c[key]))
                 );
             }

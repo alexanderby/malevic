@@ -13,6 +13,9 @@ export interface DomEventListener {
 }
 
 export interface Attrs {
+    data?: any;
+    class?: string | { [cls: string]: any; } | (string | { [cls: string]: any; })[];
+    style?: string | { [prop: string]: any; };
     native?: boolean;
     didmount?: (el: Element) => void;
     didupdate?: (el: Element) => void;

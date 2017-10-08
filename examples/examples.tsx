@@ -1,4 +1,4 @@
-import malevic, { html, render, styles } from '../entries';
+import malevic, { html, render } from '../entries';
 import svgPlugin from '../entries/svg';
 import animationPlugin, { animate } from '../entries/animation';
 
@@ -39,7 +39,7 @@ import animationPlugin, { animate } from '../entries/animation';
         onIncrement: () => void;
     }) {
         return (
-            <div class='view' style={styles({ width: '300px', height: '200px' })}>
+            <div class='view' style={{ width: '300px', height: '200px' }}>
                 <PrintSize />
                 {(domNode: Element) => {
                     const rect = domNode.getBoundingClientRect();

@@ -227,10 +227,10 @@ Malevič.js can simply render inside existing HTML
 without unnecessary DOM tree modifications.
 
 ```javascript
-import { html, renderToString, classes } from 'malevic';
+import { html, renderToString } from 'malevic';
 function Icon(props) {
     return html('span', {
-        class: classes('icon', props.cls)
+        class: ['icon', props.cls]
     });
 }
 const declaration = Icon({cls: 'x-icon'});
