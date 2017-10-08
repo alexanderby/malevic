@@ -22,3 +22,7 @@ export function styles(declarations: { [cssProp: string]: string }) {
         .map((cssProp) => `${cssProp}: ${declarations[cssProp]};`)
         .join(' ');
 }
+
+export function isObject(value) {
+    return typeof value === 'object' && value != null;
+}

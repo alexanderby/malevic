@@ -1,6 +1,6 @@
 import { NodeDeclaration } from './defs';
 import { createPlugins } from './plugins';
-import { classes, styles } from './utils';
+import { classes, styles, isObject } from './utils';
 
 export const pluginsIsVoidTag = createPlugins<string, boolean>()
     .add((tag) => tag in VOID_TAGS);
@@ -29,7 +29,7 @@ export function escapeHtml(s) {
 export const pluginsStringifyAttr = createPlugins<{ attr: string; value: any; }, string>()
     .add(({ value }) => escapeHtml(value))
     .add(({ attr, value }) => {
-        if (attr === 'class' && typeof value === 'object' && value != null) {
+        if (attr === 'class' && isObject(value)) {
             let cls: string;
             if (Array.isArray(value)) {
                 cls = classes(...value);
@@ -40,7 +40,7 @@ export const pluginsStringifyAttr = createPlugins<{ attr: string; value: any; },
         }
     })
     .add(({ attr, value }) => {
-        if (attr === 'style' && typeof value === 'object' && value != null) {
+        if (attr === 'style' && isObject(value)) {
             return escapeHtml(styles(value));
         }
     });

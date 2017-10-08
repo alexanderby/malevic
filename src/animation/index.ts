@@ -1,51 +1,139 @@
-import { interpolateNumbers, interpolateNumbersInString } from './interpolate';
+import {
+    interpolateNumbers,
+    interpolateNumbersInString,
+} from './interpolate';
 import { easing, createEasingFunction } from './easing';
 import malevic from '../index';
+
+let styles: typeof malevic.styles;
 
 export default function animationPlugin(lib: typeof malevic) {
     const getAttrs = lib.getAttrs;
     const escapeHtml = lib.escapeHtml;
-    lib.plugins.render.setAttribute.add(({ element, attr, value }) => {
-        if (!(value instanceof AnimationDeclaration)) {
-            clearAnimation(element, attr);
-            return null;
-        }
-        const animated = elementsAnimations.get(element);
-        if (animated && animated[attr]) {
-            const prev = animated[attr];
-            clearAnimation(element, attr);
-            scheduleAnimation(element, prev.lastValue, attr, value);
+    styles = lib.styles;
+
+    lib.plugins.render.setAttribute
+        .add(({ element, attr, value }) => {
+            if (!(value instanceof AnimationDeclaration)) {
+                clearAnimation(element, attr);
+                return null;
+            }
+            const animated = elementsAnimations.get(element);
+            if (animated && animated[attr]) {
+                const prev = animated[attr];
+                clearAnimation(element, attr);
+                scheduleAnimation(element, (prev as Animation).lastValue, attr, value);
+                return true;
+            }
+            let prevValue = null;
+            const prevDeclaration = getAttrs(element)[attr];
+            if (prevDeclaration != null && !(prevDeclaration instanceof AnimationDeclaration)) {
+                prevValue = prevDeclaration;
+            } else if (prevDeclaration instanceof AnimationDeclaration && prevDeclaration._to != null) {
+                prevValue = prevDeclaration._to;
+            } else if (value._from != null) {
+                prevValue = value._from;
+            }
+            scheduleAnimation(element, prevValue, attr, value);
             return true;
-        }
-        let prevValue = null;
-        const prevDeclaration = getAttrs(element)[attr];
-        if (prevDeclaration && prevDeclaration._to != null) {
-            prevValue = prevDeclaration._to;
-        } else if (value._from != null) {
-            prevValue = value._from;
-        }
-        scheduleAnimation(element, prevValue, attr, value);
-        return true;
-    });
-    lib.plugins.static.stringifyAttr.add(({ value }) => {
-        if (value instanceof AnimationDeclaration) {
-            if (value._from != null) {
-                return escapeHtml(value._from);
+        })
+        .add(({ element, attr, value }) => {
+            if (!isAnimatedStyleObj(attr, value)) {
+                return null;
             }
-            if (value._to != null) {
-                return escapeHtml(value._to);
+
+            const animated = elementsAnimations.get(element);
+            if (animated && animated['style'] instanceof Animation) {
+                clearAnimation(element, 'style');
             }
-        }
-        return null;
-    });
+
+            const declarations: { from: any; prop: string; props?: AnimationDeclaration; }[] = [];
+            const prevAnimation = animated && animated['style'] instanceof StyleAnimation ? animated['style'] as StyleAnimation : null;
+            const prevAttrs = getAttrs(element);
+            const prevStyleDeclaration = prevAttrs && isObject(prevAttrs['style']) ? prevAttrs['style'] : null;
+            Object.keys(value).forEach((prop) => {
+                const v = value[prop];
+                if (!(v instanceof AnimationDeclaration)) {
+                    declarations.push({ from: v, prop });
+                    return;
+                }
+                let prevValue = null;
+                if (prevAnimation && prevAnimation.animations[prop] != null) {
+                    if (prevAnimation.animations[prop] instanceof Animation) {
+                        prevValue = (prevAnimation.animations[prop] as Animation).lastValue;
+                    } else {
+                        prevValue = prevAnimation.animations[prop] as string;
+                    }
+                } else {
+                    const prevDeclaration = prevStyleDeclaration ? prevStyleDeclaration[prop] : null;
+                    if (prevDeclaration != null && !(prevDeclaration instanceof AnimationDeclaration)) {
+                        prevValue = prevDeclaration;
+                    } else if (prevDeclaration instanceof AnimationDeclaration && prevDeclaration._to != null) {
+                        prevValue = prevDeclaration._to;
+                    } else if (v._from != null) {
+                        prevValue = v._from;
+                    }
+                }
+                declarations.push({ from: prevValue, prop, props: v });
+            });
+            if (prevAnimation) {
+                clearAnimation(element, 'style');
+            }
+            scheduleStyleAnimation(element, declarations);
+            return true;
+        });
+
+    lib.plugins.static.stringifyAttr
+        .add(({ value }) => {
+            if (value instanceof AnimationDeclaration) {
+                if (value._from != null) {
+                    return escapeHtml(value._from);
+                }
+                if (value._to != null) {
+                    return escapeHtml(value._to);
+                }
+            }
+            return null;
+        })
+        .add(({ attr, value }) => {
+            if (isAnimatedStyleObj(attr, value)) {
+                const style = {};
+                Object.keys(value).forEach((prop) => {
+                    const v = value[prop];
+                    if (v instanceof AnimationDeclaration) {
+                        if (v._from != null) {
+                            style[prop] = v._from;
+                        } else if (v._to != null) {
+                            style[prop] = v._to;
+                        }
+                    } else {
+                        style[prop] = v;
+                    }
+                });
+                return escapeHtml(styles(style));
+            }
+            return null;
+        });
+}
+
+function isObject(value) {
+    return typeof value === 'object' && value != null;
+}
+
+function isAnimatedStyleObj(attr, value) {
+    return (
+        attr === 'style' &&
+        isObject(value) &&
+        Object.keys(value).filter((p) => value[p] instanceof AnimationDeclaration).length > 0
+    );
 }
 
 export function animate(to: any) {
     return new AnimationDeclaration(null, to);
 }
 
-const elementsAnimations = new WeakMap<Element, { [attr: string]: Animation }>();
-const scheduledAnimations = new Map<Animation, boolean>();
+const elementsAnimations = new WeakMap<Element, { [attr: string]: Animation | StyleAnimation }>();
+const scheduledAnimations = new Map<Animation | StyleAnimation, boolean>();
 
 let frameId: number = null;
 let currentFrameTime: number = null;
@@ -70,6 +158,42 @@ function scheduleAnimation(element: Element, from: any, attr: string, props: Ani
     }
     animated[attr].start(currentFrameTime);
     setAttr(element, attr, animated[attr].tick(currentFrameTime));
+}
+
+function scheduleStyleAnimation(element: Element, items: { from: any; prop: string; props?: AnimationDeclaration; }[]) {
+    let animated = elementsAnimations.get(element);
+    if (!animated) {
+        animated = {};
+        elementsAnimations.set(element, animated);
+    }
+    const styleAnimations: StyleAnimations = {};
+    items.forEach(({ from, prop, props }) => {
+        if (props == null) {
+            styleAnimations[prop] = from;
+            return;
+        }
+        if (from == null) {
+            styleAnimations[prop] = props._to;
+            return;
+        }
+        styleAnimations[prop] = new Animation(element, from, prop, props, null);
+    });
+
+    if (Object.keys(styleAnimations).filter((s) => styleAnimations[s] instanceof Animation).length === 0) {
+        setAttr(element, 'style', styles(styleAnimations as any));
+        return;
+    }
+    const animation = new StyleAnimation(element, styleAnimations, () => {
+        clearAnimation(element, 'style');
+    });
+    animated['style'] = animation;
+    scheduledAnimations.set(animation, true);
+    if (!frameId) {
+        currentFrameTime = performance.now();
+        requestFrame();
+    }
+    animation.start(currentFrameTime);
+    setAttr(element, 'style', animation.tick(currentFrameTime));
 }
 
 function requestFrame() {
@@ -115,6 +239,7 @@ class AnimationDeclaration {
     _easing: string | number[];
     _from: any;
     _to: any;
+    _interpolate: (t, from, to) => any;
     constructor(from: any, to: any) {
         this._from = from;
         this._to = to;
@@ -131,6 +256,10 @@ class AnimationDeclaration {
     }
     initial(from: any) {
         this._from = from;
+        return this;
+    }
+    interpolate(interpolate: (t, from, to) => any) {
+        this._interpolate = interpolate;
         return this;
     }
 }
@@ -155,17 +284,22 @@ class Animation {
         this.from = from;
         this.to = props._to;
         this.finished = finished;
+        if (typeof props._interpolate === 'function') {
+            this.interpolate = (t) => props._interpolate(t, this.from, this.to);
+        }
     }
     start(now: number) {
-        switch (typeof this.to) {
-            case 'number':
-                this.interpolate = interpolateNumbers(this.from, this.to);
-                break;
-            case 'string':
-                this.interpolate = interpolateNumbersInString(this.from, this.to);
-                break;
-            default:
-                throw new Error('Unable to animate value');
+        if (!this.interpolate) {
+            switch (typeof this.to) {
+                case 'number':
+                    this.interpolate = interpolateNumbers(this.from, this.to);
+                    break;
+                case 'string':
+                    this.interpolate = interpolateNumbersInString(this.from, this.to);
+                    break;
+                default:
+                    throw new Error('Unable to animate value');
+            }
         }
         if (Array.isArray(this.easing)) {
             this.ease = createEasingFunction([0, this.easing[0], this.easing[1], 1]);
@@ -184,5 +318,55 @@ class Animation {
         }
         this.lastValue = this.interpolate(t);
         return this.lastValue;
+    }
+}
+
+interface StyleAnimations {
+    [prop: string]: Animation | string;
+}
+
+class StyleAnimation {
+    element: Element;
+    attr: string;
+    finished: () => void;
+    animations: StyleAnimations;
+    constructor(element: Element, animations: StyleAnimations, finished: () => void) {
+        this.element = element;
+        this.attr = 'style';
+        this.animations = animations;
+        this.finished = finished;
+        Object.keys(animations)
+            .filter((prop) => animations[prop] instanceof Animation)
+            .forEach((prop) => {
+                const a = animations[prop] as Animation;
+                a.finished = () => this.onSingleAnimationFinished(a);
+            });
+    }
+    onSingleAnimationFinished(animation: Animation) {
+        this.animations[animation.attr] = animation.lastValue;
+        if (this.getAnimations().length === 0) {
+            this.finished();
+        }
+    }
+    getAnimations(): Animation[] {
+        return Object.keys(this.animations)
+            .filter((prop) => this.animations[prop] instanceof Animation)
+            .map((prop) => this.animations[prop] as Animation);
+    }
+    start(now: number) {
+        this.getAnimations().forEach((a) => a.start(now));
+    }
+    tick(now: number) {
+        const style = {};
+        Object.keys(this.animations)
+            .forEach((prop) => {
+                const value = this.animations[prop]
+                if (value instanceof Animation) {
+                    style[prop] = value.tick(now);
+                } else {
+                    style[prop] = value;
+                }
+            });
+        return styles(style);
     }
 }

@@ -2,7 +2,7 @@ import { setData } from './data';
 import { addListener, removeListener } from './events';
 import { NodeDeclaration, ChildDeclaration, ChildFunction } from './defs';
 import { createPlugins } from './plugins';
-import { classes, styles } from './utils';
+import { classes, styles, isObject } from './utils';
 
 function walkTree(
     d: NodeDeclaration | string,
@@ -16,17 +16,17 @@ function walkTree(
 ) {
     const element = iteratee(d, accumulator, index);
     if (
-        typeof d === 'object' &&
-        d !== null &&
+        isObject(d) &&
         element instanceof Element &&
-        Array.isArray(d.children) &&
+        Array.isArray((d as NodeDeclaration).children) &&
         !nativeContainers.has(element)
     ) {
         let c: ChildDeclaration | ChildFunction;
         let r: ChildDeclaration | ChildDeclaration[];
         let declarations: ChildDeclaration[] = [];
-        for (let i = 0; i < d.children.length; i++) {
-            c = d.children[i];
+        let children = (d as NodeDeclaration).children;
+        for (let i = 0; i < children.length; i++) {
+            c = children[i];
             if (typeof c === 'function') {
                 r = c(element);
                 if (Array.isArray(r)) {
@@ -127,7 +127,7 @@ export const pluginsSetAttribute = createPlugins<{ element: Element; attr: strin
         return null;
     })
     .add(({ element, attr, value }) => {
-        if (attr === 'class' && typeof value === 'object' && value != null) {
+        if (attr === 'class' && isObject(value)) {
             if (Array.isArray(value)) {
                 element.setAttribute('class', classes(...value));
             } else {
@@ -138,7 +138,7 @@ export const pluginsSetAttribute = createPlugins<{ element: Element; attr: strin
         return null;
     })
     .add(({ element, attr, value }) => {
-        if (attr === 'style' && typeof value === 'object' && value != null) {
+        if (attr === 'style' && isObject(value)) {
             element.setAttribute('style', styles(value));
             return true;
         }
