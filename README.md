@@ -70,7 +70,7 @@ setState({ count: 0 });
 
 There are some built-in plug-ins.
 - **SVG plug-in** simply creates elements in SVG namespace using SVG tag name or `svg:` prefix (some SVG tags overlap with HTML tags).
-- **Animation plugin** makes it possible to schedule animations like `attr={animate(to).initial(from).duration(ms).easing('ease-in-out')}`.
+- **Animation plugin** makes it possible to schedule animations like `attr={animate(to).initial(from).duration(ms).easing('ease-in-out').interpolate((t,from,to)=>{})}`.
 - `html` pragma should be used to make it work with **JSX**.
 
 ```jsx
@@ -137,11 +137,27 @@ setInterval(function () {
 }, DURATION);
 ```
 
+It is possible to animate separate style properties:
+```jsx
+function Tooltip({ text, color, isVisible, x, y }) {
+    return (
+        <div
+            class={['tooltip', { 'visible': isVisible }]}
+            style={{
+                'transform': animate(`translate(${x}px, ${y}px)`),
+                'background-color': animate(color)
+                    .interpolate(interpolateRGB)
+            }}
+        ></div>
+    );
+}
+```
+
 ## Listening to events
 
 If attribute starts with `on`,
-the corresponding event listener is added
-(or removed if value is `null`) to DOM element.
+the corresponding event listener is added to DOM element
+(or removed if value is `null`).
 
 ## Getting parent DOM node before rendering
 
@@ -197,6 +213,11 @@ function List(props) {
     );
 }
 ```
+
+## Manipulating class list and styles
+
+- Possible **class** attribute values: `class="view active"`, `class={['view', 'active']}`, `class={{'view': true, 'active': props.isActive}}`.
+- Possible **style** attribute values: `style="background: red; left: 0;"`, `style={{'background': 'red', 'left': 0}}`.
 
 ## Lifecycle management
 
