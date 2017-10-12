@@ -70,7 +70,7 @@ setState({ count: 0 });
 
 There are some built-in plug-ins.
 - **SVG plug-in** simply creates elements in SVG namespace using SVG tag name or `svg:` prefix (some SVG tags overlap with HTML tags).
-- **Animation plugin** makes it possible to schedule animations like `attr={animate(to).initial(from).duration(ms).easing('ease-in-out').interpolate((t,from,to)=>{})}`.
+- **Animation plugin** makes it possible to schedule animations like `attr={animate(to).initial(from).duration(ms).easing('ease-in-out').interpolate((from,to)=>(t)=>string)}`.
 - `html` pragma should be used to make it work with **JSX**.
 
 ```jsx
