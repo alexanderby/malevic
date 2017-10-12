@@ -1,6 +1,7 @@
 import {
     interpolateNumbers,
     interpolateNumbersInString,
+    Interpolator,
 } from './interpolate';
 import { easing, createEasingFunction } from './easing';
 import malevic from '../index';
@@ -239,7 +240,7 @@ class AnimationDeclaration {
     _easing: string | number[];
     _from: any;
     _to: any;
-    _interpolate: (t, from, to) => any;
+    _interpolator: Interpolator<any>;
     constructor(from: any, to: any) {
         this._from = from;
         this._to = to;
@@ -258,8 +259,8 @@ class AnimationDeclaration {
         this._from = from;
         return this;
     }
-    interpolate(interpolate: (t, from, to) => any) {
-        this._interpolate = interpolate;
+    interpolate(interpolate: Interpolator<any>) {
+        this._interpolator = interpolate;
         return this;
     }
 }
@@ -284,8 +285,8 @@ class Animation {
         this.from = from;
         this.to = props._to;
         this.finished = finished;
-        if (typeof props._interpolate === 'function') {
-            this.interpolate = (t) => props._interpolate(t, this.from, this.to);
+        if (typeof props._interpolator === 'function') {
+            this.interpolate = props._interpolator(this.from, this.to);
         }
     }
     start(now: number) {
