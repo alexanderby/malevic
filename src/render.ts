@@ -53,7 +53,7 @@ function walkTree(
     return element;
 }
 
-const nativeContainers = new WeakMap<Element, boolean>();
+const nativeContainers = new WeakSet<Element>();
 const didMountHandlers = new WeakMap<Element, (el: Element) => void>();
 const didUpdateHandlers = new WeakMap<Element, (el: Element) => void>();
 const willUnmountHandlers = new WeakMap<Element, (el: Element) => void>();
@@ -113,7 +113,7 @@ export const pluginsSetAttribute = createPlugins<{ element: Element; attr: strin
     .add(({ element, attr, value }) => {
         if (attr === 'native') {
             if (value === true) {
-                nativeContainers.set(element, true);
+                nativeContainers.add(element);
             } else {
                 nativeContainers.delete(element);
             }

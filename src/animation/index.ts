@@ -134,7 +134,7 @@ export function animate(to: any) {
 }
 
 const elementsAnimations = new WeakMap<Element, { [attr: string]: Animation | StyleAnimation }>();
-const scheduledAnimations = new Map<Animation | StyleAnimation, boolean>();
+const scheduledAnimations = new Set<Animation | StyleAnimation>();
 
 let frameId: number = null;
 let currentFrameTime: number = null;
@@ -152,7 +152,7 @@ function scheduleAnimation(element: Element, from: any, attr: string, props: Ani
     animated[attr] = new Animation(element, from, attr, props, () => {
         clearAnimation(element, attr);
     });
-    scheduledAnimations.set(animated[attr], true);
+    scheduledAnimations.add(animated[attr]);
     if (!frameId) {
         currentFrameTime = performance.now();
         requestFrame();
@@ -188,7 +188,7 @@ function scheduleStyleAnimation(element: Element, items: { from: any; prop: stri
         clearAnimation(element, 'style');
     });
     animated['style'] = animation;
-    scheduledAnimations.set(animation, true);
+    scheduledAnimations.add(animation);
     if (!frameId) {
         currentFrameTime = performance.now();
         requestFrame();
