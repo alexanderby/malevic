@@ -1,6 +1,6 @@
-import malevic, { html, render } from '../entries';
-import svgPlugin from '../entries/svg';
-import animationPlugin, { animate } from '../entries/animation';
+import { html, render } from 'malevic';
+import withSvg from 'malevic/svg';
+import withAnimation, { animate } from 'malevic/animation';
 
 // Core
 // --------------------------------------------
@@ -77,8 +77,8 @@ import animationPlugin, { animate } from '../entries/animation';
 // SVG & Animation
 // ---------------------------------------------
 
-svgPlugin(malevic);
-animationPlugin(malevic);
+withSvg();
+withAnimation();
 
 (function () {
 

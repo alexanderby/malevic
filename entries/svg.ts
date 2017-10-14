@@ -1,2 +1,2 @@
-import svgPlugin from '../src/svg';
-export default svgPlugin;
+import withSvg from '../src/svg';
+export default withSvg;

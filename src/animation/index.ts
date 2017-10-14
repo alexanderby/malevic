@@ -1,19 +1,19 @@
 import {
+    getAttrs,
+    escapeHtml,
+    plugins,
+    styles,
+} from 'malevic';
+import {
     interpolateNumbers,
     interpolateNumbersInString,
     Interpolator,
 } from './interpolate';
 import { easing, createEasingFunction } from './easing';
-import malevic from '../index';
 
-let styles: typeof malevic.styles;
+export default function withAnimation() {
 
-export default function animationPlugin(lib: typeof malevic) {
-    const getAttrs = lib.getAttrs;
-    const escapeHtml = lib.escapeHtml;
-    styles = lib.styles;
-
-    lib.plugins.render.setAttribute
+    plugins.render.setAttribute
         .add(({ element, attr, value }) => {
             if (!(value instanceof AnimationDeclaration)) {
                 clearAnimation(element, attr);
@@ -84,7 +84,7 @@ export default function animationPlugin(lib: typeof malevic) {
             return true;
         });
 
-    lib.plugins.static.stringifyAttr
+    plugins.static.stringifyAttr
         .add(({ value }) => {
             if (value instanceof AnimationDeclaration) {
                 if (value._from != null) {

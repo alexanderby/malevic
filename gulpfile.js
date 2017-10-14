@@ -1,4 +1,5 @@
 const gulp = require('gulp');
+const path = require('path');
 const merge = require('merge-stream');
 const rollup = require('rollup-stream');
 const source = require('vinyl-source-stream');
@@ -8,8 +9,10 @@ const package = require('./package');
 const date = (new Date()).toLocaleDateString('en-us', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 const banner = `/* ${package.name}@${package.version} - ${date} */`;
 
-function build(options, dir, file, { ts = {}, uglify = false } = {}) {
-    let stream = rollup(Object.assign({
+function build(options, { out, ts = {}, uglify = false } = {}) {
+    const dir = path.dirname(out);
+    const file = path.basename(out);
+    const stream = rollup(Object.assign({
         strict: true,
         format: 'umd',
         banner,
@@ -30,53 +33,64 @@ function build(options, dir, file, { ts = {}, uglify = false } = {}) {
         .pipe(gulp.dest(dir));
 }
 
+function plugin(rollupConfig) {
+    return Object.assign(rollupConfig, {
+        external: [
+            'malevic'
+        ],
+        globals: {
+            'malevic': 'Malevic'
+        }
+    });
+}
+
 gulp.task('default', () => {
     merge(
 
         build({
             input: './entries/index.ts',
             format: 'es',
-        }, './', 'index.js', { ts: { target: 'es6' } }),
+        }, { out: './index.js', ts: { target: 'es2015' } }),
         build({
             input: './entries/index-umd.ts',
             format: 'umd',
             name: 'Malevic'
-        }, './umd', 'index.js'),
+        }, { out: './umd/index.js', ts: { target: 'es5' } }),
         build({
             input: './entries/index-umd.ts',
             format: 'umd',
             name: 'Malevic'
-        }, './umd', 'index.min.js', { uglify: true }),
+        }, { out: './umd/index.min.js', uglify: true, ts: { target: 'es5' } }),
 
-        build({
+        build(plugin({
             input: './entries/animation.ts',
             format: 'es',
-        }, './', 'animation.js', { ts: { target: 'es6' } }),
-        build({
+        }), { out: './animation.js', ts: { target: 'es2015' } }),
+        build(plugin({
             input: './entries/animation-umd.ts',
             format: 'umd',
             name: 'MalevicAnimation'
-        }, './umd', 'animation.js'),
-        build({
+        }), { out: './umd/animation.js', ts: { target: 'es5' } }),
+        build(plugin({
             input: './entries/animation-umd.ts',
             format: 'umd',
             name: 'MalevicAnimation'
-        }, './umd', 'animation.min.js', { uglify: true }),
+        }), { out: './umd/animation.min.js', uglify: true, ts: { target: 'es5' } }),
 
-        build({
+        build(plugin({
             input: './entries/svg.ts',
             format: 'es',
-        }, './', 'svg.js', { ts: { target: 'es6' } }),
-        build({
+        }), { out: './svg.js', ts: { target: 'es2015' } }),
+        build(plugin({
             input: './entries/svg.ts',
             format: 'umd',
             name: 'MalevicSVG'
-        }, './umd', 'svg.js'),
-        build({
+        }), { out: './umd/svg.js', ts: { target: 'es5' } }),
+        build(plugin({
             input: './entries/svg.ts',
             format: 'umd',
             name: 'MalevicSVG'
-        }, './umd', 'svg.min.js', { uglify: true })
+        }), { out: './umd/svg.min.js', uglify: true, ts: { target: 'es5' } })
     );
 });
 
@@ -87,8 +101,10 @@ gulp.task('build-examples', () => {
             format: 'iife',
             exports: 'none',
             sourcemap: 'inline'
-        }, './examples/', 'examples.js', {
+        }, {
+                out: './examples/examples.js',
                 ts: {
+                    target: 'es5',
                     jsx: 'react',
                     jsxFactory: 'html'
                 }

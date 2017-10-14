@@ -1,10 +1,10 @@
+import { plugins } from 'malevic';
 import { SVG_TAGS, VOID_TAGS } from './tags';
-import malevic from '../index';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-export default function svgPlugin(lib: typeof malevic) {
-    lib.plugins.render.createElement.add((d) => {
+export default function withSvg() {
+    plugins.render.createElement.add((d) => {
         let shouldCreateSvgElement = false;
         let tag = d.tag;
         if (tag in SVG_TAGS) {
@@ -19,7 +19,7 @@ export default function svgPlugin(lib: typeof malevic) {
         return null;
     });
 
-    lib.plugins.static.isVoidTag.add((tag) => {
+    plugins.static.isVoidTag.add((tag) => {
         return tag in VOID_TAGS ? true : null;
     });
 }

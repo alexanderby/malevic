@@ -74,12 +74,12 @@ There are some built-in plug-ins.
 - `html` pragma should be used to make it work with **JSX**.
 
 ```jsx
-import malevic, { html, render } from 'malevic';
-import svgPlugin from 'malevic/svg';
-import animationPlugin, { animate } from 'malevic/animation';
+import { html, render } from 'malevic';
+import withSvg from 'malevic/svg';
+import withAnimation, { animate } from 'malevic/animation';
 
-svgPlugin(malevic);
-animationPlugin(malevic);
+withSvg();
+withAnimation();
 
 const DURATION = 1000;
 
