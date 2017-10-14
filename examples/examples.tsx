@@ -1,5 +1,4 @@
 import { html, render } from 'malevic';
-import withSvg from 'malevic/svg';
 import withAnimation, { animate } from 'malevic/animation';
 
 // Core
@@ -74,10 +73,9 @@ import withAnimation, { animate } from 'malevic/animation';
     window.addEventListener('resize', () => setState({}));
 })();
 
-// SVG & Animation
+// Animation
 // ---------------------------------------------
 
-withSvg();
 withAnimation();
 
 (function () {
@@ -162,7 +160,7 @@ withAnimation();
         color: color2
     };
 
-    const target = document.getElementById('svg-animation');
+    const target = document.getElementById('animation');
 
     function draw() {
         render(target, <Snake points={state.points} color={state.color} />);

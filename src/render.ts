@@ -63,8 +63,19 @@ const lifecycleHandlers: { [event: string]: WeakMap<Element, (el: Element) => vo
     'willunmount': willUnmountHandlers
 };
 
-export const pluginsCreateElement = createPlugins<NodeDeclaration, Element>()
-    .add((d) => document.createElement(d.tag));
+const XHTML_NS = 'http://www.w3.org/1999/xhtml';
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+export const pluginsCreateElement = createPlugins<{ d: NodeDeclaration, parent: Element }, Element>()
+    .add(({ d, parent }) => {
+        if (d.tag === 'svg') {
+            return document.createElementNS(SVG_NS, 'svg');
+        }
+        if (parent.namespaceURI === XHTML_NS) {
+            return document.createElement(d.tag);
+        }
+        return document.createElementNS(parent.namespaceURI, d.tag);
+    });
 
 export const pluginsMountElement = createPlugins<{ element: Element; parent: Element; next: Node; }, boolean>()
     .add(({ element, parent, next }) => {
@@ -151,8 +162,8 @@ export function getAttrs(element: Element) {
     return elementsAttrs.get(element) || null;
 }
 
-function createNode(d: NodeDeclaration) {
-    const element = pluginsCreateElement.apply(d);
+function createNode(d: NodeDeclaration, parent: Element) {
+    const element = pluginsCreateElement.apply({ d, parent });
     const elementAttrs = {};
     elementsAttrs.set(element, elementAttrs);
     Object.keys(d.attrs).forEach((attr) => {
@@ -182,7 +193,7 @@ function iterate(
     if (typeof d === 'string') {
         if (index > 0) {
             // Todo: more than 1 text node
-            throw new Error('Only one text node is possible.');
+            throw new Error('Only one text node is supported.');
         }
         if (parentNode.textContent !== d) {
             parentNode.textContent = d;
@@ -199,7 +210,7 @@ function iterate(
             existing.tagName.toLowerCase() === d.tag
         )) {
             // Create new node
-            const node = createNode(d);
+            const node = createNode(d, parentNode);
             if (existing) {
                 // Remove existing node
                 if (willUnmountHandlers.has(existing)) {

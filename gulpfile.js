@@ -75,22 +75,7 @@ gulp.task('default', () => {
             input: './entries/animation-umd.ts',
             format: 'umd',
             name: 'MalevicAnimation'
-        }), { out: './umd/animation.min.js', uglify: true, ts: { target: 'es5' } }),
-
-        build(plugin({
-            input: './entries/svg.ts',
-            format: 'es',
-        }), { out: './svg.js', ts: { target: 'es2015' } }),
-        build(plugin({
-            input: './entries/svg.ts',
-            format: 'umd',
-            name: 'MalevicSVG'
-        }), { out: './umd/svg.js', ts: { target: 'es5' } }),
-        build(plugin({
-            input: './entries/svg.ts',
-            format: 'umd',
-            name: 'MalevicSVG'
-        }), { out: './umd/svg.min.js', uglify: true, ts: { target: 'es5' } })
+        }), { out: './umd/animation.min.js', uglify: true, ts: { target: 'es5' } })
     );
 });
 

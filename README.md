@@ -3,7 +3,7 @@
 Minimalistic reactive UI library.
 As simple as possible.
 Extendable.
-*5KB minified*.
+*6KB minified (12KB with animations)*.
 
 ![Malevič.js logo](https://rawgit.com/alexanderby/malevic/master/logo-256x256.svg)
 
@@ -66,19 +66,52 @@ function setState(newState) {
 setState({ count: 0 });
 ```
 
-## SVG and Animation plug-ins + JSX
+## JSX
 
-There are some built-in plug-ins.
-- **SVG plug-in** simply creates elements in SVG namespace using SVG tag name or `svg:` prefix (some SVG tags overlap with HTML tags).
-- **Animation plugin** makes it possible to schedule animations like `attr={animate(to).initial(from).duration(ms).easing('ease-in-out').interpolate((from,to)=>(t)=>string)}`.
-- `html` pragma should be used to make it work with **JSX**.
+`html` pragma should be used to make it work with **JSX**:
+- Babel:
+```json
+{
+    "plugins": [
+        ["transform-react-jsx", {
+            "pragma": "html"
+        }]
+    ]
+}
+```
+- TypeScript:
+```json
+{
+    "compilerOptions": {
+        "jsx": "react",
+        "jsxFactory": "html"
+    }
+}
+```
+
+Component written with JSX will look like:
+```jsx
+import { html } from 'malevic';
+
+export default function Button({text, onClick}) {
+    return (
+        <button class='x-button' onclick={onClick}>
+            {text}
+        </button>
+    );
+}
+```
+
+## Animation plug-in
+
+There is a built-in animation plug-in.
+It makes possible to schedule animations like
+`attr={animate(to).initial(from).duration(ms).easing('ease-in-out').interpolate((from,to)=>(t)=>string)}`.
 
 ```jsx
 import { html, render } from 'malevic';
-import withSvg from 'malevic/svg';
 import withAnimation, { animate } from 'malevic/animation';
 
-withSvg();
 withAnimation();
 
 const DURATION = 1000;

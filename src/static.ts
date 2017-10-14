@@ -110,4 +110,12 @@ export const VOID_TAGS = [
     'source',
     'track',
     'wbr',
+
+    'circle',
+    'ellipse',
+    'image',
+    'line',
+    'path',
+    'polygon',
+    'rect',
 ].reduce((map, tag) => (map[tag] = true, map), {});
