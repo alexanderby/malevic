@@ -1,4 +1,4 @@
-import { html, render } from 'malevic';
+import { html, render, renderToString } from 'malevic';
 import withAnimation, { animate } from 'malevic/animation';
 
 // Core
@@ -163,7 +163,16 @@ withAnimation();
     const target = document.getElementById('animation');
 
     function draw() {
-        render(target, <Snake points={state.points} color={state.color} />);
+        const tree = <Snake points={state.points} color={state.color} />;
+        const markup = renderToString(tree);
+        render(target, (
+            <div>
+                {tree}
+                <pre>
+                    <code>{markup}</code>
+                </pre>
+            </div>
+        ));
     }
 
     draw();

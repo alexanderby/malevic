@@ -52,8 +52,8 @@ export function renderToString(declaration: NodeDeclaration) {
 
     function buildHtml(d: NodeDeclaration, tabs: string) {
         const tag = d.tag;
-        const attrs = Object.keys(d.attrs)
-            .filter((key) => pluginsSkipAttr.apply(key))
+        const attrs = d.attrs == null ? '' : Object.keys(d.attrs)
+            .filter((key) => !pluginsSkipAttr.apply(key))
             .map((key) => {
                 const value = pluginsStringifyAttr.apply({ attr: key, value: d.attrs[key] });
                 return ` ${key}="${value}"`;
