@@ -1,6 +1,6 @@
 export interface NodeDeclaration {
     tag: string;
-    attrs: Attrs;
+    attrs: NodeAttrs;
     children: Array<ChildDeclaration | ChildFunction>;
 }
 
@@ -12,7 +12,7 @@ export interface DomEventListener {
     (this: Element, e: Event): void;
 }
 
-export interface Attrs {
+export interface NodeAttrs {
     data?: any;
     class?: string | { [cls: string]: any; } | (string | { [cls: string]: any; })[];
     style?: string | { [prop: string]: any; };

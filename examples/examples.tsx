@@ -1,5 +1,6 @@
 import { html, render, renderToString } from 'malevic';
 import withAnimation, { animate } from 'malevic/animation';
+import { Button, CheckBox, Flex, Label, TextBox } from 'malevic/controls';
 
 // Core
 // --------------------------------------------
@@ -214,5 +215,52 @@ withAnimation();
             <Tooltip text='Hello' cx={50} cy={25} />
         </svg>
     ));
+
+})();
+
+// Controls
+// ---------------------------------------
+
+(function () {
+
+    let state: { text: string; done: boolean; } = null;
+
+    function View({ text, isDone, onCheckChange, onClick, onTextChange }) {
+        return (
+            <Flex column>
+                <Flex row>
+                    <Button iconClass='smile' text='smile' />
+                    <Button onclick={onClick}>
+                        {text}
+                    </Button>
+                    <CheckBox checked={isDone} onChange={onCheckChange}>
+                        Done
+                    </CheckBox>
+                </Flex>
+                <Flex row>
+                    <Label>Text</Label>
+                    <TextBox onInput={onTextChange}>
+                        {text}
+                    </TextBox>
+                </Flex>
+            </Flex>
+        );
+    }
+
+    function setState(newState) {
+        state = Object.assign({}, state, newState);
+        render(
+            document.getElementById('controls'),
+            <View
+                text={state.text}
+                isDone={state.done}
+                onCheckChange={(checked) => setState({ done: checked })}
+                onClick={() => setState({ text: (state.text + '+') })}
+                onTextChange={(value) => setState({ text: value })}
+            />
+        );
+    }
+
+    setState({ text: 'increment', done: true });
 
 })();

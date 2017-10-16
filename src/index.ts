@@ -31,3 +31,5 @@ export const plugins = {
         stringifyAttr: pluginsStringifyAttr,
     }
 };
+
+// export * from './defs';

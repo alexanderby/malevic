@@ -13,7 +13,8 @@
   "license": "MIT",
   "scripts": {
     "build": "gulp",
-    "dev": "gulp build-examples"
+    "dev": "gulp build-examples",
+    "start": "http-server -p 9002"
   },
   "repository": {
     "type": "git",
@@ -25,10 +26,15 @@
   "main": "umd/index.js",
   "module": "index.js",
   "devDependencies": {
+    "@alexlur/rollup-plugin-typescript": "^1.0.4",
     "gulp": "^3.9.1",
+    "gulp-autoprefixer": "^4.0.0",
+    "gulp-cssmin": "^0.2.0",
+    "gulp-less": "^3.3.2",
+    "gulp-rename": "^1.2.2",
+    "http-server": "^0.10.0",
     "merge-stream": "^1.0.1",
     "rollup": "^0.50.0",
-    "rollup-plugin-typescript": "^0.8.1",
     "rollup-plugin-uglify": "^2.0.1",
     "rollup-stream": "^1.24.1",
     "typescript": "^2.5.2",

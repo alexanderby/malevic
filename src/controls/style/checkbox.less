@@ -1,0 +1,72 @@
+@import "./variables";
+
+.@{prefix}checkbox {
+    align-items: center;
+    box-sizing: border-box;
+    cursor: default;
+    display: inline-flex;
+    flex: none;
+    flex-flow: row nowrap;
+    font-family: @font-family;
+    font-size: 1em;
+    justify-content: flex-start;
+    line-height: 1em;
+    min-height: 2em;
+    min-width: 2em;
+    padding: 0.5em;
+    user-select: none;
+
+    &__checkmark {
+        background-color: @color-input-back;
+        display: inline-block;
+        flex: none;
+        font-size: 1em;
+        height: 1em;
+        position: relative;
+        width: 1em;
+    }
+    
+    &__input {
+        display: none;
+    }
+
+    &__input:checked + &__checkmark {
+        &::before {
+            background-color: @color-input-fore;
+            content: "";
+            display: inline-block;
+            height: 0.25em;
+            left: 0.125em;
+            position: absolute;
+            top: 0.5em;
+            transform: skewY(45deg);
+            width: 0.25em;
+        }
+
+        &::after {
+            background-color: @color-input-fore;
+            content: "";
+            display: inline-block;
+            height: 0.25em;
+            position: absolute;
+            top: 0.375em;
+            transform: skewY(-45deg);
+            width: 0.5em;
+            left: 0.375em;
+        }
+    }
+
+    &:hover &__checkmark {
+        background-color: @color-input-active;
+    }
+
+    &__text {
+        color: @color-fore;
+        display: inline-block;
+        flex: none;
+        font-size: 1em;
+        line-height: 1em;
+        margin-left: 0.25em;
+        pointer-events: none;
+    }
+}

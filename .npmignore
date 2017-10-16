@@ -1,8 +1,11 @@
 *
 
 !index.js
+!umd/index.js
+!umd/index.min.js
 !animation.js
-!umd/**
+!umd/animation.js
+!umd/animation.min.js
 
 !examples/**
 examples/*.js

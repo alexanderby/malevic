@@ -3,12 +3,12 @@ import {
     ChildDeclaration,
     ChildFunction,
     DomEventListener,
-    Attrs
+    NodeAttrs
 } from './defs';
 
 export function html(
     tagOrComponent: string | ((attrs) => ChildDeclaration | ChildFunction | (ChildDeclaration | ChildFunction)[]),
-    attrs: Attrs,
+    attrs: NodeAttrs,
     ...children: Array<ChildDeclaration | ChildFunction | (ChildDeclaration | ChildFunction)[]>
 ) {
     const normalized: Array<ChildDeclaration | ChildFunction> = [];
