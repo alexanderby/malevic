@@ -13,6 +13,7 @@ const managedAttrs = [
 interface ButtonAttrs extends NodeAttrs {
     iconClass?: string;
     iconImage?: string;
+    onclick?: (this: HTMLButtonElement, e: MouseEvent & { target: HTMLButtonElement }) => void;
     text?: string;
 }
 

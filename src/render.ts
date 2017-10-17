@@ -77,6 +77,15 @@ export const pluginsCreateElement = createPlugins<{ d: NodeDeclaration, parent: 
         return document.createElementNS(parent.namespaceURI, d.tag);
     });
 
+export const pluginsSetText = createPlugins<{ element: Element; text: string; }, boolean>()
+    .add(({ element, text }) => {
+        const value = text == null ? '' : text;
+        if (element.textContent !== value) {
+            element.textContent = value;
+        }
+        return true;
+    });
+
 export const pluginsMountElement = createPlugins<{ element: Element; parent: Element; next: Node; }, boolean>()
     .add(({ element, parent, next }) => {
         parent.insertBefore(element, next);
@@ -195,9 +204,7 @@ function iterate(
             // Todo: more than 1 text node
             throw new Error('Only one text node is supported.');
         }
-        if (parentNode.textContent !== d) {
-            parentNode.textContent = d;
-        }
+        pluginsSetText.apply({ element: parentNode, text: d });
         return parentNode.firstChild;
     } else {
         d.attrs = d.attrs || {};

@@ -1,5 +1,6 @@
 import { html, render, renderToString } from 'malevic';
 import withAnimation, { animate } from 'malevic/animation';
+import withForms from 'malevic/forms';
 import { Button, CheckBox, Flex, Label, TextBox } from 'malevic/controls';
 
 // Core
@@ -218,30 +219,92 @@ withAnimation();
 
 })();
 
+// Forms
+// ---------------------------------------
+
+withForms();
+
+(function () {
+
+    let state: { text: string; checked: boolean; num: number; } = null;
+
+    function Form({ checked, text, num, onCheckChange, onTextChange, onNumChange }) {
+        return (
+            <form onsubmit={(e) => e.preventDefault()}>
+                <input
+                    type="checkbox"
+                    checked={checked}
+                    onchange={(e) => onCheckChange(e.target.checked)}
+                />
+                <input
+                    type="number"
+                    value={num}
+                    onchange={(e) => !isNaN(e.target.value) && onNumChange(e.target.value)}
+                    onkeypress={(e) => {
+                        if (e.keycode === 13 && !isNaN(e.target.value)) {
+                            onNumChange(e.target.value);
+                        }
+                    }}
+                />
+                <textarea oninput={(e) => onTextChange(e.target.value)}>
+                    {text}
+                </textarea>
+                <pre>{JSON.stringify({ checked, text, num }, null, 4)}</pre>
+            </form>
+        );
+    }
+
+    function setState(newState) {
+        state = Object.assign({}, state, newState);
+        render(
+            document.getElementById('forms'),
+            <Form
+                text={state.text}
+                checked={state.checked}
+                num={state.num}
+                onCheckChange={(checked) => setState({ checked })}
+                onTextChange={(text) => setState({ text })}
+                onNumChange={(num) => setState({ num })}
+            />
+        );
+    }
+
+    setState({ checked: true, text: 'text', num: 5 });
+})();
+
 // Controls
 // ---------------------------------------
 
 (function () {
 
-    let state: { text: string; done: boolean; } = null;
+    let state: { text: string; done: boolean; num: number; } = null;
 
-    function View({ text, isDone, onCheckChange, onClick, onTextChange }) {
+    function View({ text, isDone, onCheckChange, onClick, onTextChange, num, onNumChange }) {
         return (
             <Flex column>
                 <Flex row>
                     <Button iconClass='smile' text='smile' />
+                    <CheckBox checked={isDone} onchange={(e) => onCheckChange(e.target.checked)}>
+                        Done
+                    </CheckBox>
                     <Button onclick={onClick}>
                         {text}
                     </Button>
-                    <CheckBox checked={isDone} onChange={onCheckChange}>
-                        Done
-                    </CheckBox>
                 </Flex>
                 <Flex row>
                     <Label>Text</Label>
-                    <TextBox onInput={onTextChange}>
+                    <TextBox oninput={(e) => onTextChange(e.target.value)} placeholder='input...'>
                         {text}
                     </TextBox>
+                </Flex>
+                <Flex row>
+                    <Label>Number</Label>
+                    <TextBox
+                        type='number'
+                        value={num}
+                        onchange={(e) => !isNaN(e.target.value) && onNumChange(e.target.value)}
+                        placeholder='input...'
+                    />
                 </Flex>
             </Flex>
         );
@@ -254,9 +317,11 @@ withAnimation();
             <View
                 text={state.text}
                 isDone={state.done}
-                onCheckChange={(checked) => setState({ done: checked })}
+                onCheckChange={(checked) => setState({ done: checked, text: state.text + checked })}
                 onClick={() => setState({ text: (state.text + '+') })}
                 onTextChange={(value) => setState({ text: value })}
+                num={state.num}
+                onNumChange={(value) => setState({ num: value })}
             />
         );
     }

@@ -9,20 +9,16 @@ const managedAttrs = [
     'value',
 ].reduce((map, key) => map.add(key), new Set());
 
-interface TextBoxAttrs extends NodeAttrs {
-    max?: number;
-    min?: number;
-    onchange?: (this: HTMLInputElement, e: Event & { target: HTMLInputElement }) => void;
-    oninput?: (this: HTMLInputElement, e: Event & { target: HTMLInputElement }) => void;
+interface TextAreaAttrs extends NodeAttrs {
+    onchange?: (this: HTMLTextAreaElement, e: Event & { target: HTMLTextAreaElement }) => void;
+    oninput?: (this: HTMLTextAreaElement, e: Event & { target: HTMLTextAreaElement }) => void;
     readonly?: boolean;
-    step?: number;
-    type?: 'text' | 'number';
-    value?: string | number;
+    value?: string;
 }
 
-export default function TextBox(props: TextBoxAttrs, value?: string | number) {
+export default function TextArea(props: TextAreaAttrs, value?: string | number) {
     props = props || {};
-    const cls = classes(`${getPrefix()}textbox`, ...(Array.isArray(props.class) ? props.class : [props.class]));
+    const cls = classes(`${getPrefix()}textarea`, ...(Array.isArray(props.class) ? props.class : [props.class]));
     const attrs = props == null ? null : Object.keys(props)
         .filter((key) => !managedAttrs.has(key))
         .reduce((map, key) => (map[key] = props[key], map), {});
@@ -30,16 +26,15 @@ export default function TextBox(props: TextBoxAttrs, value?: string | number) {
     const result = value != null ? value : props.value != null ? props.value : '';
 
     return (
-        <input
+        <textarea
             class={cls}
-            type={props.type || 'text'}
-            didmount={(domNode: HTMLInputElement) => {
-                domNode.setAttribute('value', String(result));
+            didmount={(domNode: HTMLTextAreaElement) => {
+                domNode.textContent = String(result);
                 if (props.didmount) {
                     props.didmount.call(null, domNode);
                 }
             }}
-            didupdate={(domNode: HTMLInputElement) => {
+            didupdate={(domNode: HTMLTextAreaElement) => {
                 domNode.value = String(result);
                 if (props.didupdate) {
                     props.didupdate.call(null, domNode);

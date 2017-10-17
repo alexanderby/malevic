@@ -5,14 +5,14 @@ import { NodeAttrs } from '../defs';
 const managedAttrs = [
     'class',
     'checked',
-    'onChange',
+    'onchange',
     'readonly',
     'text',
 ].reduce((map, key) => map.add(key), new Set());
 
 interface CheckboxAttrs extends NodeAttrs {
     checked?: boolean;
-    onChange?: (chacked: boolean) => void;
+    onchange?: (this: HTMLInputElement, e: Event & { target: HTMLInputElement }) => void;
     readonly?: boolean;
     text?: string;
 }
@@ -35,11 +35,7 @@ export default function CheckBox(props: CheckboxAttrs, text?: string) {
                 type="checkbox"
                 checked={props.checked}
                 readonly={props.readonly}
-                onchange={(e) => {
-                    if (props.onChange) {
-                        props.onChange.call(null, e.target.checked);
-                    }
-                }}
+                onchange={props.onchange}
             />
             <span class={`${cls}__checkmark`}></span>
             <label class={textClass}>{props.text || text}</label>

@@ -14,9 +14,9 @@ const package = require('./package');
 const date = (new Date()).toLocaleDateString('en-us', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 const banner = `/* ${package.name}@${package.version} - ${date} */`;
 
-function buildJS(options, { out, ts = {}, minify = false } = {}) {
-    const dir = path.dirname(out);
-    const file = path.basename(out);
+function buildJS(options, { output, ts = {}, minify = false } = {}) {
+    const dir = path.dirname(output);
+    const file = path.basename(output);
     const stream = rollup(Object.assign({
         strict: true,
         format: 'umd',
@@ -38,9 +38,9 @@ function buildJS(options, { out, ts = {}, minify = false } = {}) {
         .pipe(gulp.dest(dir));
 }
 
-function buildCSS({ input, out, minify = false }) {
-    const dir = path.dirname(out);
-    const file = path.basename(out);
+function buildCSS({ input, output, minify = false }) {
+    const dir = path.dirname(output);
+    const file = path.basename(output);
     let stream = gulp.src(input)
         .pipe(less())
         .pipe(autoprefix({
@@ -52,74 +52,101 @@ function buildCSS({ input, out, minify = false }) {
     }
     return stream
         .pipe(gulp.dest(dir));
-
 }
 
-function plugin(rollupConfig) {
-    return Object.assign(rollupConfig, {
-        external: [
-            'malevic'
-        ],
-        globals: {
-            'malevic': 'Malevic'
-        }
-    });
+function buildPackage({ es2015, umd, min, global, plugin }) {
+    const extend = plugin ? Object.assign(obj, {
+        external: ['malevic'],
+        globals: { 'malevic': 'Malevic' }
+    }) : (obj) => obj;
+    return [
+        buildJS(extend({
+            input: es2015[0],
+            format: 'es',
+        }), { output: es2015[1], ts: { target: 'es2015' } }),
+        buildJS(extend({
+            input: umd[0],
+            format: 'umd',
+            name: global
+        }), { output: umd[1], ts: { target: 'es5' } }),
+        buildJS(extend({
+            input: min[0],
+            format: 'umd',
+            name: global
+        }), { output: min[1], minify: true, ts: { target: 'es5' } }),
+    ];
 }
 
 gulp.task('default', () => {
     merge(
 
-        buildJS({
-            input: './entries/index.ts',
-            format: 'es',
-        }, { out: './index.js', ts: { target: 'es2015' } }),
-        buildJS({
-            input: './entries/index-umd.ts',
-            format: 'umd',
-            name: 'Malevic'
-        }, { out: './umd/index.js', ts: { target: 'es5' } }),
-        buildJS({
-            input: './entries/index-umd.ts',
-            format: 'umd',
-            name: 'Malevic'
-        }, { out: './umd/index.min.js', minify: true, ts: { target: 'es5' } }),
-
-        buildJS(plugin({
-            input: './entries/animation.ts',
-            format: 'es',
-        }), { out: './animation.js', ts: { target: 'es2015' } }),
-        buildJS(plugin({
-            input: './entries/animation-umd.ts',
-            format: 'umd',
-            name: 'MalevicAnimation'
-        }), { out: './umd/animation.js', ts: { target: 'es5' } }),
-        buildJS(plugin({
-            input: './entries/animation-umd.ts',
-            format: 'umd',
-            name: 'MalevicAnimation'
-        }), { out: './umd/animation.min.js', minify: true, ts: { target: 'es5' } }),
-
-        buildJS(plugin({
-            input: './entries/controls.ts',
-            format: 'es',
-        }), { out: './controls.js', ts: { target: 'es2015' } }),
-        buildJS(plugin({
-            input: './entries/controls.ts',
-            format: 'umd',
-            name: 'MalevicControls'
-        }), { out: './umd/controls.js', ts: { target: 'es5' } }),
-        buildJS(plugin({
-            input: './entries/controls.ts',
-            format: 'umd',
-            name: 'MalevicControls'
-        }), { out: './umd/controls.min.js', minify: true, ts: { target: 'es5' } }),
-        buildCSS({
-            input: './entries/controls.less',
-            out: './umd/controls.css'
+        ...buildPackage({
+            global: 'Malevic',
+            es2015: [
+                './entries/index.ts',
+                './index.js'
+            ],
+            umd: [
+                './entries/index-umd.ts',
+                './umd/index.js'
+            ],
+            min: [
+                './entries/index-umd.ts',
+                './umd/index.min.js'
+            ]
+        }),
+        ...buildPackage({
+            global: 'Malevic.Animation',
+            es2015: [
+                './entries/animation.ts',
+                './animation.js'
+            ],
+            umd: [
+                './entries/animation-umd.ts',
+                './umd/animation.js'
+            ],
+            min: [
+                './entries/animation-umd.ts',
+                './umd/animation.min.js'
+            ]
+        }),
+        ...buildPackage({
+            global: 'Malevic.Forms',
+            es2015: [
+                './entries/forms.ts',
+                './forms.js'
+            ],
+            umd: [
+                './entries/forms.ts',
+                './umd/forms.js'
+            ],
+            min: [
+                './entries/forms.ts',
+                './umd/forms.min.js'
+            ]
+        }),
+        ...buildPackage({
+            global: 'Malevic.Controls',
+            es2015: [
+                './entries/controls.ts',
+                './controls.js'
+            ],
+            umd: [
+                './entries/controls.ts',
+                './umd/controls.js'
+            ],
+            min: [
+                './entries/controls.ts',
+                './umd/controls.min.js'
+            ]
         }),
         buildCSS({
             input: './entries/controls.less',
-            out: './umd/controls.min.css',
+            output: './umd/controls.css'
+        }),
+        buildCSS({
+            input: './entries/controls.less',
+            output: './umd/controls.min.css',
             minify: true
         })
     );
@@ -127,13 +154,15 @@ gulp.task('default', () => {
 
 gulp.task('build-examples', () => {
     merge(
-        buildJS({
-            input: './examples/examples.tsx',
-            format: 'iife',
-            exports: 'none',
-            sourcemap: 'inline'
-        }, {
-                out: './examples/examples.js',
+        buildJS(
+            {
+                input: './examples/examples.tsx',
+                format: 'iife',
+                exports: 'none',
+                sourcemap: 'inline'
+            },
+            {
+                output: './examples/examples.js',
                 ts: {
                     target: 'es5',
                     jsx: 'react',
@@ -142,7 +171,7 @@ gulp.task('build-examples', () => {
             }),
         buildCSS({
             input: './examples/style.less',
-            out: './examples/style.css'
+            output: './examples/style.css'
         })
     );
 });

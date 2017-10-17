@@ -11,7 +11,13 @@ import {
 } from './interpolate';
 import { easing, createEasingFunction } from './easing';
 
+let registered = false;
+
 export default function withAnimation() {
+    if (registered) {
+        return;
+    }
+    registered = true;
 
     plugins.render.setAttribute
         .add(({ element, attr, value }) => {

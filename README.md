@@ -186,6 +186,41 @@ function Tooltip({ text, color, isVisible, x, y }) {
 }
 ```
 
+## Forms plug-in
+
+Forms plug-in makes form elements work in reactive manner:
+```jsx
+import { html } from 'malevic';
+import withForms from 'malevic/forms';
+
+withForms();
+
+function Form({ checked, text, num, onCheckChange, onTextChange, onNumChange }) {
+    return (
+        <form onsubmit={(e) => e.preventDefault()}>
+            <input
+                type="checkbox"
+                checked={checked}
+                onchange={(e) => onCheckChange(e.target.checked)}
+            />
+            <input
+                type="number"
+                value={num}
+                onchange={(e) => !isNaN(e.target.value) && onNumChange(e.target.value)}
+                onkeypress={(e) => {
+                    if (e.keycode === 13 && !isNaN(e.target.value)) {
+                        onNumChange(e.target.value);
+                    }
+                }}
+            />
+            <textarea oninput={(e) => onTextChange(e.target.value)}>
+                {text}
+            </textarea>
+        </form>
+    );
+}
+```
+
 ## Listening to events
 
 If attribute starts with `on`,
@@ -302,6 +337,7 @@ Extendable plug-ins:
 - `render.createElement` creates DOM node.
 - `render.mountElement` inserts created element into DOM.
 - `render.setAttribute` sets element attribute.
+- `render.setText` sets element's text content.
 - `render.unmountElement` removes element from DOM.
 - `static.isVoidTag` determines if self-closing tag should be used.
 - `static.processText` returns text content.

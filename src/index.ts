@@ -8,6 +8,7 @@ import {
     pluginsCreateElement,
     pluginsMountElement,
     pluginsSetAttribute,
+    pluginsSetText,
     pluginsUnmountElement,
 } from './render';
 import {
@@ -22,6 +23,7 @@ export const plugins = {
         createElement: pluginsCreateElement,
         mountElement: pluginsMountElement,
         setAttribute: pluginsSetAttribute,
+        setText: pluginsSetText,
         unmountElement: pluginsUnmountElement,
     },
     static: {

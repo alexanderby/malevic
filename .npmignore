@@ -6,6 +6,9 @@
 !animation.js
 !umd/animation.js
 !umd/animation.min.js
+!forms.js
+!umd/forms.js
+!umd/forms.min.js
 
 !examples/**
 examples/*.js
