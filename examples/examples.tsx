@@ -1,7 +1,6 @@
 import { html, render, renderToString } from 'malevic';
 import withAnimation, { animate } from 'malevic/animation';
 import withForms from 'malevic/forms';
-import { Button, CheckBox, Flex, Label, TextBox } from 'malevic/controls';
 
 // Core
 // --------------------------------------------
@@ -271,62 +270,4 @@ withForms();
     }
 
     setState({ checked: true, text: 'text', num: 5 });
-})();
-
-// Controls
-// ---------------------------------------
-
-(function () {
-
-    let state: { text: string; done: boolean; num: number; } = null;
-
-    function View({ text, isDone, onCheckChange, onClick, onTextChange, num, onNumChange }) {
-        return (
-            <Flex column>
-                <Flex row>
-                    <Button iconClass='smile' text='smile' />
-                    <CheckBox checked={isDone} onchange={(e) => onCheckChange(e.target.checked)}>
-                        Done
-                    </CheckBox>
-                    <Button onclick={onClick}>
-                        {text}
-                    </Button>
-                </Flex>
-                <Flex row>
-                    <Label>Text</Label>
-                    <TextBox oninput={(e) => onTextChange(e.target.value)} placeholder='input...'>
-                        {text}
-                    </TextBox>
-                </Flex>
-                <Flex row>
-                    <Label>Number</Label>
-                    <TextBox
-                        type='number'
-                        value={num}
-                        onchange={(e) => !isNaN(e.target.value) && onNumChange(e.target.value)}
-                        placeholder='input...'
-                    />
-                </Flex>
-            </Flex>
-        );
-    }
-
-    function setState(newState) {
-        state = Object.assign({}, state, newState);
-        render(
-            document.getElementById('controls'),
-            <View
-                text={state.text}
-                isDone={state.done}
-                onCheckChange={(checked) => setState({ done: checked, text: state.text + checked })}
-                onClick={() => setState({ text: (state.text + '+') })}
-                onTextChange={(value) => setState({ text: value })}
-                num={state.num}
-                onNumChange={(value) => setState({ num: value })}
-            />
-        );
-    }
-
-    setState({ text: 'increment', done: true });
-
 })();
