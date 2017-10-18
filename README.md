@@ -206,6 +206,7 @@ function Form({ checked, text, num, onCheckChange, onTextChange, onNumChange }) 
             <input
                 type="number"
                 value={num}
+                readonly={!checked}
                 onchange={(e) => !isNaN(e.target.value) && onNumChange(e.target.value)}
                 onkeypress={(e) => {
                     if (e.keycode === 13 && !isNaN(e.target.value)) {

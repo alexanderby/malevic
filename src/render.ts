@@ -100,10 +100,10 @@ export const pluginsUnmountElement = createPlugins<{ element: Element; parent: E
 
 export const pluginsSetAttribute = createPlugins<{ element: Element; attr: string; value: any; }, boolean>()
     .add(({ element, attr, value }) => {
-        if (value == null) {
+        if (value == null || value === false) {
             element.removeAttribute(attr);
         } else {
-            element.setAttribute(attr, String(value));
+            element.setAttribute(attr, value === true ? '' : String(value));
         }
         return true;
     })
