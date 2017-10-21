@@ -10,6 +10,8 @@
 !umd/forms.js
 !umd/forms.min.js
 
+!index.d.ts
+
 !examples/**
 examples/*.js
 !logo-256x256.svg
