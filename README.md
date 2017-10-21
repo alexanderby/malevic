@@ -17,53 +17,11 @@ necessary nodes or attributes are replaced.
 ```javascript
 import { html, render } from 'malevic';
 
-function Heading(text) {
-    return html('h3', null,
-        text
-    );
-}
-
-function Button(props) {
-    return html('button',
-        {
-            onclick: (e) => {
-                e.stopPropagation();
-                props.onClick();
-            }
-        },
-        props.text
-    );
-}
-
-function View(props) {
-    return html('div', { class: 'view' },
-        Heading(`Count: ${props.count}`),
-        (domNode) => {
-            const rect = domNode.getBoundingClientRect();
-            return Heading(`${rect.width}x${rect.height}`);
-        },
-        Button({
-            onClick: props.onIncrement,
-            text: 'Increment'
-        })
-    );
-}
-
-let state = null;
-function setState(newState) {
-    state = Object.assign({}, state, newState);
-    render(
-        document.getElementById('core'),
-        View({
-            count: state.count,
-            onIncrement: () => {
-                setState({ count: state.count + 1 });
-            }
-        })
-    );
-}
-
-setState({ count: 0 });
+render(document.body, (
+    html('h3', { class: 'heading' },
+        'Hello, World!'
+    )
+));
 ```
 
 ## JSX
@@ -91,15 +49,22 @@ setState({ count: 0 });
 
 Component written with JSX will look like:
 ```jsx
-import { html } from 'malevic';
+import { html, render } from 'malevic';
 
-export default function Button({text, onClick}) {
+function Button({label, handler}) {
     return (
-        <button class='x-button' onclick={onClick}>
-            {text}
+        <button class="x-button" onclick={handler}>
+            {label}
         </button>
     );
 }
+
+render(document.body, (
+    <Button
+        label="Click me"
+        handler={(e) => alert(e.target)}
+    />
+));
 ```
 
 ## Animation plug-in
@@ -114,60 +79,23 @@ import withAnimation, { animate } from 'malevic/animation';
 
 withAnimation();
 
-const DURATION = 1000;
-
-function Circle({ x, y }) {
-    return (
+render(document.body, (
+    <svg width={100} height={100}>
         <circle
-            cx={animate(x).duration(DURATION)}
-            cy={animate(y).duration(DURATION)}
             r={5}
-            fill='#567'
+            fill="red"
+            cx={animate(90).initial(10).duration(1000)}
+            cy={animate(10).initial(90).duration(1000)}
         />
-    );
-}
-
-function Snake({ points }) {
-    const [p0, c0, c1, p1] = points;
-    const p = ({ x, y }) => `${x},${y}`;
-    return <svg width={100} height={100}>
         <path
-            d={animate(`M${p(p0)} C${p(c0)} ${p(c1)} ${p(p1)}`)
-                .duration(DURATION)}
-            fill='none'
-            stroke='#234'
-            stroke-width={4}
+            fill="none"
+            stroke="blue"
+            stroke-width={1}
+            d={animate('M10,90 Q50,10 90,90')
+              .initial('M10,10 Q50,90 90,10')}
         />
-        <Circle x={p0.x} y={p0.y} />
-        <Circle x={p1.x} y={p1.y} />
     </svg>
-}
-
-const curve1 = [
-    { x: 10, y: 10 },
-    { x: 30, y: 40 },
-    { x: 70, y: 40 },
-    { x: 90, y: 10 }
-];
-const curve2 = [
-    { x: 10, y: 90 },
-    { x: 30, y: 60 },
-    { x: 70, y: 60 },
-    { x: 90, y: 90 }
-];
-let points = curve1;
-
-const target = document.getElementById('svg-animation');
-
-function draw() {
-    render(target, <Snake points={points} />);
-}
-
-draw();
-setInterval(function () {
-    points = points === curve1 ? curve2 : curve1;
-    draw();
-}, DURATION);
+));
 ```
 
 It is possible to animate separate style properties:
@@ -184,6 +112,24 @@ function Tooltip({ text, color, isVisible, x, y }) {
         ></div>
     );
 }
+```
+
+Built-in interpolator can interpolate between numbers and strings containing numbers with floating points. For other cases (e.g. colors) use custom interpolators:
+```jsx
+<rect
+    fill={animate([255, 255, 0])
+        .initial([255, 0, 0])
+        .duration(2000)
+        .interpolate((a, b) => (t) => {
+            const mix = (x, y) => Math.round(x * (1 - t) + y * t);
+            const channels = [
+                mix(a[0], b[0]),
+                mix(a[1], b[1]),
+                mix(a[2], b[2])
+            ];
+            return `rgb(${channels.join(', ')})`;
+        })}
+/>
 ```
 
 ## Forms plug-in
@@ -209,7 +155,7 @@ function Form({ checked, text, num, onCheckChange, onTextChange, onNumChange }) 
                 readonly={!checked}
                 onchange={(e) => !isNaN(e.target.value) && onNumChange(e.target.value)}
                 onkeypress={(e) => {
-                    if (e.keycode === 13 && !isNaN(e.target.value)) {
+                    if (e.keyCode === 13 && !isNaN(e.target.value)) {
                         onNumChange(e.target.value);
                     }
                 }}
@@ -233,28 +179,19 @@ the corresponding event listener is added to DOM element
 It is possible to get parent DOM node for tweaking children attibutes. For doing so a function returning declaration should be used instead of declaration.
 
 ```jsx
-function Tooltip({ text, cx, cy }) {
-    return (domNode) => {
-        const temp = render(domNode, <text font-size={16}>{text}</text>);
-        const box = temp.getBBox();
-        return [
-            <rect fill='#fe2'
-                x={cx - box.width / 2}
-                y={cy - box.height / 2}
-                width={box.width}
-                height={box.height}
-            />,
-            <text font-size={16} text-anchor='middle'
-                x={cx}
-                y={cy - box.y - box.height / 2}
-            >{text}</text>
-        ];
-    };
-}
-render(document.getElementById('lifecycle'), (
-    <svg width='100' height='50'>
-        <Tooltip text='Hello' cx={50} cy={25} />
-    </svg>
+render(document.body, (
+    <main>
+        <header></header>,
+        {(domNode) => {
+            const rect = domNode.getBoundingClientRect();
+            return [
+                <h3>Size</h3>,
+                <p>{`Width: ${rect.width}`}</p>,
+                <p>{`Height: ${rect.height}`}</p>
+            ];
+        }}
+        <footer></footer>
+    </main>
 ));
 ```
 
@@ -267,12 +204,14 @@ It can be retrieved in event handlers by calling `getData(domElement)`.
 import { html, getData } from 'malevic';
 function ListItem(props) {
     return html('li', {
+        class: 'list__item',
         data: props.data
     });
 }
 function List(props) {
     return html('ul',
         {
+            class: 'list',
             onclick: (e) => {
                 const data = getData(e.target);
                 props.onClick(data);
@@ -294,6 +233,7 @@ function List(props) {
 - `didupdate` handler will be invoked after all attributes of existing DOM node were synchronized.
 - `willunmount` handler will be invoked be invoked before DOM node is removed.
 - `native` set to `true` will prevent Malevič.js from touching DOM node's children.
+- Use a child function like `(domNode) => <Element node={domNode} />` when child nodes depend on parent DOM element.
 
 ```jsx
 function PrintSize() {
@@ -320,10 +260,10 @@ without unnecessary DOM tree modifications.
 import { html, renderToString } from 'malevic';
 function Icon(props) {
     return html('span', {
-        class: ['icon', props.cls]
+        class: ['icon', props.class]
     });
 }
-const declaration = Icon({cls: 'x-icon'});
+const declaration = Icon({class: 'x-icon'});
 const markup = renderToString(declaration);
 ```
 
