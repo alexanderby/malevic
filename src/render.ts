@@ -1,6 +1,6 @@
 import { setData } from './data';
 import { addListener, removeListener } from './events';
-import { NodeDeclaration, ChildDeclaration, ChildFunction } from './defs';
+import { NodeDeclaration, NodeAttrs, ChildDeclaration, ChildFunction } from './defs';
 import { createPlugins } from './plugins';
 import { classes, styles, isObject } from './utils';
 
@@ -30,8 +30,8 @@ function walkTree(
             if (typeof c === 'function') {
                 r = c(element);
                 if (Array.isArray(r)) {
-                    declarations.push(...r);
-                } else {
+                    declarations.push(...r.filter(x => x != null));
+                } else if (r != null) {
                     declarations.push(r);
                 }
             } else {
@@ -165,7 +165,7 @@ export const pluginsSetAttribute = createPlugins<{ element: Element; attr: strin
         return null;
     });
 
-const elementsAttrs = new WeakMap<Element, { [attr: string]: any }>();
+const elementsAttrs = new WeakMap<Element, NodeAttrs>();
 
 export function getAttrs(element: Element) {
     return elementsAttrs.get(element) || null;
@@ -173,13 +173,10 @@ export function getAttrs(element: Element) {
 
 function createNode(d: NodeDeclaration, parent: Element) {
     const element = pluginsCreateElement.apply({ d, parent });
-    const elementAttrs = {};
+    const elementAttrs: NodeAttrs = {};
     elementsAttrs.set(element, elementAttrs);
     Object.keys(d.attrs).forEach((attr) => {
         const value = d.attrs[attr];
-        if (value == null) {
-            return;
-        }
         pluginsSetAttribute.apply({ element, attr, value });
         elementAttrs[attr] = value;
     });

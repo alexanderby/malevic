@@ -35,7 +35,7 @@ function buildJS(options, { output, ts = {}, minify = false } = {}) {
 }
 
 function buildPackage({ es2015, umd, min, global, plugin }) {
-    const extend = plugin ? Object.assign(obj, {
+    const extend = plugin ? (obj) => Object.assign(obj, {
         external: ['malevic'],
         globals: { 'malevic': 'Malevic' }
     }) : (obj) => obj;
@@ -67,15 +67,16 @@ gulp.task('default', () => {
                 './index.js'
             ],
             umd: [
-                './entries/index-umd.ts',
+                './entries/index.ts',
                 './umd/index.js'
             ],
             min: [
-                './entries/index-umd.ts',
+                './entries/index.ts',
                 './umd/index.min.js'
             ]
         }),
         ...buildPackage({
+            plugin: true,
             global: 'Malevic.Animation',
             es2015: [
                 './entries/animation.ts',
@@ -91,6 +92,7 @@ gulp.task('default', () => {
             ]
         }),
         ...buildPackage({
+            plugin: true,
             global: 'Malevic.Forms',
             es2015: [
                 './entries/forms.ts',

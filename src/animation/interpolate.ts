@@ -28,15 +28,6 @@ export const interpolateNumbersInString: Interpolator<string> = function (from: 
     const posFrom = getNumPositions(from);
     const posTo = getNumPositions(to);
     return (t) => {
-        if (t === 0) {
-            return from;
-        }
-        if (t === 1) {
-            return to;
-        }
-        if (posTo.length === 0) {
-            return to;
-        }
         let result = '';
         let na: number, nb: number, n: number;
         let last = 0;

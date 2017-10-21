@@ -196,7 +196,18 @@ withAnimation();
             const temp = render(domNode, <text font-size={16}>{text}</text>);
             const box = (temp as SVGTextElement).getBBox();
             return [
-                <rect fill='#fe2'
+                <rect fill={animate([255, 255, 0])
+                    .initial([255, 0, 0])
+                    .duration(2000)
+                    .interpolate((a, b) => (t) => {
+                        const mix = (x, y) => Math.round(x * (1 - t) + y * t);
+                        const channels = [
+                            mix(a[0], b[0]),
+                            mix(a[1], b[1]),
+                            mix(a[2], b[2])
+                        ];
+                        return `rgb(${channels.join(', ')})`;
+                    })}
                     x={cx - box.width / 2}
                     y={cy - box.height / 2}
                     width={box.width}
@@ -239,9 +250,9 @@ withForms();
                     type="number"
                     value={num}
                     readonly={!checked}
-                    onchange={(e) => !isNaN(e.target.value) && onNumChange(e.target.value)}
+                    onchange={(e) => !isNaN(parseFloat(e.target.value)) && onNumChange(e.target.value)}
                     onkeypress={(e) => {
-                        if (e.keycode === 13 && !isNaN(e.target.value)) {
+                        if (e.keyCode === 13 && !isNaN(parseFloat(e.target.value))) {
                             onNumChange(e.target.value);
                         }
                     }}
