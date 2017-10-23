@@ -156,4 +156,6 @@ declare namespace JSX {
         };
     }
 
+    interface Element extends Malevic.NodeDeclaration { }
+
 }
