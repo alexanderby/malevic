@@ -232,7 +232,7 @@ function iterate(
 
         // Synchronize attributes
         const attrNames = Object.keys(d.attrs);
-        const existingAttrs = getAttrs(existing);
+        const existingAttrs = getAttrs(existing) || {};
         const existingAttrNames = Object.keys(existingAttrs);
         existingAttrNames.forEach((key) => {
             if (!(key in d.attrs)) {
