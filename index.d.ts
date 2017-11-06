@@ -3,12 +3,12 @@ declare namespace Malevic {
     interface NodeDeclaration {
         tag: string;
         attrs: NodeAttrs;
-        children: Array<ChildDeclaration | ChildFunction>;
+        children: Array<ChildDeclaration | ChildFunction | RecursiveArray<ChildDeclaration | ChildFunction>>;
     }
 
     type ChildDeclaration = NodeDeclaration | string;
 
-    type ChildFunction = (parent: Element) => NodeDeclaration | string | (NodeDeclaration | string)[];
+    type ChildFunction = (parent: Element) => ChildDeclaration | RecursiveArray<ChildDeclaration>;
 
     interface DomEventListener<T = Element> {
         (this: Element, e: Event & { target: T }): void;
@@ -41,19 +41,21 @@ declare namespace Malevic {
         [attr: string]: any | DomEventListener<T>;
     }
 
+    interface RecursiveArray<T> extends Array<T | RecursiveArray<T>> { }
+
     function html(
         tagOrComponent: (
             string | ((attrs) => (
                 ChildDeclaration |
                 ChildFunction |
-                (ChildDeclaration | ChildFunction)[]
+                RecursiveArray<ChildDeclaration | ChildFunction>
             ))
         ),
         attrs: NodeAttrs,
         ...children: Array<(
             ChildDeclaration |
             ChildFunction |
-            (ChildDeclaration | ChildFunction)[]
+            RecursiveArray<ChildDeclaration | ChildFunction>
         )>
     ): NodeDeclaration;
 

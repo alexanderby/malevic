@@ -1,29 +1,26 @@
+import { flatten } from './utils';
+
 import {
     NodeDeclaration,
     ChildDeclaration,
     ChildFunction,
     DomEventListener,
-    NodeAttrs
+    NodeAttrs,
+    RecursiveArray,
 } from './defs';
 
+type Child = ChildDeclaration | ChildFunction | RecursiveArray<ChildDeclaration | ChildFunction>;
+
 export function html(
-    tagOrComponent: string | ((attrs) => ChildDeclaration | ChildFunction | (ChildDeclaration | ChildFunction)[]),
+    tagOrComponent: string | ((attrs) => Child),
     attrs: NodeAttrs,
-    ...children: Array<ChildDeclaration | ChildFunction | (ChildDeclaration | ChildFunction)[]>
+    ...children: Array<Child>
 ) {
-    const normalized: Array<ChildDeclaration | ChildFunction> = [];
-    children.forEach(c => {
-        if (Array.isArray(c)) {
-            c.forEach(c => normalized.push(c))
-        } else if (c) {
-            normalized.push(c);
-        }
-    });
     if (typeof tagOrComponent === 'string') {
-        return { tag: tagOrComponent, attrs, children: normalized } as NodeDeclaration;
+        return { tag: tagOrComponent, attrs, children } as NodeDeclaration;
     }
     if (typeof tagOrComponent === 'function') {
-        return tagOrComponent(attrs, ...normalized);
+        return tagOrComponent(attrs, ...flatten(children));
     }
     return null;
 }

@@ -347,6 +347,7 @@ withForms();
                 Text
                 <br />
                 <pre>{'Multi\nline'}</pre>
+                {['a', 'b', 'c', ['d', 'e', 'f', ['g', 'h', 'i']]]}
             </h3>
         );
     }

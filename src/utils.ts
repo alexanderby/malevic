@@ -1,3 +1,5 @@
+import { RecursiveArray } from './defs';
+
 export function classes(
     ...args: Array<string | { [cls: string]: boolean }>
 ) {
@@ -25,4 +27,10 @@ export function styles(declarations: { [cssProp: string]: string }) {
 
 export function isObject(value) {
     return typeof value === 'object' && value != null;
+}
+
+export function flatten<T>(arr: RecursiveArray<T>) {
+    return arr.reduce((flat: T[], toFlatten) => {
+        return flat.concat(Array.isArray(toFlatten) ? flatten(toFlatten) : toFlatten);
+    }, []);
 }

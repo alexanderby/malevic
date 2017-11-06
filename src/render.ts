@@ -2,7 +2,7 @@ import { setData } from './data';
 import { addListener, removeListener } from './events';
 import { NodeDeclaration, NodeAttrs, ChildDeclaration, ChildFunction } from './defs';
 import { createPlugins } from './plugins';
-import { classes, styles, isObject } from './utils';
+import { classes, styles, isObject, flatten } from './utils';
 
 const nativeContainers = new WeakSet<Element>();
 const didMountHandlers = new WeakMap<Element, (el: Element) => void>();
@@ -205,6 +205,10 @@ function iterate(
     return createNode(d, parent, next);
 }
 
+function isEmpty(d: NodeDeclaration | string) {
+    return d == null || (typeof d === 'string' && !d.trim());
+}
+
 function walkTree(
     d: NodeDeclaration | string,
     parent: Element,
@@ -226,17 +230,17 @@ function walkTree(
         let c: ChildDeclaration | ChildFunction;
         let r: ChildDeclaration | ChildDeclaration[];
         let declarations: ChildDeclaration[] = [];
-        let children = (d as NodeDeclaration).children || [];
+        let children = (d as NodeDeclaration).children ? flatten((d as NodeDeclaration).children) : [];
         for (let i = 0; i < children.length; i++) {
             c = children[i];
             if (typeof c === 'function') {
-                r = c(element);
+                r = c(element) as any;
                 if (Array.isArray(r)) {
-                    declarations.push(...r.filter(x => x != null));
-                } else if (r != null) {
+                    declarations.push(...flatten(r).filter(x => !isEmpty(x)));
+                } else if (!isEmpty(r)) {
                     declarations.push(r);
                 }
-            } else if (c != null && !(typeof c === 'string' && !c.trim())) {
+            } else if (!isEmpty(c)) {
                 declarations.push(c);
             }
         }
