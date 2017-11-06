@@ -22,16 +22,17 @@ export default function withForms() {
             return null;
         });
 
-    plugins.render.setText
-        .add(({ element, text }) => {
-            if (element instanceof HTMLTextAreaElement) {
+    plugins.render.createNode
+        .add(({ d, parent }) => {
+            if (typeof d === 'string' && parent instanceof HTMLTextAreaElement) {
+                const text = d;
                 const value = text == null ? '' : String(text);
-                if (element.textContent || element.hasAttribute('value')) {
-                    element.value = text;
+                if (parent.textContent || parent.hasAttribute('value')) {
+                    parent.value = text;
                 } else {
-                    element.textContent = value;
+                    parent.textContent = value;
                 }
-                return true;
+                return parent.firstChild;
             }
             return null;
         });

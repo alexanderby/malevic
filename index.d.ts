@@ -59,8 +59,12 @@ declare namespace Malevic {
 
     function render(
         target: Element,
-        declaration: NodeDeclaration | string
+        declaration: NodeDeclaration
     ): Element;
+    function render(
+        target: Element,
+        text: string
+    ): Text;
     function getAttrs(element: Element): NodeAttrs;
 
     function classes(
@@ -88,11 +92,10 @@ declare namespace Malevic {
 
     const plugins: {
         render: {
-            createElement: PluginsCollection<{ d: NodeDeclaration, parent: Element }, Element>;
-            mountElement: PluginsCollection<{ element: Element; parent: Element; next: Node; }, boolean>;
+            createNode: PluginsCollection<{ d: NodeDeclaration | string, parent: Node }, Node>;
+            mountNode: PluginsCollection<{ node: Node; parent: Node; next: Node; }, boolean>;
             setAttribute: PluginsCollection<{ element: Element; attr: string; value: any; }, boolean>;
-            setText: PluginsCollection<{ element: Element; text: string; }, boolean>;
-            unmountElement: PluginsCollection<{ element: Element; parent: Element; }, boolean>;
+            unmountNode: PluginsCollection<{ node: Node; parent: Node; }, boolean>;
         },
         static: {
             isVoidTag: PluginsCollection<string, boolean>;

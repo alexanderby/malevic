@@ -1,9 +1,9 @@
 const dataBindings = new WeakMap<Element, any>();
 
-export function setData(node: Element, data: any) {
-    dataBindings.set(node, data);
+export function setData(element: Element, data: any) {
+    dataBindings.set(element, data);
 }
 
-export function getData(node: Element) {
-    return dataBindings.get(node);
+export function getData(element: Element) {
+    return dataBindings.get(element);
 }

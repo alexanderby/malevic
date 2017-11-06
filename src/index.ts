@@ -5,11 +5,10 @@ export { getData } from './data';
 export { renderToString, escapeHtml } from './static';
 
 import {
-    pluginsCreateElement,
-    pluginsMountElement,
+    pluginsCreateNode,
+    pluginsMountNode,
     pluginsSetAttribute,
-    pluginsSetText,
-    pluginsUnmountElement,
+    pluginsUnmountNode,
 } from './render';
 import {
     pluginsIsVoidTag,
@@ -20,11 +19,10 @@ import {
 
 export const plugins = {
     render: {
-        createElement: pluginsCreateElement,
-        mountElement: pluginsMountElement,
+        createNode: pluginsCreateNode,
+        mountNode: pluginsMountNode,
         setAttribute: pluginsSetAttribute,
-        setText: pluginsSetText,
-        unmountElement: pluginsUnmountElement,
+        unmountNode: pluginsUnmountNode,
     },
     static: {
         isVoidTag: pluginsIsVoidTag,

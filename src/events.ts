@@ -6,32 +6,32 @@ interface EventListenersCollection {
 
 const eventListeners = new WeakMap<Element, EventListenersCollection>();
 
-export function addListener(node: Element, event: string, listener: DomEventListener) {
+export function addListener(element: Element, event: string, listener: DomEventListener) {
     let listeners: EventListenersCollection;
-    if (eventListeners.has(node)) {
-        listeners = eventListeners.get(node);
+    if (eventListeners.has(element)) {
+        listeners = eventListeners.get(element);
     } else {
         listeners = {};
-        eventListeners.set(node, listeners);
+        eventListeners.set(element, listeners);
     }
     if (listeners[event] !== listener) {
         if (event in listeners) {
-            node.removeEventListener(event, listeners[event]);
+            element.removeEventListener(event, listeners[event]);
         }
-        node.addEventListener(event, listener);
+        element.addEventListener(event, listener);
         listeners[event] = listener;
     }
 }
 
-export function removeListener(node: Element, event: string) {
+export function removeListener(element: Element, event: string) {
     let listeners: EventListenersCollection;
-    if (eventListeners.has(node)) {
-        listeners = eventListeners.get(node);
+    if (eventListeners.has(element)) {
+        listeners = eventListeners.get(element);
     } else {
         return;
     }
     if (event in listeners) {
-        node.removeEventListener(event, listeners[event]);
+        element.removeEventListener(event, listeners[event]);
         delete listeners[event];
     }
 }

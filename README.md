@@ -3,7 +3,7 @@
 Minimalistic reactive UI library.
 As simple as possible.
 Extendable.
-*6KB minified (12KB with animations)*.
+*7KB minified (13KB with animations)*.
 
 ![Malevič.js logo](https://rawgit.com/alexanderby/malevic/master/logo-256x256.svg)
 
@@ -275,11 +275,10 @@ and making things more complex.
 - If plugin returns `null` or `undefined` the next plugin (added earlier) will be used.
 
 Extendable plug-ins:
-- `render.createElement` creates DOM node.
-- `render.mountElement` inserts created element into DOM.
-- `render.setAttribute` sets element attribute.
-- `render.setText` sets element's text content.
-- `render.unmountElement` removes element from DOM.
+- `render.createNode` creates DOM node.
+- `render.mountNode` inserts created node into DOM.
+- `render.setAttribute` sets element's attribute.
+- `render.unmountNode` removes node from DOM.
 - `static.isVoidTag` determines if self-closing tag should be used.
 - `static.processText` returns text content.
 - `static.skipAttr` determines whether attribute should be skipped.

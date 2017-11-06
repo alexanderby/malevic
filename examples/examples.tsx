@@ -2,6 +2,12 @@ import { html, render, renderToString } from 'malevic';
 import withAnimation, { animate } from 'malevic/animation';
 import withForms from 'malevic/forms';
 
+function assert(value) {
+    if (!value) {
+        throw new Error('Something went wrong')
+    }
+}
+
 // Core
 // --------------------------------------------
 
@@ -313,12 +319,6 @@ withForms();
     items.add(container.querySelector('#static-replacement'));
     items.add(container.querySelector('#static-color'));
 
-    function assert(value) {
-        if (!value) {
-            throw new Error('Something went wrong')
-        }
-    }
-
     setTimeout(() => {
         render(container, <View color="blue" child={<code id="static-replacement">Replacement</code>} />);
         assert(items.has(container.querySelector('#static-container')));
@@ -326,5 +326,31 @@ withForms();
         assert(!items.has(container.querySelector('#static-replacement')));
         assert(items.has(container.querySelector('#static-color')));
     }, 1000);
+
+})();
+
+// Text
+// ---------------------------------------
+
+(function () {
+
+    function View() {
+        return (
+            <h3>
+                Text
+                <i>Italic</i>
+                Text
+                <small>
+                    small
+                    <i>Italic</i>
+                </small>
+                Text
+                <br />
+                <pre>{'Multi\nline'}</pre>
+            </h3>
+        );
+    }
+
+    render(document.getElementById('text'), <View />);
 
 })();
