@@ -1,6 +1,6 @@
-import { NodeDeclaration } from './defs';
+import { NodeDeclaration, ChildDeclaration } from './defs';
 import { createPlugins } from './plugins';
-import { classes, styles, isObject } from './utils';
+import { classes, flatten, isObject, styles } from './utils';
 
 export const pluginsIsVoidTag = createPlugins<string, boolean>()
     .add((tag) => tag in VOID_TAGS);
@@ -71,10 +71,11 @@ export function renderToString(declaration: NodeDeclaration) {
 
         let htmlText = `${tabs}<${tag}${attrs}>`;
         let shouldIndentClosingTag = false;
-        d.children.forEach((c) => {
+        const children: ChildDeclaration[] = flatten(d.children || []).filter((c) => c != null);
+        children.forEach((c) => {
             if (typeof c === 'string') {
                 htmlText += pluginsProcessText.apply(c);
-            } else if (typeof c !== 'function') {
+            } else if (typeof c === 'object') {
                 shouldIndentClosingTag = true;
                 htmlText += `\n${buildHtml(c, `${tabs}    `)}`;
             }
