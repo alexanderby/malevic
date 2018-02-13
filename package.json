@@ -26,15 +26,15 @@
   "main": "umd/index.js",
   "module": "index.js",
   "devDependencies": {
-    "@alexlur/rollup-plugin-typescript": "^1.0.4",
-    "gulp": "^3.9.1",
-    "gulp-rename": "^1.2.2",
-    "http-server": "^0.10.0",
-    "merge-stream": "^1.0.1",
-    "rollup": "^0.50.0",
-    "rollup-plugin-uglify": "^2.0.1",
-    "rollup-stream": "^1.24.1",
-    "typescript": "^2.5.2",
-    "vinyl-source-stream": "^1.1.0"
+    "gulp": "3.9.1",
+    "gulp-rename": "1.2.2",
+    "http-server": "0.11.1",
+    "merge-stream": "1.0.1",
+    "rollup": "0.55.5",
+    "rollup-plugin-typescript": "0.8.1",
+    "rollup-plugin-uglify": "3.0.0",
+    "rollup-stream": "1.24.1",
+    "typescript": "2.7.1",
+    "vinyl-source-stream": "2.0.0"
   }
 }

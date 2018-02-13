@@ -1,65 +1,86 @@
 const gulp = require('gulp');
 const path = require('path');
-const merge = require('merge-stream');
-const source = require('vinyl-source-stream');
-const rollup = require('rollup-stream');
-const typescript = require('@alexlur/rollup-plugin-typescript');
-const uglify = require('rollup-plugin-uglify');
+const mergeStream = require('merge-stream');
+const sourceStream = require('vinyl-source-stream');
+const rollupStream = require('rollup-stream');
+const typescriptPlugin = require('rollup-plugin-typescript');
+const uglifyPlugin = require('rollup-plugin-uglify');
 const package = require('./package');
 
 const date = (new Date()).toLocaleDateString('en-us', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 const banner = `/* ${package.name}@${package.version} - ${date} */`;
 
-function buildJS(options, { output, ts = {}, minify = false } = {}) {
-    const dir = path.dirname(output);
-    const file = path.basename(output);
-    const stream = rollup(Object.assign({
-        strict: true,
-        format: 'umd',
-        banner,
+function buildJS({
+    src,
+    dest,
+    minify = false,
+    globalName = null,
+    dependencies = null,
+    moduleFormat = 'umd',
+    moduleExports = null,
+    sourceMaps = null,
+    ts = {},
+}) {
+    const dir = path.dirname(dest);
+    const file = path.basename(dest);
+    const stream = rollupStream({
+        input: src,
         rollup: require('rollup'),
+        external: dependencies ? Object.keys(dependencies) : null,
+        globals: dependencies,
+        output: {
+            banner,
+            exports: moduleExports,
+            format: moduleFormat,
+            name: globalName,
+            sourcemap: sourceMaps,
+            strict: true,
+        },
         plugins: [
-            typescript(Object.assign({
+            typescriptPlugin(Object.assign({
                 typescript: require('typescript'),
                 removeComments: true
             }, ts)),
-            minify ? uglify({
+            minify ? uglifyPlugin({
                 output: { preamble: banner }
             }) : null
-        ].filter((p) => p)
-    }, options));
+        ].filter((p) => p),
+    });
 
     return stream
-        .pipe(source(file))
+        .pipe(sourceStream(file))
         .pipe(gulp.dest(dir));
 }
 
 function buildPackage({ es2015, umd, min, global, plugin }) {
-    const extend = plugin ? (obj) => Object.assign(obj, {
-        external: ['malevic'],
-        globals: { 'malevic': 'Malevic' }
-    }) : (obj) => obj;
+    const dependencies = plugin ? { 'malevic': 'Malevic' } : null;
     return [
-        buildJS(extend({
-            input: es2015[0],
-            format: 'es',
-        }), { output: es2015[1], ts: { target: 'es2015' } }),
-        buildJS(extend({
-            input: umd[0],
-            format: 'umd',
-            name: global
-        }), { output: umd[1], ts: { target: 'es5' } }),
-        buildJS(extend({
-            input: min[0],
-            format: 'umd',
-            name: global
-        }), { output: min[1], minify: true, ts: { target: 'es5' } }),
+        buildJS({
+            src: es2015[0],
+            dest: es2015[1],
+            moduleFormat: 'es',
+            ts: { target: 'es2015' }
+        }),
+        buildJS({
+            src: umd[0],
+            dest: umd[1],
+            globalName: global,
+            moduleFormat: 'umd',
+            ts: { target: 'es5' }
+        }),
+        buildJS({
+            src: min[0],
+            dest: min[1],
+            minify: true,
+            globalName: global,
+            moduleFormat: 'umd',
+            ts: { target: 'es5' }
+        })
     ];
 }
 
 gulp.task('default', () => {
-    merge(
-
+    mergeStream(
         ...buildPackage({
             global: 'Malevic',
             es2015: [
@@ -113,13 +134,11 @@ gulp.task('default', () => {
 gulp.task('build-examples', () => {
     buildJS(
         {
-            input: './examples/examples.tsx',
-            format: 'iife',
-            exports: 'none',
-            sourcemap: 'inline'
-        },
-        {
-            output: './examples/examples.js',
+            src: './examples/examples.tsx',
+            dest: './examples/examples.js',
+            moduleFormat: 'iife',
+            moduleExports: 'none',
+            sourceMaps: 'inline',
             ts: {
                 target: 'es5',
                 jsx: 'react',
