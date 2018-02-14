@@ -6,8 +6,8 @@ export const pluginsIsVoidTag = createPlugins<string, boolean>()
     .add((tag) => tag in VOID_TAGS);
 
 export const pluginsSkipAttr = createPlugins<{ attr: string; value: any; }, boolean>()
-    .add(({ value }) => value == null)
-    .add(({ attr }) => (
+    .add(({ value }) => (value == null || value === false))
+    .add(({ attr }) => ((
         [
             'data',
             'native',
@@ -16,7 +16,7 @@ export const pluginsSkipAttr = createPlugins<{ attr: string; value: any; }, bool
             'willunmount',
         ].indexOf(attr) >= 0 ||
         attr.indexOf('on') === 0
-    ));
+    ) ? true : null));
 
 export function escapeHtml(s) {
     return String(s)
@@ -28,7 +28,7 @@ export function escapeHtml(s) {
 }
 
 export const pluginsStringifyAttr = createPlugins<{ attr: string; value: any; }, string>()
-    .add(({ value }) => value === false ? '' : escapeHtml(value))
+    .add(({ value }) => value === true ? '' : escapeHtml(value))
     .add(({ attr, value }) => {
         if (attr === 'class' && isObject(value)) {
             let cls: string;
@@ -39,11 +39,13 @@ export const pluginsStringifyAttr = createPlugins<{ attr: string; value: any; },
             }
             return escapeHtml(cls);
         }
+        return null;
     })
     .add(({ attr, value }) => {
         if (attr === 'style' && isObject(value)) {
             return escapeHtml(styles(value));
         }
+        return null;
     });
 
 export const pluginsProcessText = createPlugins<string, string>()
