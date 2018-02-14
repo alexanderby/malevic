@@ -12,7 +12,7 @@ import {
 type Child = ChildDeclaration | ChildFunction | RecursiveArray<ChildDeclaration | ChildFunction>;
 
 export function html(
-    tagOrComponent: string | ((attrs) => Child),
+    tagOrComponent: string | ((attrs, ...children: any[]) => Child),
     attrs: NodeAttrs,
     ...children: Array<Child>
 ) {
@@ -20,7 +20,12 @@ export function html(
         return { tag: tagOrComponent, attrs, children } as NodeDeclaration;
     }
     if (typeof tagOrComponent === 'function') {
-        return tagOrComponent(attrs, ...flatten(children));
+        return tagOrComponent(
+            // Note: When there are no attributes, JSX produces `null`
+            // and it prevents from assigning default value
+            attrs == null ? undefined : attrs,
+            ...flatten(children)
+        );
     }
     return null;
 }
