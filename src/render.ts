@@ -173,9 +173,12 @@ function removeNode(node: Node, parent: Element) {
 
 function removeEmptyTextChildren(element: Element) {
     let n: Node;
-    for (let i = element.childNodes.length; i >= 0; i--) {
+    while ((n = element.firstChild) && n instanceof Text && !n.textContent.trim()) {
+        element.removeChild(n);
+    }
+    for (let i = element.childNodes.length - 1; i > 0; i--) {
         n = element.childNodes.item(i);
-        if (n instanceof Text && !n.textContent.trim()) {
+        if (n instanceof Text && n.textContent === '') {
             element.removeChild(n);
         }
     }
@@ -206,7 +209,7 @@ function iterate(
 }
 
 function isEmpty(d: NodeDeclaration | string) {
-    return d == null || (typeof d === 'string' && !d.trim());
+    return d == null || d === '';
 }
 
 function walkTree(
