@@ -14,7 +14,9 @@
   "scripts": {
     "build": "gulp",
     "dev": "gulp build-examples",
-    "start": "http-server -p 9002"
+    "start": "http-server -p 9002",
+    "test": "jest --coverage",
+    "test:dev": "jest --watch"
   },
   "repository": {
     "type": "git",
@@ -26,14 +28,17 @@
   "main": "umd/index.js",
   "module": "index.js",
   "devDependencies": {
+    "@types/jest": "22.1.2",
     "gulp": "3.9.1",
     "gulp-rename": "1.2.2",
     "http-server": "0.11.1",
+    "jest": "22.3.0",
     "merge-stream": "1.0.1",
     "rollup": "0.55.5",
     "rollup-plugin-typescript": "0.8.1",
     "rollup-plugin-uglify": "3.0.0",
     "rollup-stream": "1.24.1",
+    "ts-jest": "22.0.4",
     "typescript": "2.7.1",
     "vinyl-source-stream": "2.0.0"
   }
