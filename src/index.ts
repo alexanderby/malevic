@@ -6,6 +6,7 @@ export { renderToString, escapeHtml } from './static';
 
 import {
     pluginsCreateNode,
+    pluginsMatchNodes,
     pluginsMountNode,
     pluginsSetAttribute,
     pluginsUnmountNode,
@@ -20,6 +21,7 @@ import {
 export const plugins = {
     render: {
         createNode: pluginsCreateNode,
+        matchNodes: pluginsMatchNodes,
         mountNode: pluginsMountNode,
         setAttribute: pluginsSetAttribute,
         unmountNode: pluginsUnmountNode,
@@ -31,5 +33,3 @@ export const plugins = {
         stringifyAttr: pluginsStringifyAttr,
     }
 };
-
-// export * from './defs';

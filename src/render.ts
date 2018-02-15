@@ -134,10 +134,13 @@ function createNode(d: NodeDeclaration | string, parent: Element, next: Node) {
     if (node instanceof Element && didMountHandlers.has(node)) {
         didMountHandlers.get(node)(node);
     }
+    if (typeof d === 'object' && node instanceof Element && !nativeContainers.has(node)) {
+        syncChildren(d, node);
+    }
     return node;
 }
 
-function synchronize(d: NodeDeclaration | string, existing: Element | Text) {
+function syncNode(d: NodeDeclaration | string, existing: Element | Text) {
     if (typeof d === 'string') {
         existing.textContent = d;
     } else {
@@ -161,6 +164,10 @@ function synchronize(d: NodeDeclaration | string, existing: Element | Text) {
         if (didUpdateHandlers.has(element)) {
             didUpdateHandlers.get(element)(element);
         }
+
+        if (!nativeContainers.has(element)) {
+            syncChildren(d, element);
+        }
     }
 }
 
@@ -171,97 +178,109 @@ function removeNode(node: Node, parent: Element) {
     pluginsUnmountNode.apply({ node, parent });
 }
 
-function removeEmptyTextChildren(element: Element) {
-    let n: Node;
-    while ((n = element.firstChild) && n instanceof Text && !n.textContent.trim()) {
-        element.removeChild(n);
-    }
-    for (let i = element.childNodes.length - 1; i > 0; i--) {
-        n = element.childNodes.item(i);
-        if (n instanceof Text && n.textContent === '') {
-            element.removeChild(n);
-        }
-    }
-}
-
-function iterate(
-    d: NodeDeclaration | string,
-    parent: Element,
-    index: number
-) {
-    const existing = parent.childNodes.item(index) as Element | Text;
-    const thereIsExisting = Boolean(existing);
-
-    if (thereIsExisting && (
-        (typeof d === 'string' && existing instanceof Text) ||
-        (typeof d === 'object' && existing instanceof Element && existing.tagName.toLowerCase() === d.tag)
-    )) {
-        synchronize(d, existing);
-        return existing;
-    }
-
-    let next: Node = null;
-    if (thereIsExisting) {
-        next = existing.nextSibling;
-        removeNode(existing, parent);
-    }
-    return createNode(d, parent, next);
-}
-
-function isEmpty(d: NodeDeclaration | string) {
+function isEmptyDeclaration(d: NodeDeclaration | string) {
     return d == null || d === '';
 }
 
-function walkTree(
-    d: NodeDeclaration | string,
-    parent: Element,
-    iteratee: (
-        node: NodeDeclaration | string,
-        accumulator: Element,
-        index: number
-    ) => Node,
-    index = 0
-) {
-    removeEmptyTextChildren(parent);
+type NodeMatch = [NodeDeclaration | string, Node];
 
-    const element = iteratee(d, parent, index);
-    if (
-        isObject(d) &&
-        element instanceof Element &&
-        !nativeContainers.has(element)
-    ) {
-        let c: ChildDeclaration | ChildFunction;
-        let r: ChildDeclaration | ChildDeclaration[];
-        let declarations: ChildDeclaration[] = [];
-        let children = (d as NodeDeclaration).children ? flatten((d as NodeDeclaration).children) : [];
-        for (let i = 0; i < children.length; i++) {
-            c = children[i];
-            if (typeof c === 'function') {
-                r = c(element) as any;
-                if (Array.isArray(r)) {
-                    declarations.push(...flatten(r).filter(x => !isEmpty(x)));
-                } else if (!isEmpty(r)) {
-                    declarations.push(r);
+export const pluginsMatchNodes = createPlugins<{ d: NodeDeclaration; element: Element; }, NodeMatch[]>()
+    .add(({ d, element }) => {
+        const matches: NodeMatch[] = [];
+
+        const declarations: ChildDeclaration[] = [];
+        if (Array.isArray(d.children)) {
+            (flatten(d.children) as (ChildDeclaration | ChildFunction)[])
+                .forEach((c) => {
+                    if (typeof c === 'function') {
+                        const r = c(element);
+                        if (Array.isArray(r)) {
+                            declarations.push(...(flatten(r) as ChildDeclaration[]).filter(x => !isEmptyDeclaration(x)));
+                        } else if (!isEmptyDeclaration(r)) {
+                            declarations.push(r);
+                        }
+                    } else if (!isEmptyDeclaration(c)) {
+                        declarations.push(c);
+                    }
+                });
+        }
+
+        let nodeIndex = 0;
+        declarations.forEach((d) => {
+            const isText = typeof d === 'string';
+            const isElement = !isText && isObject(d);
+
+            let found = null as Node;
+            let node = null as Node;
+            let isElementNode: boolean;
+            for (; nodeIndex < element.childNodes.length; nodeIndex++) {
+                node = element.childNodes.item(nodeIndex);
+                if (isText) {
+                    if (node instanceof Element) {
+                        break;
+                    }
+                    if (node instanceof Text) {
+                        found = node;
+                        nodeIndex++;
+                        break;
+                    }
                 }
-            } else if (!isEmpty(c)) {
-                declarations.push(c);
+                if (isElement && node instanceof Element) {
+                    if ((node as Element).tagName.toLowerCase() === (d as NodeDeclaration).tag) {
+                        found = node;
+                    }
+                    nodeIndex++;
+                    break;
+                }
             }
-        }
-        declarations.forEach((c, i) => walkTree(c, element, iteratee, i));
+            matches.push([d, found]);
+        });
 
-        const childNodes = element.childNodes;
-        let child: Element;
-        while (childNodes.length > declarations.length) {
-            child = childNodes.item(childNodes.length - 1) as Element;
-            removeNode(child, element);
+        return matches;
+    });
+
+function commit(matches: NodeMatch[], element: Element) {
+    const matchedNodes = new Set(matches.map(([, node]) => node).filter((node) => node));
+    Array.from(element.childNodes)
+        .filter((node) => !matchedNodes.has(node))
+        .forEach((node) => removeNode(node, element));
+
+    let prevNode: Node = null;
+    matches.forEach(([d, node], i) => {
+        if (node) {
+            syncNode(d, node as Element | Text);
+            prevNode = node;
+        } else {
+            prevNode = createNode(d, element, prevNode ? prevNode.nextSibling : null);
         }
-    }
-    return element;
+    });
 }
 
-export function render(target: Element, declaration: NodeDeclaration | string) {
+function syncChildren(d: NodeDeclaration, element: Element) {
+    const matches = pluginsMatchNodes.apply({ d, element });
+    commit(matches, element);
+}
+
+export function render(target: Element, declaration: NodeDeclaration): Element;
+export function render(target: Element, text: string): Text;
+export function render(target: Element, declarations: ChildDeclaration[]): Node[];
+export function render(target: Element, declaration: ChildDeclaration | ChildDeclaration[]) {
     if (!(target instanceof Element)) {
         throw new Error('Wrong rendering target');
     }
-    return walkTree(declaration, target, iterate);
+    const temp: NodeDeclaration = {
+        tag: target.tagName.toLowerCase(),
+        attrs: Array.from(target.attributes)
+            .reduce((obj, { name, value }) => {
+                obj[name] = value;
+                return obj;
+            }, {}),
+        children: Array.isArray(declaration) ? declaration : [declaration]
+    }
+    syncChildren(temp, target);
+    return Array.isArray(declaration) ?
+        Array.from(target.childNodes) :
+        typeof declaration === 'string' ?
+            target.firstChild :
+            target.firstElementChild;
 }
