@@ -276,6 +276,7 @@ and making things more complex.
 
 Extendable plug-ins:
 - `render.createNode` creates DOM node.
+- `render.matchNodes` matches declarations with existing DOM nodes.
 - `render.mountNode` inserts created node into DOM.
 - `render.setAttribute` sets element's attribute.
 - `render.unmountNode` removes node from DOM.
