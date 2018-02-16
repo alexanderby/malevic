@@ -1,8 +1,9 @@
 const gulp = require('gulp');
-const path = require('path');
+const gulpConnect = require('gulp-connect');
 const mergeStream = require('merge-stream');
-const sourceStream = require('vinyl-source-stream');
+const path = require('path');
 const rollupStream = require('rollup-stream');
+const sourceStream = require('vinyl-source-stream');
 const typescriptPlugin = require('rollup-plugin-typescript');
 const uglifyPlugin = require('rollup-plugin-uglify');
 const package = require('./package');
@@ -144,5 +145,24 @@ gulp.task('build-examples', () => {
                 jsx: 'react',
                 jsxFactory: 'html'
             }
-        });
+        })
+        .pipe(gulpConnect.reload());
+});
+
+gulp.task('watch', ['build-examples'], () => {
+    gulpConnect.server({
+        host: '0.0.0.0',
+        port: 9002,
+        root: './examples',
+        livereload: true,
+    });
+    gulp.watch(
+        [
+            'src/**/*.ts',
+            'entries/**/*.ts',
+            'examples/**/*.tsx',
+            'examples/index.html'
+        ],
+        ['build-examples']
+    );
 });

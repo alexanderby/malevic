@@ -13,8 +13,7 @@
   "license": "MIT",
   "scripts": {
     "build": "gulp",
-    "dev": "gulp build-examples",
-    "start": "http-server -p 9002",
+    "start": "gulp watch",
     "test": "jest --coverage",
     "test:dev": "jest --watch"
   },
@@ -30,8 +29,8 @@
   "devDependencies": {
     "@types/jest": "22.1.2",
     "gulp": "3.9.1",
+    "gulp-connect": "5.2.0",
     "gulp-rename": "1.2.2",
-    "http-server": "0.11.1",
     "jest": "22.3.0",
     "merge-stream": "1.0.1",
     "rollup": "0.55.5",
