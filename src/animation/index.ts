@@ -208,7 +208,8 @@ function requestFrame() {
     frameId = requestAnimationFrame(() => {
         frameId = null;
         const now = performance.now();
-        const values = Array.from(scheduledAnimations.keys());
+        const values: (Animation | StyleAnimation)[] = []
+        scheduledAnimations.forEach((value) => values.push(value));
         if (values.length > 0) {
             values.forEach((animation) => {
                 setAttr(animation.element, animation.attr, animation.tick(now));

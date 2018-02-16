@@ -1,2 +1,3 @@
 import withAnimation, { animate } from '../src/animation';
-export default Object.assign(withAnimation, animate);
+(withAnimation as any).animate = animate;
+export default withAnimation;

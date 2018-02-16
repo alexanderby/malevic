@@ -8,6 +8,17 @@ function assert(value) {
     }
 }
 
+function assign<A, B>(a: A, b: B): A & B;
+function assign<A, B, C>(a: A, b: B, c: C): A & B & C;
+function assign(obj, ...other: Object[]) {
+    other.filter((o) => o).forEach((from) => {
+        Object.keys(from).forEach((prop) => {
+            obj[prop] = from[prop];
+        });
+    });
+    return obj;
+}
+
 // Core
 // --------------------------------------------
 
@@ -63,7 +74,7 @@ function assert(value) {
     let state: { count: number; } = null;
 
     function setState(newState) {
-        state = Object.assign({}, state, newState);
+        state = assign({}, state, newState);
         render(
             document.getElementById('core'),
             <View
@@ -272,7 +283,7 @@ withForms();
     }
 
     function setState(newState) {
-        state = Object.assign({}, state, newState);
+        state = assign({}, state, newState);
         render(
             document.getElementById('forms'),
             <Form

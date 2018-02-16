@@ -2,9 +2,9 @@ import { setData } from './data';
 import { addListener, removeListener } from './events';
 import { NodeDeclaration, NodeAttrs, ChildDeclaration, ChildFunction } from './defs';
 import { createPlugins } from './plugins';
-import { classes, styles, isObject, flatten } from './utils';
+import { classes, styles, isObject, flatten, toArray } from './utils';
 
-const nativeContainers = new WeakSet<Element>();
+const nativeContainers = new WeakMap<Element, boolean>();
 const didMountHandlers = new WeakMap<Element, (el: Element) => void>();
 const didUpdateHandlers = new WeakMap<Element, (el: Element) => void>();
 const willUnmountHandlers = new WeakMap<Element, (el: Element) => void>();
@@ -67,7 +67,7 @@ export const pluginsSetAttribute = createPlugins<{ element: Element; attr: strin
     .add(({ element, attr, value }) => {
         if (attr === 'native') {
             if (value === true) {
-                nativeContainers.add(element);
+                nativeContainers.set(element, true);
             } else {
                 nativeContainers.delete(element);
             }
@@ -135,7 +135,7 @@ function createNode(d: NodeDeclaration | string, parent: Element, next: Node) {
         didMountHandlers.get(node)(node);
     }
     if (typeof d === 'object' && node instanceof Element && !nativeContainers.has(node)) {
-        syncChildren(d, node);
+        syncChildNodes(d, node);
     }
     return node;
 }
@@ -166,7 +166,7 @@ function syncNode(d: NodeDeclaration | string, existing: Element | Text) {
         }
 
         if (!nativeContainers.has(element)) {
-            syncChildren(d, element);
+            syncChildNodes(d, element);
         }
     }
 }
@@ -240,8 +240,11 @@ export const pluginsMatchNodes = createPlugins<{ d: NodeDeclaration; element: El
     });
 
 function commit(matches: NodeMatch[], element: Element) {
-    const matchedNodes = new Set(matches.map(([, node]) => node).filter((node) => node));
-    Array.from(element.childNodes)
+    const matchedNodes = new Set<Node>();
+    matches.map(([, node]) => node)
+        .filter((node) => node)
+        .forEach((node) => matchedNodes.add(node));
+    toArray(element.childNodes)
         .filter((node) => !matchedNodes.has(node))
         .forEach((node) => removeNode(node, element));
 
@@ -256,7 +259,7 @@ function commit(matches: NodeMatch[], element: Element) {
     });
 }
 
-function syncChildren(d: NodeDeclaration, element: Element) {
+function syncChildNodes(d: NodeDeclaration, element: Element) {
     const matches = pluginsMatchNodes.apply({ d, element });
     commit(matches, element);
 }
@@ -270,16 +273,16 @@ export function render(target: Element, declaration: ChildDeclaration | ChildDec
     }
     const temp: NodeDeclaration = {
         tag: target.tagName.toLowerCase(),
-        attrs: Array.from(target.attributes)
+        attrs: toArray(target.attributes)
             .reduce((obj, { name, value }) => {
                 obj[name] = value;
                 return obj;
             }, {}),
         children: Array.isArray(declaration) ? declaration : [declaration]
     }
-    syncChildren(temp, target);
+    syncChildNodes(temp, target);
     return Array.isArray(declaration) ?
-        Array.from(target.childNodes) :
+        toArray(target.childNodes) :
         typeof declaration === 'string' ?
             target.firstChild :
             target.firstElementChild;

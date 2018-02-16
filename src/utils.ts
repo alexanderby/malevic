@@ -34,3 +34,7 @@ export function flatten<T>(arr: RecursiveArray<T>) {
         return flat.concat(Array.isArray(toFlatten) ? flatten(toFlatten) : toFlatten);
     }, []);
 }
+
+export function toArray<T>(obj: ArrayLike<T>): T[] {
+    return Array.prototype.slice.call(obj);
+}
