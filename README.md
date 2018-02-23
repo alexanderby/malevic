@@ -7,6 +7,8 @@ Extendable.
 
 ![Malevič.js logo](https://rawgit.com/alexanderby/malevic/master/logo-256x256.svg)
 
+Suitable for building framework-independent dynamic widgets as well as small web apps.
+
 ## Basic example
 
 - `html()` function creates DOM element declaration that looks like `{tag, attrs, children}`.
@@ -201,7 +203,7 @@ render(document.body, (
 It can be retrieved in event handlers by calling `getData(domElement)`.
 This can be useful for event delegation.
 
-```javascript
+```jsx
 import { html, getData } from 'malevic';
 
 function ListItem(props) {
@@ -224,7 +226,7 @@ function List(props) {
 ```
 
 ## Syncing with existing DOM element
-```javascript
+```jsx
 import {html, sync} from 'malevic';
 
 sync(document.body, (
@@ -268,15 +270,20 @@ render(document.body, <PrintSize />);
 Malevič.js can simply render inside existing HTML
 without unnecessary DOM tree modifications.
 
-```javascript
-import { html, renderToString } from 'malevic';
-function Icon(props) {
-    return html('span', {
-        class: ['icon', props.class]
-    });
-}
-const declaration = Icon({class: 'x-icon'});
-const markup = renderToString(declaration);
+```jsx
+import {html, renderToString} from 'malevic';
+import {createServer} from 'http';
+import App from './app';
+
+createServer((request, response) => response.end(`<!DOCTYPE html>
+<html>
+<head></head>
+${renderToString(
+    <body>
+        <App state={{}} />
+    </body>
+)}
+</html>`));
 ```
 
 ## Plug-ins
