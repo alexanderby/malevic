@@ -71,6 +71,16 @@ declare namespace Malevic {
         target: Element,
         declaration: (NodeDeclaration | string)[]
     ): Node[];
+
+    function sync(
+        target: Element,
+        declaration: NodeDeclaration
+    );
+    function sync(
+        target: Text,
+        text: string
+    );
+
     function getAttrs(element: Element): NodeAttrs;
 
     function classes(

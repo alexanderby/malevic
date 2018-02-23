@@ -17,7 +17,7 @@ const lifecycleHandlers: { [event: string]: WeakMap<Element, (el: Element) => vo
 const XHTML_NS = 'http://www.w3.org/1999/xhtml';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-export const pluginsCreateNode = createPlugins<{ d: NodeDeclaration | string, parent: Element }, Text | Element>()
+export const pluginsCreateNode = createPlugins<{ d: ChildDeclaration, parent: Element }, Text | Element>()
     .add(({ d, parent }) => {
         if (typeof d === 'string') {
             return document.createTextNode(d);
@@ -116,7 +116,7 @@ export function getAttrs(element: Element) {
     return elementsAttrs.get(element) || null;
 }
 
-function createNode(d: NodeDeclaration | string, parent: Element, next: Node) {
+function createNode(d: ChildDeclaration, parent: Element, next: Node) {
     const node = pluginsCreateNode.apply({ d, parent });
     if (typeof d === 'object') {
         const element = node as Element;
@@ -140,13 +140,25 @@ function createNode(d: NodeDeclaration | string, parent: Element, next: Node) {
     return node;
 }
 
-function syncNode(d: NodeDeclaration | string, existing: Element | Text) {
+function collectAttrs(element: Element): NodeAttrs {
+    return toArray(element.attributes)
+        .reduce((obj, { name, value }) => {
+            obj[name] = value;
+            return obj;
+        }, {} as NodeAttrs)
+}
+
+function syncNode(d: ChildDeclaration, existing: Element | Text) {
     if (typeof d === 'string') {
         existing.textContent = d;
     } else {
         const element = existing as Element;
         const attrs = d.attrs || {};
-        const existingAttrs = getAttrs(element) || {};
+        let existingAttrs = getAttrs(element);
+        if (!existingAttrs) {
+            existingAttrs = collectAttrs(element);
+            elementsAttrs.set(element, existingAttrs);
+        }
         Object.keys(existingAttrs).forEach((attr) => {
             if (!(attr in attrs)) {
                 pluginsSetAttribute.apply({ element, attr, value: null });
@@ -178,11 +190,11 @@ function removeNode(node: Node, parent: Element) {
     pluginsUnmountNode.apply({ node, parent });
 }
 
-function isEmptyDeclaration(d: NodeDeclaration | string) {
+function isEmptyDeclaration(d: ChildDeclaration) {
     return d == null || d === '';
 }
 
-type NodeMatch = [NodeDeclaration | string, Node];
+type NodeMatch = [ChildDeclaration, Node];
 
 export const pluginsMatchNodes = createPlugins<{ d: NodeDeclaration; element: Element; }, NodeMatch[]>()
     .add(({ d, element }) => {
@@ -273,11 +285,7 @@ export function render(target: Element, declaration: ChildDeclaration | ChildDec
     }
     const temp: NodeDeclaration = {
         tag: target.tagName.toLowerCase(),
-        attrs: toArray(target.attributes)
-            .reduce((obj, { name, value }) => {
-                obj[name] = value;
-                return obj;
-            }, {}),
+        attrs: collectAttrs(target),
         children: Array.isArray(declaration) ? declaration : [declaration]
     }
     syncChildNodes(temp, target);
@@ -286,4 +294,17 @@ export function render(target: Element, declaration: ChildDeclaration | ChildDec
         typeof declaration === 'string' ?
             target.firstChild :
             target.firstElementChild;
+}
+
+export function sync(target: Element, declaration: NodeDeclaration);
+export function sync(target: Text, text: string);
+export function sync(target: Element | Text, declaration: ChildDeclaration) {
+    const isText = typeof declaration === 'string';
+    if (!(
+        (isText && target instanceof Text) ||
+        (!isText && target instanceof Element && target.tagName.toLowerCase() === (declaration as NodeDeclaration).tag)
+    )) {
+        throw new Error('Wrong sync target');
+    }
+    syncNode(declaration, target);
 }

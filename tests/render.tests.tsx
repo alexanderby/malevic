@@ -1,4 +1,4 @@
-import { html, render, getData } from '../src/index';
+import { html, render, sync, getData } from '../src/index';
 
 let container: Element = null;
 
@@ -91,6 +91,22 @@ describe('rendering helpers', () => {
         const node = render(container, 'Text');
         expect(node).toBeInstanceOf(Text);
         expect(node.textContent).toEqual('Text');
+    });
+
+    test('sync', () => {
+        const node = document.createElement('span');
+        node.className = 'a';
+        node.id = 'b';
+
+        sync(node, (
+            <span id="b" style={{ color: 'red' }}>
+                Text <label>Label</label>
+            </span>
+        ));
+        expect(node.outerHTML).toEqual('<span id="b" style="color: red;">Text <label>Label</label></span>');
+
+        sync(node.querySelector('label').firstChild as Text, 'Hello');
+        expect(node.outerHTML).toEqual('<span id="b" style="color: red;">Text <label>Hello</label></span>');
     });
 });
 

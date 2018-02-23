@@ -199,27 +199,39 @@ render(document.body, (
 
 `data` attribute assigns data to DOM element.
 It can be retrieved in event handlers by calling `getData(domElement)`.
+This can be useful for event delegation.
 
 ```javascript
 import { html, getData } from 'malevic';
+
 function ListItem(props) {
-    return html('li', {
-        class: 'list__item',
-        data: props.data
-    });
+    return <li class="list__item" data={props.data} />;
 }
+
 function List(props) {
-    return html('ul',
-        {
-            class: 'list',
-            onclick: (e) => {
+    return (
+        <ul
+            class="list"
+            onclick={(e) => {
                 const data = getData(e.target);
                 props.onClick(data);
-            }
-        }
-        ...props.items.map(ListItem)
+            }}
+        >
+            {...props.items.map(ListItem)}
+        </ul>
     );
 }
+```
+
+## Syncing with existing DOM element
+```javascript
+import {html, sync} from 'malevic';
+
+sync(document.body, (
+    <body class={{'popup-open': state.isPopupOpen}}>
+        <main />
+    </body>
+));
 ```
 
 ## Manipulating class list and styles
@@ -231,7 +243,7 @@ function List(props) {
 
 - `didmount` handler will be invoked after DOM node is created and appended to parent.
 - `didupdate` handler will be invoked after all attributes of existing DOM node were synchronized.
-- `willunmount` handler will be invoked be invoked before DOM node is removed.
+- `willunmount` handler will be invoked before DOM node is removed.
 - `native` set to `true` will prevent Malevič.js from touching DOM node's children.
 - Use a child function like `(domNode) => <Element node={domNode} />` when child nodes depend on parent DOM element.
 
