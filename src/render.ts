@@ -307,4 +307,5 @@ export function sync(target: Element | Text, declaration: ChildDeclaration) {
         throw new Error('Wrong sync target');
     }
     syncNode(declaration, target);
+    return target;
 }

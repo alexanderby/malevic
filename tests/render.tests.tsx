@@ -98,11 +98,12 @@ describe('rendering helpers', () => {
         node.className = 'a';
         node.id = 'b';
 
-        sync(node, (
+        const result = sync(node, (
             <span id="b" style={{ color: 'red' }}>
                 Text <label>Label</label>
             </span>
         ));
+        expect(result).toBe(node);
         expect(node.outerHTML).toEqual('<span id="b" style="color: red;">Text <label>Label</label></span>');
 
         sync(node.querySelector('label').firstChild as Text, 'Hello');
