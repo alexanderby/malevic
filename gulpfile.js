@@ -28,9 +28,9 @@ function buildJS({
         input: src,
         rollup: require('rollup'),
         external: dependencies ? Object.keys(dependencies) : null,
-        globals: dependencies,
         output: {
             banner,
+            globals: dependencies,
             exports: moduleExports,
             format: moduleFormat,
             name: globalName,
@@ -59,12 +59,14 @@ function buildPackage({ es2015, umd, min, global, plugin }) {
         buildJS({
             src: es2015[0],
             dest: es2015[1],
+            dependencies,
             moduleFormat: 'es',
             ts: { target: 'es2015' }
         }),
         buildJS({
             src: umd[0],
             dest: umd[1],
+            dependencies,
             globalName: global,
             moduleFormat: 'umd',
             ts: { target: 'es5' }
@@ -73,6 +75,7 @@ function buildPackage({ es2015, umd, min, global, plugin }) {
             src: min[0],
             dest: min[1],
             minify: true,
+            dependencies,
             globalName: global,
             moduleFormat: 'umd',
             ts: { target: 'es5' }
