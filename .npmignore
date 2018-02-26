@@ -9,6 +9,9 @@
 !forms.js
 !umd/forms.js
 !umd/forms.min.js
+!state.js
+!umd/state.js
+!umd/state.min.js
 
 !index.d.ts
 

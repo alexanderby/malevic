@@ -45,7 +45,7 @@ declare namespace Malevic {
 
     function html(
         tagOrComponent: (
-            string | ((attrs) => (
+            string | ((attrs, ...children) => (
                 ChildDeclaration |
                 ChildFunction |
                 RecursiveArray<ChildDeclaration | ChildFunction>
@@ -144,6 +144,10 @@ declare namespace Malevic {
 
     function Forms(): void;
 
+    namespace State { }
+
+    function State(fn: (attrs, ...children) => NodeDeclaration): (attrs, ...children) => NodeDeclaration;
+
 }
 
 declare module 'malevic' {
@@ -157,6 +161,10 @@ declare module 'malevic/animation' {
 
 declare module 'malevic/forms' {
     export default Malevic.Forms;
+}
+
+declare module 'malevic/state' {
+    export default Malevic.State;
 }
 
 declare namespace JSX {
