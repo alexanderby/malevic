@@ -10,7 +10,6 @@ module.exports = {
         'js'
     ],
     collectCoverage: false,
-    mapCoverage: true,
     coverageDirectory: 'coverage',
     collectCoverageFrom: [
         'src/**/*.{ts,tsx}'
