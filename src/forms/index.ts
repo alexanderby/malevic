@@ -24,8 +24,8 @@ export default function withForms() {
 
     plugins.render.createNode
         .add(({ d, parent }) => {
-            if (typeof d === 'string' && parent instanceof HTMLTextAreaElement) {
-                const text = d;
+            if ((d == null || typeof d !== 'object') && parent instanceof HTMLTextAreaElement) {
+                const text = d as string;
                 const value = text == null ? '' : String(text);
                 if (parent.textContent || parent.hasAttribute('value')) {
                     parent.value = text;

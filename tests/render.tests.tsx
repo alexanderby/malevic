@@ -1,4 +1,5 @@
-import { html, render, sync, getData } from '../src/index';
+import { html, render, sync, getData } from '../src';
+import { dispatchClick } from './utils';
 
 let container: Element = null;
 
@@ -18,7 +19,7 @@ describe('rendering', () => {
     beforeEach(() => {
         element = render(container, (
             <div class="a">
-                Hello <strong class="b">World</strong>
+                Hello <strong class="b">World</strong> {2018}
             </div>
         ));
     });
@@ -27,8 +28,8 @@ describe('rendering', () => {
         expect(container.childNodes.length).toEqual(1);
         expect(element.tagName).toEqual('DIV');
         expect(element.className).toEqual('a');
-        expect(element.textContent).toEqual('Hello World');
-        expect(element.childNodes.length).toEqual(2);
+        expect(element.textContent).toEqual('Hello World 2018');
+        expect(element.childNodes.length).toEqual(4);
         expect(element.childElementCount).toEqual(1);
         expect(element.childNodes.item(0)).toBeInstanceOf(Text);
         expect(element.childNodes.item(1)).toBeInstanceOf(HTMLElement);
@@ -36,7 +37,9 @@ describe('rendering', () => {
         expect(element.children.item(0).tagName).toEqual('STRONG');
         expect(element.children.item(0).className).toEqual('b');
         expect(element.childNodes.item(1).textContent).toEqual('World');
-        expect(container.innerHTML).toEqual('<div class="a">Hello <strong class="b">World</strong></div>');
+        expect(element.childNodes.item(2).textContent).toEqual(' ');
+        expect(element.childNodes.item(3).textContent).toEqual('2018');
+        expect(container.innerHTML).toEqual('<div class="a">Hello <strong class="b">World</strong> 2018</div>');
     });
 
     test('update', () => {
@@ -165,14 +168,6 @@ describe('namespaces', () => {
 });
 
 test('events', () => {
-    function dispatchClick(el: Element) {
-        el.dispatchEvent(new MouseEvent('click', {
-            view: window,
-            bubbles: true,
-            cancelable: true
-        }));
-    }
-
     let element: Element = null;
     let count = 0;
     const increment = () => count++;

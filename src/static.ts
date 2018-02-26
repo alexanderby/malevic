@@ -75,11 +75,14 @@ export function renderToString(declaration: NodeDeclaration) {
         let shouldIndentClosingTag = false;
         const children: ChildDeclaration[] = flatten(d.children || []).filter((c) => c != null);
         children.forEach((c) => {
-            if (typeof c === 'string') {
-                htmlText += pluginsProcessText.apply(c);
-            } else if (typeof c === 'object') {
+            if (c == null || typeof c === 'function') {
+                return;
+            }
+            if (typeof c === 'object') {
                 shouldIndentClosingTag = true;
                 htmlText += `\n${buildHtml(c, `${tabs}    `)}`;
+            } else {
+                htmlText += pluginsProcessText.apply(c as string);
             }
         });
         if (shouldIndentClosingTag) {

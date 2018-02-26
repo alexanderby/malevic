@@ -1,4 +1,4 @@
-import { html, render, renderToString } from '../src/index';
+import { html, render, renderToString } from '../src';
 
 let container: Element = null;
 
@@ -18,7 +18,7 @@ describe('server-side rendering', () => {
             <label class="a">
                 <input readonly />
                 {(domNode) => <span />}
-                Hello <b>red</b> <i>sun</i>!
+                Hello <b>red</b> <i>sun</i> {2018}!
             </label>
         );
     }
@@ -28,7 +28,7 @@ describe('server-side rendering', () => {
             '<label class="a">',
             '    <input readonly/>Hello ',
             '    <b>red</b> ',
-            '    <i>sun</i>!',
+            '    <i>sun</i> 2018!',
             '</label>'
         ].join('\n'));
     });

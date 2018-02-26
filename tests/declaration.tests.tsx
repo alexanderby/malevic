@@ -1,4 +1,4 @@
-import { html } from '../src/index';
+import { html } from '../src';
 
 function Component({ isHidden = false } = {}, ...children) {
     const style = isHidden ? { 'display': 'none' } : null;

@@ -19,16 +19,16 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 
 export const pluginsCreateNode = createPlugins<{ d: ChildDeclaration, parent: Element }, Text | Element>()
     .add(({ d, parent }) => {
-        if (typeof d === 'string') {
-            return document.createTextNode(d);
+        if (!isObject(d)) {
+            return document.createTextNode(d == null ? '' : String(d));
         }
-        if (d.tag === 'svg') {
+        if ((d as NodeDeclaration).tag === 'svg') {
             return document.createElementNS(SVG_NS, 'svg');
         }
         if (parent.namespaceURI === XHTML_NS) {
-            return document.createElement(d.tag);
+            return document.createElement((d as NodeDeclaration).tag);
         }
-        return document.createElementNS(parent.namespaceURI, d.tag);
+        return document.createElementNS(parent.namespaceURI, (d as NodeDeclaration).tag);
     });
 
 export const pluginsMountNode = createPlugins<{ node: Node; parent: Element; next: Node; }, boolean>()
@@ -118,13 +118,13 @@ export function getAttrs(element: Element) {
 
 function createNode(d: ChildDeclaration, parent: Element, next: Node) {
     const node = pluginsCreateNode.apply({ d, parent });
-    if (typeof d === 'object') {
+    if (isObject(d)) {
         const element = node as Element;
         const elementAttrs: NodeAttrs = {};
         elementsAttrs.set(element, elementAttrs);
-        if (d.attrs) {
-            Object.keys(d.attrs).forEach((attr) => {
-                const value = d.attrs[attr];
+        if ((d as NodeDeclaration).attrs) {
+            Object.keys((d as NodeDeclaration).attrs).forEach((attr) => {
+                const value = (d as NodeDeclaration).attrs[attr];
                 pluginsSetAttribute.apply({ element, attr, value });
                 elementAttrs[attr] = value;
             });
@@ -134,8 +134,8 @@ function createNode(d: ChildDeclaration, parent: Element, next: Node) {
     if (node instanceof Element && didMountHandlers.has(node)) {
         didMountHandlers.get(node)(node);
     }
-    if (typeof d === 'object' && node instanceof Element && !nativeContainers.has(node)) {
-        syncChildNodes(d, node);
+    if (isObject(d) && node instanceof Element && !nativeContainers.has(node)) {
+        syncChildNodes(d as NodeDeclaration, node);
     }
     return node;
 }
@@ -149,11 +149,9 @@ function collectAttrs(element: Element): NodeAttrs {
 }
 
 function syncNode(d: ChildDeclaration, existing: Element | Text) {
-    if (typeof d === 'string') {
-        existing.textContent = d;
-    } else {
+    if (isObject(d)) {
         const element = existing as Element;
-        const attrs = d.attrs || {};
+        const attrs = (d as NodeDeclaration).attrs || {};
         let existingAttrs = getAttrs(element);
         if (!existingAttrs) {
             existingAttrs = collectAttrs(element);
@@ -178,8 +176,10 @@ function syncNode(d: ChildDeclaration, existing: Element | Text) {
         }
 
         if (!nativeContainers.has(element)) {
-            syncChildNodes(d, element);
+            syncChildNodes(d as NodeDeclaration, element);
         }
+    } else {
+        existing.textContent = d == null ? '' : String(d);
     }
 }
 
@@ -219,8 +219,8 @@ export const pluginsMatchNodes = createPlugins<{ d: NodeDeclaration; element: El
 
         let nodeIndex = 0;
         declarations.forEach((d) => {
-            const isText = typeof d === 'string';
-            const isElement = !isText && isObject(d);
+            const isElement = isObject(d);
+            const isText = !isElement;
 
             let found = null as Node;
             let node = null as Node;
@@ -287,22 +287,22 @@ export function render(target: Element, declaration: ChildDeclaration | ChildDec
         tag: target.tagName.toLowerCase(),
         attrs: collectAttrs(target),
         children: Array.isArray(declaration) ? declaration : [declaration]
-    }
+    };
     syncChildNodes(temp, target);
     return Array.isArray(declaration) ?
         toArray(target.childNodes) :
-        typeof declaration === 'string' ?
-            target.firstChild :
-            target.firstElementChild;
+        isObject(declaration) ?
+            target.firstElementChild :
+            target.firstChild;
 }
 
 export function sync(target: Element, declaration: NodeDeclaration);
 export function sync(target: Text, text: string);
 export function sync(target: Element | Text, declaration: ChildDeclaration) {
-    const isText = typeof declaration === 'string';
+    const isElement = isObject(declaration);
     if (!(
-        (isText && target instanceof Text) ||
-        (!isText && target instanceof Element && target.tagName.toLowerCase() === (declaration as NodeDeclaration).tag)
+        (!isElement && target instanceof Text) ||
+        (isElement && target instanceof Element && target.tagName.toLowerCase() === (declaration as NodeDeclaration).tag)
     )) {
         throw new Error('Wrong sync target');
     }
