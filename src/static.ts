@@ -1,13 +1,13 @@
-import { NodeDeclaration, ChildDeclaration } from './defs';
-import { createPlugins } from './plugins';
-import { classes, flatten, isObject, styles } from './utils';
+import {NodeDeclaration, ChildDeclaration} from './defs';
+import {createPlugins} from './plugins';
+import {classes, flatten, isObject, styles} from './utils';
 
 export const pluginsIsVoidTag = createPlugins<string, boolean>()
     .add((tag) => tag in VOID_TAGS);
 
-export const pluginsSkipAttr = createPlugins<{ attr: string; value: any; }, boolean>()
-    .add(({ value }) => (value == null || value === false))
-    .add(({ attr }) => ((
+export const pluginsSkipAttr = createPlugins<{attr: string; value: any;}, boolean>()
+    .add(({value}) => (value == null || value === false))
+    .add(({attr}) => ((
         [
             'data',
             'native',
@@ -27,9 +27,9 @@ export function escapeHtml(s) {
         .replace(/'/g, '&#039;');
 }
 
-export const pluginsStringifyAttr = createPlugins<{ attr: string; value: any; }, string>()
-    .add(({ value }) => value === true ? '' : escapeHtml(value))
-    .add(({ attr, value }) => {
+export const pluginsStringifyAttr = createPlugins<{attr: string; value: any;}, string>()
+    .add(({value}) => value === true ? '' : escapeHtml(value))
+    .add(({attr, value}) => {
         if (attr === 'class' && isObject(value)) {
             let cls: string;
             if (Array.isArray(value)) {
@@ -41,7 +41,7 @@ export const pluginsStringifyAttr = createPlugins<{ attr: string; value: any; },
         }
         return null;
     })
-    .add(({ attr, value }) => {
+    .add(({attr, value}) => {
         if (attr === 'style' && isObject(value)) {
             return escapeHtml(styles(value));
         }
@@ -56,9 +56,9 @@ export function renderToString(declaration: NodeDeclaration) {
     function buildHtml(d: NodeDeclaration, tabs: string) {
         const tag = d.tag;
         const attrs = d.attrs == null ? '' : Object.keys(d.attrs)
-            .filter((key) => !pluginsSkipAttr.apply({ attr: key, value: d.attrs[key] }))
+            .filter((key) => !pluginsSkipAttr.apply({attr: key, value: d.attrs[key]}))
             .map((key) => {
-                const value = pluginsStringifyAttr.apply({ attr: key, value: d.attrs[key] });
+                const value = pluginsStringifyAttr.apply({attr: key, value: d.attrs[key]});
                 if (value === '') {
                     return ` ${key}`;
                 }

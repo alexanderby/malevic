@@ -1,7 +1,7 @@
-import { html } from '../src';
+import {html} from '../src';
 
-function Component({ isHidden = false } = {}, ...children) {
-    const style = isHidden ? { 'display': 'none' } : null;
+function Component({isHidden = false} = {}, ...children) {
+    const style = isHidden ? {'display': 'none'} : null;
     return (
         <div class="component" style={style}>
             {children}

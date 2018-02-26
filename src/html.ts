@@ -1,4 +1,4 @@
-import { flatten } from './utils';
+import {flatten} from './utils';
 
 import {
     NodeDeclaration,
@@ -17,7 +17,7 @@ export function html(
     ...children: Array<Child>
 ) {
     if (typeof tagOrComponent === 'string') {
-        return { tag: tagOrComponent, attrs, children } as NodeDeclaration;
+        return {tag: tagOrComponent, attrs, children} as NodeDeclaration;
     }
     if (typeof tagOrComponent === 'function') {
         return tagOrComponent(

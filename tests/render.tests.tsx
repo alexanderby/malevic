@@ -1,5 +1,5 @@
-import { html, render, sync, getData } from '../src';
-import { dispatchClick } from './utils';
+import {html, render, sync, getData} from '../src';
+import {dispatchClick} from './utils';
 
 let container: Element = null;
 
@@ -102,7 +102,7 @@ describe('rendering helpers', () => {
         node.id = 'b';
 
         const result = sync(node, (
-            <span id="b" style={{ color: 'red' }}>
+            <span id="b" style={{color: 'red'}}>
                 Text <label>Label</label>
             </span>
         ));
@@ -133,10 +133,10 @@ describe('attributes', () => {
         render(container, <div class={['a', null, 'b', 'c']} />);
         expect(container.firstElementChild.className).toEqual('a b c');
 
-        render(container, <div class={{ 'a': true, 'b': false, 'c': true }} />);
+        render(container, <div class={{'a': true, 'b': false, 'c': true}} />);
         expect(container.firstElementChild.className).toEqual('a c');
 
-        render(container, <div class={['a', { 'b': true, 'c': false }, null]} />);
+        render(container, <div class={['a', {'b': true, 'c': false}, null]} />);
         expect(container.firstElementChild.className).toEqual('a b');
     });
 
@@ -144,7 +144,7 @@ describe('attributes', () => {
         render(container, <div style="background-color: red;" />);
         expect((container.firstElementChild as HTMLElement).style.backgroundColor).toEqual('red');
 
-        render(container, <div style={{ 'background-color': 'blue' }} />);
+        render(container, <div style={{'background-color': 'blue'}} />);
         expect((container.firstElementChild as HTMLElement).style.backgroundColor).toEqual('blue');
     });
 });

@@ -1,4 +1,4 @@
-import { DomEventListener } from './defs';
+import {DomEventListener} from './defs';
 
 interface EventListenersCollection {
     [evt: string]: DomEventListener;

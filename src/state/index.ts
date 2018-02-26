@@ -1,7 +1,7 @@
-import { sync, NodeDeclaration } from 'malevic';
+import {sync, NodeDeclaration} from 'malevic';
 // https://github.com/kulshekhar/ts-jest/issues/414
-// import { sync } from '../index';
-// import { NodeDeclaration } from '../defs';
+// import {sync} from '../index';
+// import {NodeDeclaration} from '../defs';
 
 interface StateMatch<S> {
     node: Element;
@@ -14,7 +14,7 @@ let componentsCounter = 0;
 
 export default function withState<P = any, S = any>(
     fn: (
-        attrs: P & { state: S; setState: (state: S) => void; },
+        attrs: P & {state: S; setState: (state: S) => void;},
         ...children
     ) => NodeDeclaration,
     initialState: S = {} as S
@@ -23,7 +23,7 @@ export default function withState<P = any, S = any>(
 
     const defaultKey = `state-${componentsCounter++}`;
 
-    return function (attrs: P & { key?: string } = {} as P, ...children) {
+    return function (attrs: P & {key?: string} = {} as P, ...children) {
         const key = attrs.key == null ? defaultKey : attrs.key;
 
         return function (parentDomNode: Element) {
@@ -50,7 +50,7 @@ export default function withState<P = any, S = any>(
 
             function invokeComponentFn(state) {
                 callingComponent = true;
-                const declaration = fn(Object.assign({}, attrs, { state, setState }), ...children);
+                const declaration = fn(Object.assign({}, attrs, {state, setState}), ...children);
                 callingComponent = false;
 
                 declaration.attrs = declaration.attrs || {};

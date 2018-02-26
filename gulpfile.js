@@ -8,7 +8,7 @@ const typescriptPlugin = require('rollup-plugin-typescript');
 const uglifyPlugin = require('rollup-plugin-uglify');
 const package = require('./package');
 
-const date = (new Date()).toLocaleDateString('en-us', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+const date = (new Date()).toLocaleDateString('en-us', {month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC'});
 const banner = `/* ${package.name}@${package.version} - ${date} */`;
 
 function buildJS({
@@ -43,7 +43,7 @@ function buildJS({
                 removeComments: true
             }, ts)),
             minify ? uglifyPlugin({
-                output: { preamble: banner }
+                output: {preamble: banner}
             }) : null
         ].filter((p) => p),
     });
@@ -53,15 +53,15 @@ function buildJS({
         .pipe(gulp.dest(dir));
 }
 
-function buildPackage({ es2015, umd, min, global, plugin }) {
-    const dependencies = plugin ? { 'malevic': 'Malevic' } : null;
+function buildPackage({es2015, umd, min, global, plugin}) {
+    const dependencies = plugin ? {'malevic': 'Malevic'} : null;
     return [
         buildJS({
             src: es2015[0],
             dest: es2015[1],
             dependencies,
             moduleFormat: 'es',
-            ts: { target: 'es2015' }
+            ts: {target: 'es2015'}
         }),
         buildJS({
             src: umd[0],
@@ -69,7 +69,7 @@ function buildPackage({ es2015, umd, min, global, plugin }) {
             dependencies,
             globalName: global,
             moduleFormat: 'umd',
-            ts: { target: 'es5' }
+            ts: {target: 'es5'}
         }),
         buildJS({
             src: min[0],
@@ -78,7 +78,7 @@ function buildPackage({ es2015, umd, min, global, plugin }) {
             dependencies,
             globalName: global,
             moduleFormat: 'umd',
-            ts: { target: 'es5' }
+            ts: {target: 'es5'}
         })
     ];
 }

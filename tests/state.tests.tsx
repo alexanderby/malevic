@@ -1,6 +1,6 @@
-import { html, render } from '../src';
+import {html, render} from '../src';
 import withState from '../src/state';
-import { dispatchClick } from './utils';
+import {dispatchClick} from './utils';
 
 let container: Element = null;
 
@@ -16,16 +16,16 @@ afterEach(() => {
 
 describe('state', () => {
     test('stateful component', () => {
-        const Component = withState(function Component(props: { text: string; state; setState; }, ...children) {
+        const Component = withState(function Component(props: {text: string; state; setState;}, ...children) {
             return (
-                <div class={{ 'empty': props.state.count === 0 }}>
-                    <button onclick={() => props.setState({ count: props.state.count + 1 })}>
+                <div class={{'empty': props.state.count === 0}}>
+                    <button onclick={() => props.setState({count: props.state.count + 1})}>
                         {props.text}
                     </button> {props.state.count}
                     {children}
                 </div>
             );
-        }, { count: 0 });
+        }, {count: 0});
 
         const element = render(container, (
             <main>
@@ -114,8 +114,8 @@ describe('state', () => {
     });
 
     test('prevent infinite recursion', () => {
-        const RecursiveComponent = withState(({ state, setState }) => {
-            setState({ text: 5 });
+        const RecursiveComponent = withState(({state, setState}) => {
+            setState({text: 5});
             return <span>{state.text}</span>;
         });
 

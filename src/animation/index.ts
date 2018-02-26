@@ -9,7 +9,7 @@ import {
     interpolateNumbersInString,
     Interpolator,
 } from './interpolate';
-import { easing, createEasingFunction } from './easing';
+import {easing, createEasingFunction} from './easing';
 
 let registered = false;
 
@@ -20,7 +20,7 @@ export default function withAnimation() {
     registered = true;
 
     plugins.render.setAttribute
-        .add(({ element, attr, value }) => {
+        .add(({element, attr, value}) => {
             if (!(value instanceof AnimationDeclaration)) {
                 clearAnimation(element, attr);
                 return null;
@@ -44,7 +44,7 @@ export default function withAnimation() {
             scheduleAnimation(element, prevValue, attr, value);
             return true;
         })
-        .add(({ element, attr, value }) => {
+        .add(({element, attr, value}) => {
             if (!isAnimatedStyleObj(attr, value)) {
                 return null;
             }
@@ -54,14 +54,14 @@ export default function withAnimation() {
                 clearAnimation(element, 'style');
             }
 
-            const declarations: { from: any; prop: string; props?: AnimationDeclaration; }[] = [];
+            const declarations: {from: any; prop: string; props?: AnimationDeclaration;}[] = [];
             const prevAnimation = animated && animated['style'] instanceof StyleAnimation ? animated['style'] as StyleAnimation : null;
             const prevAttrs = getAttrs(element);
             const prevStyleDeclaration = prevAttrs && isObject(prevAttrs['style']) ? prevAttrs['style'] : null;
             Object.keys(value).forEach((prop) => {
                 const v = value[prop];
                 if (!(v instanceof AnimationDeclaration)) {
-                    declarations.push({ from: v, prop });
+                    declarations.push({from: v, prop});
                     return;
                 }
                 let prevValue = null;
@@ -81,7 +81,7 @@ export default function withAnimation() {
                         prevValue = v._from;
                     }
                 }
-                declarations.push({ from: prevValue, prop, props: v });
+                declarations.push({from: prevValue, prop, props: v});
             });
             if (prevAnimation) {
                 clearAnimation(element, 'style');
@@ -91,7 +91,7 @@ export default function withAnimation() {
         });
 
     plugins.static.stringifyAttr
-        .add(({ value }) => {
+        .add(({value}) => {
             if (value instanceof AnimationDeclaration) {
                 if (value._from != null) {
                     return escapeHtml(value._from);
@@ -102,7 +102,7 @@ export default function withAnimation() {
             }
             return null;
         })
-        .add(({ attr, value }) => {
+        .add(({attr, value}) => {
             if (isAnimatedStyleObj(attr, value)) {
                 const style = {};
                 Object.keys(value).forEach((prop) => {
@@ -139,7 +139,7 @@ export function animate(to: any) {
     return new AnimationDeclaration(null, to);
 }
 
-const elementsAnimations = new WeakMap<Element, { [attr: string]: Animation | StyleAnimation }>();
+const elementsAnimations = new WeakMap<Element, {[attr: string]: Animation | StyleAnimation}>();
 const scheduledAnimations = new Set<Animation | StyleAnimation>();
 
 let frameId: number = null;
@@ -167,14 +167,14 @@ function scheduleAnimation(element: Element, from: any, attr: string, props: Ani
     setAttr(element, attr, animated[attr].tick(currentFrameTime));
 }
 
-function scheduleStyleAnimation(element: Element, items: { from: any; prop: string; props?: AnimationDeclaration; }[]) {
+function scheduleStyleAnimation(element: Element, items: {from: any; prop: string; props?: AnimationDeclaration;}[]) {
     let animated = elementsAnimations.get(element);
     if (!animated) {
         animated = {};
         elementsAnimations.set(element, animated);
     }
     const styleAnimations: StyleAnimations = {};
-    items.forEach(({ from, prop, props }) => {
+    items.forEach(({from, prop, props}) => {
         if (props == null) {
             styleAnimations[prop] = from;
             return;

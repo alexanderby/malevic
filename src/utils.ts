@@ -1,7 +1,7 @@
-import { RecursiveArray } from './defs';
+import {RecursiveArray} from './defs';
 
 export function classes(
-    ...args: Array<string | { [cls: string]: boolean }>
+    ...args: Array<string | {[cls: string]: boolean}>
 ) {
     const classes = [];
     args.filter((c) => Boolean(c))
@@ -18,7 +18,7 @@ export function classes(
     return classes.join(' ');
 }
 
-export function styles(declarations: { [cssProp: string]: string }) {
+export function styles(declarations: {[cssProp: string]: string}) {
     return Object.keys(declarations)
         .filter((cssProp) => declarations[cssProp] != null)
         .map((cssProp) => `${cssProp}: ${declarations[cssProp]};`)

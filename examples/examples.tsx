@@ -1,5 +1,5 @@
-import { html, render, renderToString } from 'malevic';
-import withAnimation, { animate } from 'malevic/animation';
+import {html, render, renderToString} from 'malevic';
+import withAnimation, {animate} from 'malevic/animation';
 import withForms from 'malevic/forms';
 
 function assert(value) {
@@ -24,11 +24,11 @@ function assign(obj, ...other: Object[]) {
 
 (function () {
 
-    function Heading({ text }) {
+    function Heading({text}) {
         return <h3>{text}</h3>;
     }
 
-    function Button(props: { text: string; onClick: () => void; }) {
+    function Button(props: {text: string; onClick: () => void;}) {
         return (
             <button onclick={(e: MouseEvent) => props.onClick()} >
                 {props.text}
@@ -56,7 +56,7 @@ function assign(obj, ...other: Object[]) {
         onIncrement: () => void;
     }) {
         return (
-            <div class='view' style={{ width: '300px', height: '200px' }}>
+            <div class='view' style={{width: '300px', height: '200px'}}>
                 <PrintSize />
                 {(domNode: Element) => {
                     const rect = domNode.getBoundingClientRect();
@@ -71,7 +71,7 @@ function assign(obj, ...other: Object[]) {
         );
     }
 
-    let state: { count: number; } = null;
+    let state: {count: number;} = null;
 
     function setState(newState) {
         state = assign({}, state, newState);
@@ -80,13 +80,13 @@ function assign(obj, ...other: Object[]) {
             <View
                 count={state.count}
                 onIncrement={() => {
-                    setState({ count: state.count + 1 });
+                    setState({count: state.count + 1});
                 }}
             />
         );
     }
 
-    setState({ count: 0 });
+    setState({count: 0});
 
     window.addEventListener('resize', () => setState({}));
 })();
@@ -100,7 +100,7 @@ withAnimation();
 
     const DURATION = 2000;
 
-    function Circle({ x, y, x0, y0 }) {
+    function Circle({x, y, x0, y0}) {
         return (
             <circle
                 cx={animate(x).initial(x0).duration(DURATION)}
@@ -110,7 +110,7 @@ withAnimation();
         );
     }
 
-    function getCurve(p: { x, y }[]) {
+    function getCurve(p: {x, y}[]) {
         return [
             `M${p[0].x},${p[0].y}`,
             `C${p[1].x},${p[1].y}`,
@@ -119,7 +119,7 @@ withAnimation();
         ].join(' ');
     }
 
-    function Snake({ points, color }) {
+    function Snake({points, color}) {
         return <svg width={100} height={100}>
             <g style={{
                 fill: animate(color)
@@ -159,16 +159,16 @@ withAnimation();
     }
 
     const curve1 = [
-        { x: 10, y: 10 },
-        { x: 30, y: 40 },
-        { x: 70, y: 40 },
-        { x: 90, y: 10 }
+        {x: 10, y: 10},
+        {x: 30, y: 40},
+        {x: 70, y: 40},
+        {x: 90, y: 10}
     ];
     const curve2 = [
-        { x: 10, y: 90 },
-        { x: 30, y: 60 },
-        { x: 70, y: 60 },
-        { x: 90, y: 90 }
+        {x: 10, y: 90},
+        {x: 30, y: 60},
+        {x: 70, y: 60},
+        {x: 90, y: 90}
     ];
     const color1 = '#223344';
     const color2 = '#2299bb';
@@ -208,7 +208,7 @@ withAnimation();
 
 (function () {
 
-    function Tooltip({ text, cx, cy }) {
+    function Tooltip({text, cx, cy}) {
         return (domNode: SVGSVGElement) => {
             const temp = render(domNode, <text font-size={16}>{text}</text>);
             const box = (temp as SVGTextElement).getBBox();
@@ -253,9 +253,9 @@ withForms();
 
 (function () {
 
-    let state: { text: string; checked: boolean; num: number; } = null;
+    let state: {text: string; checked: boolean; num: number;} = null;
 
-    function Form({ checked, text, num, onCheckChange, onTextChange, onNumChange }) {
+    function Form({checked, text, num, onCheckChange, onTextChange, onNumChange}) {
         return (
             <form onsubmit={(e) => e.preventDefault()}>
                 <input
@@ -277,7 +277,7 @@ withForms();
                 <textarea oninput={(e) => onTextChange(e.target.value)}>
                     {text}
                 </textarea>
-                <pre>{JSON.stringify({ checked, text, num }, null, 4)}</pre>
+                <pre>{JSON.stringify({checked, text, num}, null, 4)}</pre>
             </form>
         );
     }
@@ -290,14 +290,14 @@ withForms();
                 text={state.text}
                 checked={state.checked}
                 num={state.num}
-                onCheckChange={(checked) => setState({ checked })}
-                onTextChange={(text) => setState({ text })}
-                onNumChange={(num) => setState({ num })}
+                onCheckChange={(checked) => setState({checked})}
+                onTextChange={(text) => setState({text})}
+                onNumChange={(num) => setState({num})}
             />
         );
     }
 
-    setState({ checked: true, text: 'text', num: 5 });
+    setState({checked: true, text: 'text', num: 5});
 })();
 
 // Static
@@ -305,7 +305,7 @@ withForms();
 
 (function () {
 
-    function View({ color, child }) {
+    function View({color, child}) {
         return (
             <div id="static-container">
                 <h1 id="static-animation" style={{
@@ -315,7 +315,7 @@ withForms();
                 }}>Animation</h1>
                 <br />
                 {child}
-                <h3 id="static-color" style={{ color }}>Color</h3>
+                <h3 id="static-color" style={{color}}>Color</h3>
             </div >
         );
     }

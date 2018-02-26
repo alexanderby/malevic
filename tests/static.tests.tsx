@@ -1,4 +1,4 @@
-import { html, render, renderToString } from '../src';
+import {html, render, renderToString} from '../src';
 
 let container: Element = null;
 

@@ -1,14 +1,14 @@
-import { setData } from './data';
-import { addListener, removeListener } from './events';
-import { NodeDeclaration, NodeAttrs, ChildDeclaration, ChildFunction } from './defs';
-import { createPlugins } from './plugins';
-import { classes, styles, isObject, flatten, toArray } from './utils';
+import {setData} from './data';
+import {addListener, removeListener} from './events';
+import {NodeDeclaration, NodeAttrs, ChildDeclaration, ChildFunction} from './defs';
+import {createPlugins} from './plugins';
+import {classes, styles, isObject, flatten, toArray} from './utils';
 
 const nativeContainers = new WeakMap<Element, boolean>();
 const didMountHandlers = new WeakMap<Element, (el: Element) => void>();
 const didUpdateHandlers = new WeakMap<Element, (el: Element) => void>();
 const willUnmountHandlers = new WeakMap<Element, (el: Element) => void>();
-const lifecycleHandlers: { [event: string]: WeakMap<Element, (el: Element) => void> } = {
+const lifecycleHandlers: {[event: string]: WeakMap<Element, (el: Element) => void>} = {
     'didmount': didMountHandlers,
     'didupdate': didUpdateHandlers,
     'willunmount': willUnmountHandlers
@@ -17,8 +17,8 @@ const lifecycleHandlers: { [event: string]: WeakMap<Element, (el: Element) => vo
 const XHTML_NS = 'http://www.w3.org/1999/xhtml';
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-export const pluginsCreateNode = createPlugins<{ d: ChildDeclaration, parent: Element }, Text | Element>()
-    .add(({ d, parent }) => {
+export const pluginsCreateNode = createPlugins<{d: ChildDeclaration, parent: Element}, Text | Element>()
+    .add(({d, parent}) => {
         if (!isObject(d)) {
             return document.createTextNode(d == null ? '' : String(d));
         }
@@ -31,20 +31,20 @@ export const pluginsCreateNode = createPlugins<{ d: ChildDeclaration, parent: El
         return document.createElementNS(parent.namespaceURI, (d as NodeDeclaration).tag);
     });
 
-export const pluginsMountNode = createPlugins<{ node: Node; parent: Element; next: Node; }, boolean>()
-    .add(({ node, parent, next }) => {
+export const pluginsMountNode = createPlugins<{node: Node; parent: Element; next: Node;}, boolean>()
+    .add(({node, parent, next}) => {
         parent.insertBefore(node, next);
         return true;
     });
 
-export const pluginsUnmountNode = createPlugins<{ node: Node; parent: Element; }, boolean>()
-    .add(({ node, parent }) => {
+export const pluginsUnmountNode = createPlugins<{node: Node; parent: Element;}, boolean>()
+    .add(({node, parent}) => {
         parent.removeChild(node);
         return true;
     });
 
-export const pluginsSetAttribute = createPlugins<{ element: Element; attr: string; value: any; }, boolean>()
-    .add(({ element, attr, value }) => {
+export const pluginsSetAttribute = createPlugins<{element: Element; attr: string; value: any;}, boolean>()
+    .add(({element, attr, value}) => {
         if (value == null || value === false) {
             element.removeAttribute(attr);
         } else {
@@ -52,7 +52,7 @@ export const pluginsSetAttribute = createPlugins<{ element: Element; attr: strin
         }
         return true;
     })
-    .add(({ element, attr, value }) => {
+    .add(({element, attr, value}) => {
         if (attr.indexOf('on') === 0) {
             const event = attr.substring(2);
             if (typeof value === 'function') {
@@ -64,7 +64,7 @@ export const pluginsSetAttribute = createPlugins<{ element: Element; attr: strin
         }
         return null;
     })
-    .add(({ element, attr, value }) => {
+    .add(({element, attr, value}) => {
         if (attr === 'native') {
             if (value === true) {
                 nativeContainers.set(element, true);
@@ -84,14 +84,14 @@ export const pluginsSetAttribute = createPlugins<{ element: Element; attr: strin
         }
         return null;
     })
-    .add(({ element, attr, value }) => {
+    .add(({element, attr, value}) => {
         if (attr === 'data') {
             setData(element, value);
             return true;
         }
         return null;
     })
-    .add(({ element, attr, value }) => {
+    .add(({element, attr, value}) => {
         if (attr === 'class' && isObject(value)) {
             if (Array.isArray(value)) {
                 element.setAttribute('class', classes(...value));
@@ -102,7 +102,7 @@ export const pluginsSetAttribute = createPlugins<{ element: Element; attr: strin
         }
         return null;
     })
-    .add(({ element, attr, value }) => {
+    .add(({element, attr, value}) => {
         if (attr === 'style' && isObject(value)) {
             element.setAttribute('style', styles(value));
             return true;
@@ -117,7 +117,7 @@ export function getAttrs(element: Element) {
 }
 
 function createNode(d: ChildDeclaration, parent: Element, next: Node) {
-    const node = pluginsCreateNode.apply({ d, parent });
+    const node = pluginsCreateNode.apply({d, parent});
     if (isObject(d)) {
         const element = node as Element;
         const elementAttrs: NodeAttrs = {};
@@ -125,12 +125,12 @@ function createNode(d: ChildDeclaration, parent: Element, next: Node) {
         if ((d as NodeDeclaration).attrs) {
             Object.keys((d as NodeDeclaration).attrs).forEach((attr) => {
                 const value = (d as NodeDeclaration).attrs[attr];
-                pluginsSetAttribute.apply({ element, attr, value });
+                pluginsSetAttribute.apply({element, attr, value});
                 elementAttrs[attr] = value;
             });
         }
     }
-    pluginsMountNode.apply({ node, parent, next });
+    pluginsMountNode.apply({node, parent, next});
     if (node instanceof Element && didMountHandlers.has(node)) {
         didMountHandlers.get(node)(node);
     }
@@ -142,7 +142,7 @@ function createNode(d: ChildDeclaration, parent: Element, next: Node) {
 
 function collectAttrs(element: Element): NodeAttrs {
     return toArray(element.attributes)
-        .reduce((obj, { name, value }) => {
+        .reduce((obj, {name, value}) => {
             obj[name] = value;
             return obj;
         }, {} as NodeAttrs)
@@ -159,14 +159,14 @@ function syncNode(d: ChildDeclaration, existing: Element | Text) {
         }
         Object.keys(existingAttrs).forEach((attr) => {
             if (!(attr in attrs)) {
-                pluginsSetAttribute.apply({ element, attr, value: null });
+                pluginsSetAttribute.apply({element, attr, value: null});
                 delete existingAttrs[attr];
             }
         });
         Object.keys(attrs).forEach((attr) => {
             const value = attrs[attr];
             if (existingAttrs[attr] !== value) {
-                pluginsSetAttribute.apply({ element, attr, value });
+                pluginsSetAttribute.apply({element, attr, value});
                 existingAttrs[attr] = value;
             }
         });
@@ -187,7 +187,7 @@ function removeNode(node: Node, parent: Element) {
     if (node instanceof Element && willUnmountHandlers.has(node)) {
         willUnmountHandlers.get(node)(node);
     }
-    pluginsUnmountNode.apply({ node, parent });
+    pluginsUnmountNode.apply({node, parent});
 }
 
 function isEmptyDeclaration(d: ChildDeclaration) {
@@ -196,8 +196,8 @@ function isEmptyDeclaration(d: ChildDeclaration) {
 
 type NodeMatch = [ChildDeclaration, Node];
 
-export const pluginsMatchNodes = createPlugins<{ d: NodeDeclaration; element: Element; }, NodeMatch[]>()
-    .add(({ d, element }) => {
+export const pluginsMatchNodes = createPlugins<{d: NodeDeclaration; element: Element;}, NodeMatch[]>()
+    .add(({d, element}) => {
         const matches: NodeMatch[] = [];
 
         const declarations: ChildDeclaration[] = [];
@@ -272,7 +272,7 @@ function commit(matches: NodeMatch[], element: Element) {
 }
 
 function syncChildNodes(d: NodeDeclaration, element: Element) {
-    const matches = pluginsMatchNodes.apply({ d, element });
+    const matches = pluginsMatchNodes.apply({d, element});
     commit(matches, element);
 }
 

@@ -15,11 +15,11 @@ function createNumRegExp() {
 }
 
 function getNumPositions(line: string) {
-    const positions: { index: number; length: number; }[] = [];
+    const positions: {index: number; length: number;}[] = [];
     const regexp = createNumRegExp();
     let match: RegExpExecArray;
     while (match = regexp.exec(line)) {
-        positions.push({ index: match.index, length: match[0].length });
+        positions.push({index: match.index, length: match[0].length});
     }
     return positions;
 }

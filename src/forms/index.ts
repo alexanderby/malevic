@@ -1,4 +1,4 @@
-import { plugins } from 'malevic';
+import {plugins} from 'malevic';
 
 let registered = false;
 
@@ -9,7 +9,7 @@ export default function withForms() {
     registered = true;
 
     plugins.render.setAttribute
-        .add(({ element, attr, value }) => {
+        .add(({element, attr, value}) => {
             if (attr === 'value' && element instanceof HTMLInputElement) {
                 const text = value == null ? '' : String(value);
                 if (element.hasAttribute('value')) {
@@ -23,7 +23,7 @@ export default function withForms() {
         });
 
     plugins.render.createNode
-        .add(({ d, parent }) => {
+        .add(({d, parent}) => {
             if ((d == null || typeof d !== 'object') && parent instanceof HTMLTextAreaElement) {
                 const text = d as string;
                 const value = text == null ? '' : String(text);
