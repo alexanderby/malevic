@@ -266,7 +266,10 @@ function commit(matches: NodeMatch[], element: Element) {
             syncNode(d, node as Element | Text);
             prevNode = node;
         } else {
-            prevNode = createNode(d, element, prevNode ? prevNode.nextSibling : null);
+            const nextSibling = (prevNode ?
+                prevNode.nextSibling :
+                (i === 0 ? element.firstChild : null));
+            prevNode = createNode(d, element, nextSibling);
         }
     });
 }
