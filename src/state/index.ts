@@ -3,12 +3,14 @@ import {sync, NodeDeclaration} from 'malevic';
 // import {sync} from '../index';
 // import {NodeDeclaration} from '../defs';
 
-interface StateMatch<S> {
+interface StateMatch<S, P> {
     node: Element;
     state: S;
+    attrs: P;
+    children: any[];
 }
 
-type ParentStateMap<S> = Map<string, StateMatch<S>>;
+type ParentStateMap<S, P> = Map<string, StateMatch<S, P>>;
 
 let componentsCounter = 0;
 
@@ -19,7 +21,7 @@ export default function withState<P = any, S = any>(
     ) => NodeDeclaration,
     initialState: S = {} as S
 ) {
-    const parentsStates = new WeakMap<Element, ParentStateMap<S>>();
+    const parentsStates = new WeakMap<Element, ParentStateMap<S, P>>();
 
     const defaultKey = `state-${componentsCounter++}`;
 
@@ -27,7 +29,7 @@ export default function withState<P = any, S = any>(
         const key = attrs.key == null ? defaultKey : attrs.key;
 
         return function (parentDomNode: Element) {
-            let states: ParentStateMap<S>;
+            let states: ParentStateMap<S, P>;
             if (parentsStates.has(parentDomNode)) {
                 states = parentsStates.get(parentDomNode);
             } else {
@@ -35,20 +37,24 @@ export default function withState<P = any, S = any>(
                 parentsStates.set(parentDomNode, states);
             }
 
-            let match: StateMatch<S>;
+            let match: StateMatch<S, P>;
             if (states.has(key)) {
                 match = states.get(key);
             } else {
                 match = {
                     node: null,
                     state: initialState,
+                    attrs: null,
+                    children: [],
                 };
                 states.set(key, match);
             }
+            match.attrs = attrs;
+            match.children = children;
 
             let callingComponent = false;
 
-            function invokeComponentFn(state) {
+            function invokeComponentFn(state: S, attrs: P, children) {
                 callingComponent = true;
                 const declaration = fn(Object.assign({}, attrs, {state, setState}), ...children);
                 callingComponent = false;
@@ -79,10 +85,10 @@ export default function withState<P = any, S = any>(
                 const match = states.get(key);
                 const merged = Object.assign({}, match.state, newState);
                 match.state = merged;
-                sync(match.node, invokeComponentFn(merged));
+                sync(match.node, invokeComponentFn(merged, match.attrs, match.children));
             }
 
-            return invokeComponentFn(match.state);
+            return invokeComponentFn(match.state, match.attrs, match.children);
         };
     };
 }

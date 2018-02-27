@@ -16,16 +16,14 @@ afterEach(() => {
 
 describe('state', () => {
     test('stateful component', () => {
-        const Component = withState(function Component(props: {text: string; state; setState;}, ...children) {
-            return (
-                <div class={{'empty': props.state.count === 0}}>
-                    <button onclick={() => props.setState({count: props.state.count + 1})}>
-                        {props.text}
-                    </button> {props.state.count}
-                    {children}
-                </div>
-            );
-        }, {count: 0});
+        const Component = withState((props: {text: string; state; setState;}, ...children) => (
+            <div class={{'empty': props.state.count === 0}}>
+                <button onclick={() => props.setState({count: props.state.count + 1})}>
+                    {props.text}
+                </button> {props.state.count}
+                {children}
+            </div>
+        ), {count: 0});
 
         const element = render(container, (
             <main>
@@ -120,5 +118,38 @@ describe('state', () => {
         });
 
         expect(() => render(container, <RecursiveComponent />)).toThrow(/infinite recursion/);
+    });
+
+    test('call state after component update', () => {
+        const Child = withState(({onChange, state, setState}, text) => (
+            <button
+                onclick={() => {
+                    const count = state.count + 1;
+                    onChange(count);
+                    setState({count});
+                }}
+            >
+                {text}
+            </button>
+        ), {count: 0});
+        const Root = withState(({state, setState}) => (
+            <div>
+                {state.count}
+                <Child onChange={(count) => {setState({count})}}>
+                    {state.count > 0 ? 'Checked' : 'Unchecked'}
+                </Child>
+            </div>
+        ));
+        const element = render(container, <Root />);
+        dispatchClick(element.querySelector('button'));
+        dispatchClick(element.querySelector('button'));
+        expect(element.outerHTML).toEqual([
+            '<div>',
+            '2',
+            '<button>',
+            'Checked',
+            '</button>',
+            '</div>',
+        ].join(''));
     });
 });
