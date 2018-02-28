@@ -10,6 +10,8 @@ declare namespace Malevic {
 
     type ChildFunction = (parent: Element) => ChildDeclaration | RecursiveArray<ChildDeclaration>;
 
+    type SingleChildFunction = (parent: Element) => ChildDeclaration;
+
     interface DomEventListener<T = Element> {
         (this: Element, e: Event & {target: T}): void;
     }
@@ -74,12 +76,12 @@ declare namespace Malevic {
 
     function sync(
         target: Element,
-        declaration: NodeDeclaration
-    );
+        declaration: NodeDeclaration | SingleChildFunction
+    ): Element;
     function sync(
         target: Text,
-        text: string
-    );
+        text: string | SingleChildFunction
+    ): Text;
 
     function getAttrs(element: Element): NodeAttrs;
 

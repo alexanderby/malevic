@@ -1,4 +1,4 @@
-import {html, render} from '../src';
+import {html, render, sync} from '../src';
 import withState from '../src/state';
 import {dispatchClick} from './utils';
 
@@ -151,5 +151,17 @@ describe('state', () => {
             '</button>',
             '</div>',
         ].join(''));
+    });
+
+    test('sync', () => {
+        const Component = withState(
+            ({state, setState}) => <button style={state.isActive ? {'color': 'red'} : {}} onclick={() => setState({isActive: true})} />,
+            {isActiv: false}
+        );
+        const element = render(container, <button />);
+        sync(element, <Component />);
+        expect(element.outerHTML).toEqual('<button></button>');
+        dispatchClick(element);
+        expect(element.outerHTML).toEqual('<button style="color: red;"></button>');
     });
 });

@@ -8,6 +8,8 @@ export type ChildDeclaration = NodeDeclaration | string;
 
 export type ChildFunction = (parent: Element) => ChildDeclaration | RecursiveArray<ChildDeclaration>;
 
+export type SingleChildFunction = (parent: Element) => ChildDeclaration;
+
 export interface DomEventListener {
     (this: Element, e: Event): void;
 }

@@ -1,8 +1,8 @@
 import {setData} from './data';
 import {addListener, removeListener} from './events';
-import {NodeDeclaration, NodeAttrs, ChildDeclaration, ChildFunction} from './defs';
 import {createPlugins} from './plugins';
 import {classes, styles, isObject, flatten, toArray} from './utils';
+import {NodeDeclaration, NodeAttrs, ChildDeclaration, ChildFunction, SingleChildFunction} from './defs';
 
 const nativeContainers = new WeakMap<Element, boolean>();
 const didMountHandlers = new WeakMap<Element, (el: Element) => void>();
@@ -310,9 +310,10 @@ export function render(target: Element, declaration: ChildDeclaration | ChildDec
             target.firstChild;
 }
 
-export function sync(target: Element, declaration: NodeDeclaration);
-export function sync(target: Text, text: string);
-export function sync(target: Element | Text, declaration: ChildDeclaration) {
+export function sync(target: Element, declaration: NodeDeclaration | SingleChildFunction): Element;
+export function sync(target: Text, text: string | SingleChildFunction): Text;
+export function sync(target: Element | Text, declarationOrFn: ChildDeclaration | SingleChildFunction): Element | Text {
+    const declaration = typeof declarationOrFn === 'function' ? declarationOrFn(target.parentElement) : declarationOrFn;
     const isElement = isObject(declaration);
     if (!(
         (!isElement && target instanceof Text) ||
