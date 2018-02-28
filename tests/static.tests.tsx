@@ -15,20 +15,20 @@ afterEach(() => {
 describe('server-side rendering', () => {
     function Component() {
         return (
-            <label class="a">
-                <input readonly />
+            <label class={['a', 'b']}>
+                <input class="a_i" value="T" readonly />
                 {(domNode) => <span />}
-                Hello <b>red</b> <i>sun</i> {2018}!
+                Hello <b style={{'color': 'red'}}>red</b> <i class={{'sunny': true}}>sun</i> {2018}!
             </label>
         );
     }
 
     test('render to string', () => {
         expect(renderToString(<Component />)).toEqual([
-            '<label class="a">',
-            '    <input readonly/>Hello ',
-            '    <b>red</b> ',
-            '    <i>sun</i> 2018!',
+            '<label class="a b">',
+            '    <input class="a_i" value="T" readonly/>Hello ',
+            '    <b style="color: red;">red</b> ',
+            '    <i class="sunny">sun</i> 2018!',
             '</label>'
         ].join('\n'));
     });
@@ -40,7 +40,6 @@ describe('server-side rendering', () => {
         const input = container.querySelector('input');
         const b = container.querySelector('b');
         const i = container.querySelector('i');
-        const innerHTML = container.innerHTML;
 
         render(container, <Component />);
         expect(container.querySelector('label')).toBe(label);

@@ -93,10 +93,16 @@ export const pluginsSetAttribute = createPlugins<{element: Element; attr: string
     })
     .add(({element, attr, value}) => {
         if (attr === 'class' && isObject(value)) {
+            let cls: string;
             if (Array.isArray(value)) {
-                element.setAttribute('class', classes(...value));
+                cls = classes(...value);
             } else {
-                element.setAttribute('class', classes(value));
+                cls = classes(value);
+            }
+            if (cls) {
+                element.setAttribute('class', cls);
+            } else {
+                element.removeAttribute('class');
             }
             return true;
         }
@@ -104,7 +110,12 @@ export const pluginsSetAttribute = createPlugins<{element: Element; attr: string
     })
     .add(({element, attr, value}) => {
         if (attr === 'style' && isObject(value)) {
-            element.setAttribute('style', styles(value));
+            const style = styles(value);
+            if (style) {
+                element.setAttribute('style', style);
+            } else {
+                element.removeAttribute('style');
+            }
             return true;
         }
         return null;

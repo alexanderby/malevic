@@ -36,7 +36,7 @@ describe('state', () => {
 
         dispatchClick(element.querySelector('button'));
         expect(element.innerHTML).toEqual([
-            '<div class=""><button>Apples</button> 1</div>',
+            '<div><button>Apples</button> 1</div>',
         ].join(''));
 
         render(container, (
@@ -47,14 +47,14 @@ describe('state', () => {
         ));
         expect(element.innerHTML).toEqual([
             '<div class="empty"><button>Oranges</button> 0</div>',
-            '<div class=""><button>Apples</button> 1</div>',
+            '<div><button>Apples</button> 1</div>',
         ].join(''));
 
         const buttons = Array.from(element.querySelectorAll('button'));
         buttons.forEach(dispatchClick);
         expect(element.innerHTML).toEqual([
-            '<div class=""><button>Oranges</button> 1</div>',
-            '<div class=""><button>Apples</button> 2</div>',
+            '<div><button>Oranges</button> 1</div>',
+            '<div><button>Apples</button> 2</div>',
         ].join(''));
 
         render(container, (
@@ -63,7 +63,7 @@ describe('state', () => {
             </main>
         ));
         expect(element.innerHTML).toEqual([
-            '<div class=""><button>Oranges</button> 1</div>',
+            '<div><button>Oranges</button> 1</div>',
         ].join(''));
 
         render(container, (
@@ -74,13 +74,13 @@ describe('state', () => {
         ));
         expect(element.innerHTML).toEqual([
             '<div class="empty"><button>Apples</button> 0</div>',
-            '<div class=""><button>Oranges</button> 1</div>',
+            '<div><button>Oranges</button> 1</div>',
         ].join(''));
 
         dispatchClick(element.querySelector('button'));
         expect(element.innerHTML).toEqual([
-            '<div class=""><button>Apples</button> 1</div>',
-            '<div class=""><button>Oranges</button> 1</div>',
+            '<div><button>Apples</button> 1</div>',
+            '<div><button>Oranges</button> 1</div>',
         ].join(''));
 
         render(container, (
@@ -91,22 +91,22 @@ describe('state', () => {
             </main>
         ));
         expect(element.innerHTML).toEqual([
-            '<div class=""><button>Apples</button> 1',
+            '<div><button>Apples</button> 1',
             '<div class="empty"><button>Oranges</button> 0</div>',
             '</div>',
         ].join(''));
 
         dispatchClick(element.querySelector('.empty button'));
         expect(element.innerHTML).toEqual([
-            '<div class=""><button>Apples</button> 1',
-            '<div class=""><button>Oranges</button> 1</div>',
+            '<div><button>Apples</button> 1',
+            '<div><button>Oranges</button> 1</div>',
             '</div>',
         ].join(''));
 
         dispatchClick(element.querySelector('button'));
         expect(element.innerHTML).toEqual([
-            '<div class=""><button>Apples</button> 2',
-            '<div class=""><button>Oranges</button> 1</div>',
+            '<div><button>Apples</button> 2',
+            '<div><button>Oranges</button> 1</div>',
             '</div>',
         ].join(''));
     });
