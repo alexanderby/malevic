@@ -148,7 +148,7 @@ declare namespace Malevic {
 
     namespace State { }
 
-    function State(fn: (attrs, ...children) => NodeDeclaration): (attrs, ...children) => NodeDeclaration;
+    function State(fn: (attrs, ...children) => NodeDeclaration, initialState?): (attrs, ...children) => NodeDeclaration;
 
 }
 
