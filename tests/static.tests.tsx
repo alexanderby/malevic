@@ -19,6 +19,7 @@ describe('server-side rendering', () => {
                 <input class="a_i" value="T" readonly />
                 {(domNode) => <span />}
                 Hello <b style={{'color': 'red'}}>red</b> <i class={{'sunny': true}}>sun</i> {2018}!
+                {(domNode) => `${domNode.getBoundingClientRect().width}`}
             </label>
         );
     }
@@ -26,7 +27,8 @@ describe('server-side rendering', () => {
     test('render to string', () => {
         expect(renderToString(<Component />)).toEqual([
             '<label class="a b">',
-            '    <input class="a_i" value="T" readonly/>Hello ',
+            '    <input class="a_i" value="T" readonly/>',
+            '    <span></span>Hello ',
             '    <b style="color: red;">red</b> ',
             '    <i class="sunny">sun</i> 2018!',
             '</label>'
@@ -44,11 +46,7 @@ describe('server-side rendering', () => {
         render(container, <Component />);
         expect(container.querySelector('label')).toBe(label);
         expect(container.querySelector('input')).toBe(input);
-        // TODO: Handle declaration functions some way
-        // to prevent unnecessary nodes replacement.
-        // expect(container.querySelector('b')).toBe(b);
-        // expect(container.querySelector('i')).toBe(i);
-        expect(container.querySelector('b')).toEqual(b);
-        expect(container.querySelector('i')).toEqual(i);
+        expect(container.querySelector('b')).toBe(b);
+        expect(container.querySelector('i')).toBe(i);
     });
 });

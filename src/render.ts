@@ -1,7 +1,7 @@
 import {setData} from './data';
 import {addListener, removeListener} from './events';
 import {createPlugins} from './plugins';
-import {classes, styles, isObject, flatten, toArray} from './utils';
+import {classes, styles, isObject, flatten, toArray, flattenDeclarations} from './utils';
 import {NodeDeclaration, NodeAttrs, ChildDeclaration, ChildFunction, SingleChildFunction} from './defs';
 
 const nativeContainers = new WeakMap<Element, boolean>();
@@ -201,32 +201,12 @@ function removeNode(node: Node, parent: Element) {
     pluginsUnmountNode.apply({node, parent});
 }
 
-function isEmptyDeclaration(d: ChildDeclaration) {
-    return d == null || d === '';
-}
-
 type NodeMatch = [ChildDeclaration, Node];
 
 export const pluginsMatchNodes = createPlugins<{d: NodeDeclaration; element: Element;}, NodeMatch[]>()
     .add(({d, element}) => {
         const matches: NodeMatch[] = [];
-
-        const declarations: ChildDeclaration[] = [];
-        if (Array.isArray(d.children)) {
-            (flatten(d.children) as (ChildDeclaration | ChildFunction)[])
-                .forEach((c) => {
-                    if (typeof c === 'function') {
-                        const r = c(element);
-                        if (Array.isArray(r)) {
-                            declarations.push(...(flatten(r) as ChildDeclaration[]).filter(x => !isEmptyDeclaration(x)));
-                        } else if (!isEmptyDeclaration(r)) {
-                            declarations.push(r);
-                        }
-                    } else if (!isEmptyDeclaration(c)) {
-                        declarations.push(c);
-                    }
-                });
-        }
+        const declarations: ChildDeclaration[] = Array.isArray(d.children) ? flattenDeclarations(d.children, (fn) => fn(element)) : [];
 
         let nodeIndex = 0;
         declarations.forEach((d) => {

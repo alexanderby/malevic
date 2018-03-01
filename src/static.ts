@@ -1,6 +1,6 @@
-import {NodeDeclaration, ChildDeclaration} from './defs';
 import {createPlugins} from './plugins';
-import {classes, flatten, isObject, styles} from './utils';
+import {classes, flattenDeclarations, isObject, styles} from './utils';
+import {NodeDeclaration, ChildDeclaration, RecursiveArray, ChildFunction, SingleChildFunction} from './defs';
 
 export const pluginsIsVoidTag = createPlugins<string, boolean>()
     .add((tag) => tag in VOID_TAGS);
@@ -51,49 +51,59 @@ export const pluginsStringifyAttr = createPlugins<{attr: string; value: any;}, s
 export const pluginsProcessText = createPlugins<string, string>()
     .add((text) => escapeHtml(text));
 
-export function renderToString(declaration: NodeDeclaration) {
-
-    function buildHtml(d: NodeDeclaration, tabs: string) {
-        const tag = d.tag;
-        const attrs = d.attrs == null ? '' : Object.keys(d.attrs)
-            .filter((key) => !pluginsSkipAttr.apply({attr: key, value: d.attrs[key]}))
-            .map((key) => {
-                const value = pluginsStringifyAttr.apply({attr: key, value: d.attrs[key]});
-                if (value === '') {
-                    return ` ${key}`;
-                }
-                return ` ${key}="${value}"`;
-            })
-            .join('');
-
-        const isVoidTag = pluginsIsVoidTag.apply(tag);
-        if (isVoidTag) {
-            return `${tabs}<${tag}${attrs}/>`;
-        }
-
-        let htmlText = `${tabs}<${tag}${attrs}>`;
-        let shouldIndentClosingTag = false;
-        const children: ChildDeclaration[] = flatten(d.children || []).filter((c) => c != null);
-        children.forEach((c) => {
-            if (c == null || typeof c === 'function') {
-                return;
+function buildHtml(d: NodeDeclaration, tabs: string) {
+    const tag = d.tag;
+    const attrs = d.attrs == null ? '' : Object.keys(d.attrs)
+        .filter((key) => !pluginsSkipAttr.apply({attr: key, value: d.attrs[key]}))
+        .map((key) => {
+            const value = pluginsStringifyAttr.apply({attr: key, value: d.attrs[key]});
+            if (value === '') {
+                return ` ${key}`;
             }
-            if (typeof c === 'object') {
+            return ` ${key}="${value}"`;
+        })
+        .join('');
+
+    const isVoidTag = pluginsIsVoidTag.apply(tag);
+    if (isVoidTag) {
+        return `${tabs}<${tag}${attrs}/>`;
+    }
+
+    let htmlText = `${tabs}<${tag}${attrs}>`;
+    let shouldIndentClosingTag = false;
+    flattenDeclarations(d.children, executeChildFn)
+        .forEach((c) => {
+            if (isObject(c)) {
                 shouldIndentClosingTag = true;
-                htmlText += `\n${buildHtml(c, `${tabs}    `)}`;
+                htmlText += `\n${buildHtml(c as NodeDeclaration, `${tabs}    `)}`;
             } else {
                 htmlText += pluginsProcessText.apply(c as string);
             }
         });
-        if (shouldIndentClosingTag) {
-            htmlText += `\n${tabs}`;
-        }
-        htmlText += `</${d.tag}>`;
-
-        return htmlText;
+    if (shouldIndentClosingTag) {
+        htmlText += `\n${tabs}`;
     }
+    htmlText += `</${d.tag}>`;
 
-    return buildHtml(declaration, '');
+    return htmlText;
+}
+
+function executeChildFn(fn: SingleChildFunction): NodeDeclaration;
+function executeChildFn(fn: ChildFunction): ChildDeclaration | RecursiveArray<ChildDeclaration>;
+function executeChildFn(fn: ChildFunction) {
+    try {
+        return fn({} as Element);
+    } catch (err) {
+        return null;
+    }
+}
+
+export function renderToString(declarationOrFn: NodeDeclaration | SingleChildFunction) {
+    const declaration = typeof declarationOrFn === 'function' ? executeChildFn(declarationOrFn) : declarationOrFn;
+    if (isObject(declaration)) {
+        return buildHtml(declaration, '');
+    }
+    return pluginsProcessText.apply(declaration as any);
 }
 
 export const VOID_TAGS = [
