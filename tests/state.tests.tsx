@@ -1,5 +1,5 @@
-import {html, render, sync} from '../src';
-import withState from '../src/state';
+import {html, render, sync} from 'malevic';
+import withState from 'malevic/state';
 import {dispatchClick} from './utils';
 
 let container: Element = null;

@@ -1,7 +1,4 @@
 import {sync, NodeDeclaration} from 'malevic';
-// https://github.com/kulshekhar/ts-jest/issues/414
-// import {sync} from '../index';
-// import {NodeDeclaration} from '../defs';
 
 interface StateMatch<S, P> {
     node: Element;

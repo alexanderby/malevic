@@ -1,4 +1,4 @@
-import {html, render, renderToString} from '../src';
+import {html, render, renderToString} from 'malevic';
 
 let container: Element = null;
 

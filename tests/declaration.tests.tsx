@@ -1,4 +1,4 @@
-import {html} from '../src';
+import {html} from 'malevic';
 
 function Component({isHidden = false} = {}, ...children) {
     const style = isHidden ? {'display': 'none'} : null;

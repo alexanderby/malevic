@@ -9,6 +9,10 @@ module.exports = {
         'tsx',
         'js'
     ],
+    moduleNameMapper: {
+        'malevic/state': '<rootDir>/entries/state',
+        'malevic': '<rootDir>/entries',
+    },
     collectCoverage: false,
     coverageDirectory: 'coverage',
     collectCoverageFrom: [
