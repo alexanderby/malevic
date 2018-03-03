@@ -1,4 +1,4 @@
-import {html, render, renderToString} from 'malevic';
+import {html, render, sync, renderToString} from 'malevic';
 
 let container: Element = null;
 
@@ -48,5 +48,20 @@ describe('server-side rendering', () => {
         expect(container.querySelector('input')).toBe(input);
         expect(container.querySelector('b')).toBe(b);
         expect(container.querySelector('i')).toBe(i);
+    });
+
+    test('call `didmount` when render into existing HTML', () => {
+        let x = 0;
+        const A = () => (
+            <span
+                didmount={() => x += 1}
+                didupdate={() => x += 10}
+            />
+        );
+        container.innerHTML = renderToString(<A />);
+        sync(container.firstElementChild, <A />);
+        expect(x).toEqual(1);
+        sync(container.firstElementChild, <A />);
+        expect(x).toEqual(11);
     });
 });

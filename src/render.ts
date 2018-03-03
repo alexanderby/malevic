@@ -5,6 +5,7 @@ import {classes, styles, isObject, flatten, toArray, flattenDeclarations} from '
 import {NodeDeclaration, NodeAttrs, ChildDeclaration, ChildFunction, SingleChildFunction} from './defs';
 
 const nativeContainers = new WeakMap<Element, boolean>();
+const mountedElements = new WeakMap<Element, boolean>();
 const didMountHandlers = new WeakMap<Element, (el: Element) => void>();
 const didUpdateHandlers = new WeakMap<Element, (el: Element) => void>();
 const willUnmountHandlers = new WeakMap<Element, (el: Element) => void>();
@@ -144,6 +145,7 @@ function createNode(d: ChildDeclaration, parent: Element, next: Node) {
     pluginsMountNode.apply({node, parent, next});
     if (node instanceof Element && didMountHandlers.has(node)) {
         didMountHandlers.get(node)(node);
+        mountedElements.set(node, true);
     }
     if (isObject(d) && node instanceof Element && !nativeContainers.has(node)) {
         syncChildNodes(d as NodeDeclaration, node);
@@ -182,7 +184,10 @@ function syncNode(d: ChildDeclaration, existing: Element | Text) {
             }
         });
 
-        if (didUpdateHandlers.has(element)) {
+        if (didMountHandlers.has(element) && !mountedElements.has(element)) {
+            didMountHandlers.get(element)(element);
+            mountedElements.set(element, true);
+        } else if (didUpdateHandlers.has(element)) {
             didUpdateHandlers.get(element)(element);
         }
 
