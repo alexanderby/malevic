@@ -71,7 +71,7 @@ declare namespace Malevic {
     ): Text;
     function render(
         target: Element,
-        declaration: (NodeDeclaration | string)[]
+        declaration: ChildDeclaration[]
     ): Node[];
 
     function sync(
@@ -110,8 +110,8 @@ declare namespace Malevic {
 
     const plugins: {
         render: {
-            createNode: PluginsCollection<{d: NodeDeclaration | string, parent: Node}, Node>;
-            matchNodes: PluginsCollection<{d: NodeDeclaration; element: Element;}, [NodeDeclaration | string, Node]>;
+            createNode: PluginsCollection<{d: ChildDeclaration, parent: Node}, Node>;
+            matchNodes: PluginsCollection<{d: NodeDeclaration; element: Element;}, [ChildDeclaration, Node][]>;
             mountNode: PluginsCollection<{node: Node; parent: Node; next: Node;}, boolean>;
             setAttribute: PluginsCollection<{element: Element; attr: string; value: any;}, boolean>;
             unmountNode: PluginsCollection<{node: Node; parent: Node;}, boolean>;
