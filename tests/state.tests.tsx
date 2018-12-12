@@ -16,7 +16,7 @@ afterEach(() => {
 
 describe('state', () => {
     test('stateful component', () => {
-        const Component = withState((props: {text: string; state; setState;}, ...children) => (
+        const Component = withState((props: {text: string; state?; setState?;}, ...children) => (
             <div class={{'empty': props.state.count === 0}}>
                 <button onclick={() => props.setState({count: props.state.count + 1})}>
                     {props.text}

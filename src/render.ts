@@ -289,7 +289,7 @@ export function render(target: Element, declaration: ChildDeclaration | ChildDec
     };
     syncChildNodes(temp, target);
     return Array.isArray(declaration) ?
-        toArray(target.childNodes) :
+        toArray(target.childNodes) as Node[] :
         isObject(declaration) ?
             target.firstElementChild :
             target.firstChild;

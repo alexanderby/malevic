@@ -1,17 +1,13 @@
-const gulp = require('gulp');
-const gulpConnect = require('gulp-connect');
-const mergeStream = require('merge-stream');
-const path = require('path');
-const rollupStream = require('rollup-stream');
-const sourceStream = require('vinyl-source-stream');
-const typescriptPlugin = require('rollup-plugin-typescript');
-const uglifyPlugin = require('rollup-plugin-uglify');
-const package = require('./package');
+const rollup = require('rollup');
+const rollupPluginTypescript = require('rollup-plugin-typescript');
+const rollupPluginUglify = require('rollup-plugin-uglify');
+const typescript = require('typescript');
+const package = require('../package');
 
 const date = (new Date()).toLocaleDateString('en-us', {month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC'});
 const banner = `/* ${package.name}@${package.version} - ${date} */`;
 
-function buildJS({
+async function buildJS({
     src,
     dest,
     minify = false,
@@ -22,40 +18,35 @@ function buildJS({
     sourceMaps = null,
     ts = {},
 }) {
-    const dir = path.dirname(dest);
-    const file = path.basename(dest);
-    const stream = rollupStream({
+    const bundle = await rollup.rollup({
         input: src,
-        rollup: require('rollup'),
         external: dependencies ? Object.keys(dependencies) : null,
-        output: {
-            banner,
-            globals: dependencies,
-            exports: moduleExports,
-            format: moduleFormat,
-            name: globalName,
-            sourcemap: sourceMaps,
-            strict: true,
-        },
         plugins: [
-            typescriptPlugin(Object.assign({
-                typescript: require('typescript'),
+            rollupPluginTypescript(Object.assign({
+                typescript,
                 removeComments: true
             }, ts)),
-            minify ? uglifyPlugin({
+            minify ? rollupPluginUglify.uglify({
                 output: {preamble: banner}
             }) : null
         ].filter((p) => p),
     });
 
-    return stream
-        .pipe(sourceStream(file))
-        .pipe(gulp.dest(dir));
+    await bundle.write({
+        banner,
+        exports: moduleExports,
+        file: dest,
+        format: moduleFormat,
+        globals: dependencies,
+        name: globalName,
+        sourcemap: sourceMaps,
+        strict: true,
+    });
 }
 
-function buildPackage({es2015, umd, min, global, plugin}) {
+async function buildPackage({es2015, umd, min, global, plugin}) {
     const dependencies = plugin ? {'malevic': 'Malevic'} : null;
-    return [
+    await Promise.all([
         buildJS({
             src: es2015[0],
             dest: es2015[1],
@@ -79,13 +70,13 @@ function buildPackage({es2015, umd, min, global, plugin}) {
             globalName: global,
             moduleFormat: 'umd',
             ts: {target: 'es5'}
-        })
-    ];
+        }),
+    ]);
 }
 
-gulp.task('default', () => {
-    mergeStream(
-        ...buildPackage({
+async function release() {
+    await Promise.all([
+        buildPackage({
             global: 'Malevic',
             es2015: [
                 './entries/index.ts',
@@ -100,7 +91,7 @@ gulp.task('default', () => {
                 './umd/index.min.js'
             ]
         }),
-        ...buildPackage({
+        buildPackage({
             plugin: true,
             global: 'Malevic.Animation',
             es2015: [
@@ -116,7 +107,7 @@ gulp.task('default', () => {
                 './umd/animation.min.js'
             ]
         }),
-        ...buildPackage({
+        buildPackage({
             plugin: true,
             global: 'Malevic.Forms',
             es2015: [
@@ -132,7 +123,7 @@ gulp.task('default', () => {
                 './umd/forms.min.js'
             ]
         }),
-        ...buildPackage({
+        buildPackage({
             plugin: true,
             global: 'Malevic.State',
             es2015: [
@@ -148,11 +139,11 @@ gulp.task('default', () => {
                 './umd/state.min.js'
             ]
         })
-    );
-});
+    ]);
+}
 
-gulp.task('build-examples', () => {
-    buildJS(
+async function debug() {
+    await buildJS(
         {
             src: './examples/examples.tsx',
             dest: './examples/examples.js',
@@ -163,25 +154,18 @@ gulp.task('build-examples', () => {
                 target: 'es5',
                 jsx: 'react',
                 jsxFactory: 'html'
-            }
-        })
-        .pipe(gulpConnect.reload());
-});
+            },
+        });
+}
 
-gulp.task('watch', ['build-examples'], () => {
-    gulpConnect.server({
-        host: '0.0.0.0',
-        port: 9002,
-        root: './examples',
-        livereload: true,
-    });
-    gulp.watch(
-        [
-            'src/**/*.ts',
-            'entries/**/*.ts',
-            'examples/**/*.tsx',
-            'examples/index.html'
-        ],
-        ['build-examples']
-    );
-});
+async function run() {
+    const args = process.argv.slice(2);
+    if (args.includes('--release')) {
+        await release();
+    }
+    if (args.includes('--debug')) {
+        await debug();
+    }
+}
+
+run();

@@ -4,7 +4,6 @@ import {
     NodeDeclaration,
     ChildDeclaration,
     ChildFunction,
-    DomEventListener,
     NodeAttrs,
     RecursiveArray,
 } from './defs';
