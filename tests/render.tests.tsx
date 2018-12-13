@@ -243,12 +243,15 @@ describe('lifecycle', () => {
     });
 
     test('declaration function', () => {
+        const Component = (props) => {
+            return (domNode: Element) => {
+                expect(domNode.className).toEqual('a');
+                return <span class={props.class} />;
+            };
+        };
         render(container, (
             <div class="a">
-                {(domNode: Element) => {
-                    expect(domNode.className).toEqual('a');
-                    return <span class="b" />;
-                }}
+                <Component class="b" />
                 <span class="c" />
             </div>
         ));
