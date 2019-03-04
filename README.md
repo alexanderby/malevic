@@ -217,27 +217,6 @@ If attribute starts with `on`,
 the corresponding event listener is added to DOM element
 (or removed if value is `null`).
 
-## Getting parent DOM node before rendering
-
-It is possible to get parent DOM node for tweaking children attibutes. For doing so a function returning declaration should be used instead of declaration.
-
-```jsx
-render(document.body, (
-    <main>
-        <header></header>,
-        {(domNode) => {
-            const rect = domNode.getBoundingClientRect();
-            return [
-                <h3>Size</h3>,
-                <p>{`Width: ${rect.width}`}</p>,
-                <p>{`Height: ${rect.height}`}</p>
-            ];
-        }}
-        <footer></footer>
-    </main>
-));
-```
-
 ## Assigning data to element
 
 `data` attribute assigns data to DOM element.
@@ -288,7 +267,6 @@ sync(document.body, (
 - `didupdate` handler will be invoked after all attributes of existing DOM node were synchronized.
 - `willunmount` handler will be invoked before DOM node is removed.
 - `native` set to `true` will prevent Malevič.js from touching DOM node's children.
-- Use a child function like `(domNode) => <Element node={domNode} />` when child nodes depend on parent DOM element.
 
 ```jsx
 function PrintSize() {

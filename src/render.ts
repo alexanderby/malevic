@@ -1,8 +1,8 @@
 import {setData} from './data';
 import {addListener, removeListener} from './events';
 import {createPlugins} from './plugins';
-import {classes, styles, isObject, flatten, toArray, flattenDeclarations} from './utils';
-import {NodeDeclaration, NodeAttrs, ChildDeclaration, ChildFunction, SingleChildFunction} from './defs';
+import {classes, styles, isObject, toArray, flattenDeclarations} from './utils';
+import {NodeDeclaration, NodeAttrs, ChildDeclaration} from './defs';
 
 const nativeContainers = new WeakMap<Element, boolean>();
 const mountedElements = new WeakMap<Element, boolean>();
@@ -211,7 +211,7 @@ type NodeMatch = [ChildDeclaration, Node];
 export const pluginsMatchNodes = createPlugins<{d: NodeDeclaration; element: Element;}, NodeMatch[]>()
     .add(({d, element}) => {
         const matches: NodeMatch[] = [];
-        const declarations: ChildDeclaration[] = Array.isArray(d.children) ? flattenDeclarations(d.children, (fn) => fn(element)) : [];
+        const declarations: ChildDeclaration[] = Array.isArray(d.children) ? flattenDeclarations(d.children) : [];
 
         let nodeIndex = 0;
         declarations.forEach((d) => {
@@ -295,10 +295,9 @@ export function render(target: Element, declaration: ChildDeclaration | ChildDec
             target.firstChild;
 }
 
-export function sync(target: Element, declaration: NodeDeclaration | SingleChildFunction): Element;
-export function sync(target: Text, text: string | SingleChildFunction): Text;
-export function sync(target: Element | Text, declarationOrFn: ChildDeclaration | SingleChildFunction): Element | Text {
-    const declaration = typeof declarationOrFn === 'function' ? declarationOrFn(target.parentElement) : declarationOrFn;
+export function sync(target: Element, declaration: NodeDeclaration): Element;
+export function sync(target: Text, text: string): Text;
+export function sync(target: Element | Text, declaration: ChildDeclaration): Element | Text {
     const isElement = isObject(declaration);
     if (!(
         (!isElement && target instanceof Text) ||

@@ -1,6 +1,6 @@
 import {createPlugins} from './plugins';
 import {classes, flattenDeclarations, isObject, styles} from './utils';
-import {NodeDeclaration, ChildDeclaration, RecursiveArray, ChildFunction, SingleChildFunction} from './defs';
+import {NodeDeclaration} from './defs';
 
 export const pluginsIsVoidTag = createPlugins<string, boolean>()
     .add((tag) => tag in VOID_TAGS);
@@ -71,7 +71,7 @@ function buildHtml(d: NodeDeclaration, tabs: string) {
 
     let htmlText = `${tabs}<${tag}${attrs}>`;
     let shouldIndentClosingTag = false;
-    flattenDeclarations(d.children, executeChildFn)
+    flattenDeclarations(d.children)
         .forEach((c) => {
             if (isObject(c)) {
                 shouldIndentClosingTag = true;
@@ -88,18 +88,7 @@ function buildHtml(d: NodeDeclaration, tabs: string) {
     return htmlText;
 }
 
-function executeChildFn(fn: SingleChildFunction): NodeDeclaration;
-function executeChildFn(fn: ChildFunction): ChildDeclaration | RecursiveArray<ChildDeclaration>;
-function executeChildFn(fn: ChildFunction) {
-    try {
-        return fn({} as Element);
-    } catch (err) {
-        return null;
-    }
-}
-
-export function renderToString(declarationOrFn: NodeDeclaration | SingleChildFunction) {
-    const declaration = typeof declarationOrFn === 'function' ? executeChildFn(declarationOrFn) : declarationOrFn;
+export function renderToString(declaration: NodeDeclaration) {
     if (isObject(declaration)) {
         return buildHtml(declaration, '');
     }

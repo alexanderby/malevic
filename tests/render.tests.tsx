@@ -242,22 +242,6 @@ describe('lifecycle', () => {
         render(container, <span />);
     });
 
-    test('declaration function', () => {
-        const Component = (props) => {
-            return (domNode: Element) => {
-                expect(domNode.className).toEqual('a');
-                return <span class={props.class} />;
-            };
-        };
-        render(container, (
-            <div class="a">
-                <Component class="b" />
-                <span class="c" />
-            </div>
-        ));
-        expect(container.innerHTML).toEqual('<div class="a"><span class="b"></span><span class="c"></span></div>');
-    });
-
     test('native container', () => {
         render(container, (
             <div

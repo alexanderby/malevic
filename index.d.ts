@@ -3,12 +3,10 @@ declare namespace Malevic {
     interface NodeDeclaration {
         tag: string;
         attrs: NodeAttrs;
-        children: Array<ChildDeclaration | ChildFunction | RecursiveArray<ChildDeclaration | ChildFunction>>;
+        children: Array<ChildDeclaration | RecursiveArray<ChildDeclaration>>;
     }
 
     type ChildDeclaration = NodeDeclaration | string;
-
-    type ChildFunction = (parent: Element) => ChildDeclaration | RecursiveArray<ChildDeclaration>;
 
     type SingleChildFunction = (parent: Element) => ChildDeclaration;
 
@@ -49,15 +47,13 @@ declare namespace Malevic {
         tagOrComponent: (
             string | ((attrs, ...children) => (
                 ChildDeclaration |
-                ChildFunction |
-                RecursiveArray<ChildDeclaration | ChildFunction>
+                RecursiveArray<ChildDeclaration>
             ))
         ),
         attrs: NodeAttrs,
         ...children: Array<(
             ChildDeclaration |
-            ChildFunction |
-            RecursiveArray<ChildDeclaration | ChildFunction>
+            RecursiveArray<ChildDeclaration>
         )>
     ): NodeDeclaration;
 
