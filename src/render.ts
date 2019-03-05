@@ -220,7 +220,6 @@ export const pluginsMatchNodes = createPlugins<{d: NodeDeclaration; element: Ele
 
             let found = null as Node;
             let node = null as Node;
-            let isElementNode: boolean;
             for (; nodeIndex < element.childNodes.length; nodeIndex++) {
                 node = element.childNodes.item(nodeIndex);
                 if (isText) {

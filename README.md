@@ -170,47 +170,6 @@ function Form({ checked, text, num, onCheckChange, onTextChange, onNumChange }) 
 }
 ```
 
-## State plug-in
-
-State plug-in lets re-render a subtree in response for interaction:
-```jsx
-import { html } from 'malevic';
-import withState from 'malevic/state';
-
-function Stateful({items, state, setState}) {
-    return (
-        <div>
-            <button onclick={() => setState({isExpanded: true})}>
-                Expand
-            </button>
-            <ul class={{'expanded': state.isExpanded}}>
-                {items.map((text) => <li>{text}</li>)}
-            </ul>
-        </div>
-    );
-}
-
-export default withState(Stateful);
-```
-
-```jsx
-import { html } from 'malevic';
-import Stateful from './stateful';
-
-export default function List () {
-    return (
-        <main>
-            <Stateful key="0" items={['A', 'B', 'C']} />
-            <Stateful key="1" items={['D', 'E', 'F']} />
-        </main>
-    };
-};
-```
-
-If there is more than one stateful component of the same kind within the same parent,
-it is important to specify the `"key"` attribute to let properly associate state
-with a component function.
-
 ## Listening to events
 
 If attribute starts with `on`,

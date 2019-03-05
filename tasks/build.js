@@ -123,22 +123,6 @@ async function release() {
                 './umd/forms.min.js'
             ]
         }),
-        buildPackage({
-            plugin: true,
-            global: 'Malevic.State',
-            es2015: [
-                './entries/state.ts',
-                './state.js'
-            ],
-            umd: [
-                './entries/state.ts',
-                './umd/state.js'
-            ],
-            min: [
-                './entries/state.ts',
-                './umd/state.min.js'
-            ]
-        })
     ]);
 }
 
