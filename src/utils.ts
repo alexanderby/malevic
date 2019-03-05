@@ -1,4 +1,4 @@
-import {RecursiveArray, ChildDeclaration, ChildFunction} from './defs';
+import {RecursiveArray, ChildDeclaration} from './defs';
 
 export function classes(
     ...args: Array<string | {[cls: string]: boolean}>
@@ -43,20 +43,6 @@ function isEmptyDeclaration(d: ChildDeclaration) {
     return d == null || d === '';
 }
 
-export function flattenDeclarations(declarations: RecursiveArray<ChildDeclaration | ChildFunction>, funcExecutor: (fn: ChildFunction) => ChildDeclaration | RecursiveArray<ChildDeclaration>): ChildDeclaration[] {
-    const results: ChildDeclaration[] = [];
-    flatten(declarations)
-        .forEach((c) => {
-            if (typeof c === 'function') {
-                const r = funcExecutor(c);
-                if (Array.isArray(r)) {
-                    results.push(...(flatten(r) as ChildDeclaration[]).filter(x => !isEmptyDeclaration(x)));
-                } else if (!isEmptyDeclaration(r)) {
-                    results.push(r);
-                }
-            } else if (!isEmptyDeclaration(c)) {
-                results.push(c);
-            }
-        });
-    return results;
+export function flattenDeclarations(declarations: RecursiveArray<ChildDeclaration>): ChildDeclaration[] {
+    return flatten(declarations).filter((c) => !isEmptyDeclaration(c));
 }

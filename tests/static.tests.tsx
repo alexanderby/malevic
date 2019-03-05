@@ -17,9 +17,7 @@ describe('server-side rendering', () => {
         return (
             <label class={['a', 'b']}>
                 <input class="a_i" value="T" readonly />
-                {(domNode) => <span />}
                 Hello <b style={{'color': 'red'}}>red</b> <i class={{'sunny': true}}>sun</i> {2018}!
-                {(domNode) => `${domNode.getBoundingClientRect().width}`}
             </label>
         );
     }
@@ -27,8 +25,7 @@ describe('server-side rendering', () => {
     test('render to string', () => {
         expect(renderToString(<Component />)).toEqual([
             '<label class="a b">',
-            '    <input class="a_i" value="T" readonly/>',
-            '    <span></span>Hello ',
+            '    <input class="a_i" value="T" readonly/>Hello ',
             '    <b style="color: red;">red</b> ',
             '    <i class="sunny">sun</i> 2018!',
             '</label>'

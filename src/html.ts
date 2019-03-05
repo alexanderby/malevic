@@ -3,12 +3,11 @@ import {flatten} from './utils';
 import {
     NodeDeclaration,
     ChildDeclaration,
-    ChildFunction,
     NodeAttrs,
     RecursiveArray,
 } from './defs';
 
-type Child = ChildDeclaration | ChildFunction | RecursiveArray<ChildDeclaration | ChildFunction>;
+type Child = ChildDeclaration | RecursiveArray<ChildDeclaration>;
 
 export function html(
     tagOrComponent: string | ((attrs, ...children: any[]) => Child),

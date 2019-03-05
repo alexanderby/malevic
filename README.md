@@ -170,73 +170,11 @@ function Form({ checked, text, num, onCheckChange, onTextChange, onNumChange }) 
 }
 ```
 
-## State plug-in
-
-State plug-in lets re-render a subtree in response for interaction:
-```jsx
-import { html } from 'malevic';
-import withState from 'malevic/state';
-
-function Stateful({items, state, setState}) {
-    return (
-        <div>
-            <button onclick={() => setState({isExpanded: true})}>
-                Expand
-            </button>
-            <ul class={{'expanded': state.isExpanded}}>
-                {items.map((text) => <li>{text}</li>)}
-            </ul>
-        </div>
-    );
-}
-
-export default withState(Stateful);
-```
-
-```jsx
-import { html } from 'malevic';
-import Stateful from './stateful';
-
-export default function List () {
-    return (
-        <main>
-            <Stateful key="0" items={['A', 'B', 'C']} />
-            <Stateful key="1" items={['D', 'E', 'F']} />
-        </main>
-    };
-};
-```
-
-If there is more than one stateful component of the same kind within the same parent,
-it is important to specify the `"key"` attribute to let properly associate state
-with a component function.
-
 ## Listening to events
 
 If attribute starts with `on`,
 the corresponding event listener is added to DOM element
 (or removed if value is `null`).
-
-## Getting parent DOM node before rendering
-
-It is possible to get parent DOM node for tweaking children attibutes. For doing so a function returning declaration should be used instead of declaration.
-
-```jsx
-render(document.body, (
-    <main>
-        <header></header>,
-        {(domNode) => {
-            const rect = domNode.getBoundingClientRect();
-            return [
-                <h3>Size</h3>,
-                <p>{`Width: ${rect.width}`}</p>,
-                <p>{`Height: ${rect.height}`}</p>
-            ];
-        }}
-        <footer></footer>
-    </main>
-));
-```
 
 ## Assigning data to element
 
@@ -288,7 +226,6 @@ sync(document.body, (
 - `didupdate` handler will be invoked after all attributes of existing DOM node were synchronized.
 - `willunmount` handler will be invoked before DOM node is removed.
 - `native` set to `true` will prevent Malevič.js from touching DOM node's children.
-- Use a child function like `(domNode) => <Element node={domNode} />` when child nodes depend on parent DOM element.
 
 ```jsx
 function PrintSize() {
