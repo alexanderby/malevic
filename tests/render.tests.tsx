@@ -1,4 +1,4 @@
-import {html, render, sync, getData} from 'malevic';
+import {m, render, sync, getData} from 'malevic';
 import {dispatchClick} from './utils';
 
 let container: Element = null;

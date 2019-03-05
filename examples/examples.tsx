@@ -1,4 +1,4 @@
-import {html, render, renderToString} from 'malevic';
+import {m, render, renderToString} from 'malevic';
 import withAnimation, {animate} from 'malevic/animation';
 import withForms from 'malevic/forms';
 

@@ -1,4 +1,4 @@
-export {html} from './html';
+export {m} from './declaration';
 export {render, sync, getAttrs} from './render';
 export {classes, styles} from './utils';
 export {getData} from './data';

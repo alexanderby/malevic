@@ -11,16 +11,16 @@ Suitable for building framework-independent dynamic widgets as well as small web
 
 ## Basic example
 
-- `html()` function creates DOM element declaration that looks like `{tag, attrs, children}`.
+- `html()` function creates DOM element declaration that looks like `{type, attrs, children}`.
 - `render()` function renders nodes inside a DOM element.
 If differences with existing DOM nodes are found,
 necessary nodes or attributes are replaced.
 
 ```javascript
-import { html, render } from 'malevic';
+import {m, render} from 'malevic';
 
 render(document.body, (
-    html('h3', { class: 'heading' },
+    m('h3', {class: 'heading'},
         'Hello, World!'
     )
 ));
@@ -28,13 +28,13 @@ render(document.body, (
 
 ## JSX
 
-`html` pragma should be used to make it work with **JSX**:
+`m` pragma should be used to make it work with **JSX**:
 - Babel:
 ```json
 {
     "plugins": [
         ["transform-react-jsx", {
-            "pragma": "html"
+            "pragma": "m"
         }]
     ]
 }
@@ -44,14 +44,14 @@ render(document.body, (
 {
     "compilerOptions": {
         "jsx": "react",
-        "jsxFactory": "html"
+        "jsxFactory": "m"
     }
 }
 ```
 
 Component written with JSX will look like:
 ```jsx
-import { html, render } from 'malevic';
+import {m, render} from 'malevic';
 
 function Button({label, handler}) {
     return (
@@ -76,8 +76,8 @@ It makes possible to schedule animations like
 `attr={animate(to).initial(from).duration(ms).easing('ease-in-out').interpolate((from,to)=>(t)=>string)}`.
 
 ```jsx
-import { html, render } from 'malevic';
-import withAnimation, { animate } from 'malevic/animation';
+import {m, render} from 'malevic';
+import withAnimation, {animate} from 'malevic/animation';
 
 withAnimation();
 
@@ -102,10 +102,10 @@ render(document.body, (
 
 It is possible to animate separate style properties:
 ```jsx
-function Tooltip({ text, color, isVisible, x, y }) {
+function Tooltip({text, color, isVisible, x, y}) {
     return (
         <div
-            class={['tooltip', { 'visible': isVisible }]}
+            class={['tooltip', {'visible': isVisible}]}
             style={{
                 'transform': animate(`translate(${x}px, ${y}px)`),
                 'background-color': animate(color)
@@ -138,12 +138,12 @@ Built-in interpolator can interpolate between numbers and strings containing num
 
 Forms plug-in makes form elements work in reactive manner:
 ```jsx
-import { html } from 'malevic';
+import {m} from 'malevic';
 import withForms from 'malevic/forms';
 
 withForms();
 
-function Form({ checked, text, num, onCheckChange, onTextChange, onNumChange }) {
+function Form({checked, text, num, onCheckChange, onTextChange, onNumChange}) {
     return (
         <form onsubmit={(e) => e.preventDefault()}>
             <input
@@ -183,7 +183,7 @@ It can be retrieved in event handlers by calling `getData(domElement)`.
 This can be useful for event delegation.
 
 ```jsx
-import { html, getData } from 'malevic';
+import {m, getData} from 'malevic';
 
 function ListItem(props) {
     return <li class="list__item" data={props.data} />;
@@ -206,7 +206,7 @@ function List(props) {
 
 ## Syncing with existing DOM element
 ```jsx
-import {html, sync} from 'malevic';
+import {m, sync} from 'malevic';
 
 sync(document.body, (
     <body class={{'popup-open': state.isPopupOpen}}>
@@ -249,7 +249,7 @@ Malevič.js can simply render inside existing HTML
 without unnecessary DOM tree modifications.
 
 ```jsx
-import {html, renderToString} from 'malevic';
+import {m, renderToString} from 'malevic';
 import {createServer} from 'http';
 import App from './app';
 
@@ -283,7 +283,7 @@ Extendable plug-ins:
 - `static.stringifyAttr` converts attribute to string.
 
 ```javascript
-import { plugins, classes } from 'malevic';
+import {plugins, classes} from 'malevic';
 
 const map = new WeakMap();
 

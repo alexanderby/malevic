@@ -1,4 +1,4 @@
-import {html} from 'malevic';
+import {m} from 'malevic';
 
 function Component({isHidden = false} = {}, ...children) {
     const style = isHidden ? {'display': 'none'} : null;
@@ -18,37 +18,29 @@ test('declaration', () => {
             <Component></Component>
         </main>
     ).toEqual({
-        tag: 'main',
+        type: 'main',
         attrs: null,
         children: [
             {
-                tag: 'div',
+                type: Component,
                 attrs: {
-                    class: 'component',
-                    style: {
-                        display: 'none'
-                    }
+                    isHidden: true,
                 },
                 children: [
-                    [
-                        'Hello ',
-                        {
-                            tag: 'strong',
-                            attrs: null,
-                            children: [
-                                'World'
-                            ]
-                        }
-                    ]
+                    'Hello ',
+                    {
+                        type: 'strong',
+                        attrs: null,
+                        children: [
+                            'World'
+                        ]
+                    }
                 ]
             },
             {
-                tag: 'div',
-                attrs: {
-                    class: 'component',
-                    style: null
-                },
-                children: [[]]
+                type: Component,
+                attrs: null,
+                children: []
             }
         ]
     });

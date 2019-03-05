@@ -1,10 +1,20 @@
 export interface NodeDeclaration {
-    tag: string;
+    type: string;
     attrs: NodeAttrs;
-    children: RecursiveArray<ChildDeclaration>;
+    children: Child[];
 }
 
-export type ChildDeclaration = NodeDeclaration | string;
+export interface ComponentDeclaration<T = any> {
+    type: Component<T>;
+    attrs: T;
+    children: Child[];
+}
+
+export type Declaration = NodeDeclaration | ComponentDeclaration;
+
+export type Component<T = any> = (props: T, ...children: Child[]) => Declaration;
+
+export type Child = string | Declaration;
 
 export interface DomEventListener {
     (this: Element, e: Event): void;
@@ -20,5 +30,3 @@ export interface NodeAttrs {
     willunmount?: (el: Element) => void;
     [attr: string]: any | DomEventListener;
 }
-
-export interface RecursiveArray<T> extends Array<T | RecursiveArray<T>> { }
