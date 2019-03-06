@@ -1,4 +1,4 @@
-import {m, render, renderToString} from 'malevic';
+import {m, render, renderToString, getParentDOMNode} from 'malevic';
 import withAnimation, {animate} from 'malevic/animation';
 import withForms from 'malevic/forms';
 
@@ -6,17 +6,6 @@ function assert(value) {
     if (!value) {
         throw new Error('Something went wrong')
     }
-}
-
-function assign<A, B>(a: A, b: B): A & B;
-function assign<A, B, C>(a: A, b: B, c: C): A & B & C;
-function assign(obj, ...other: Object[]) {
-    other.filter((o) => o).forEach((from) => {
-        Object.keys(from).forEach((prop) => {
-            obj[prop] = from[prop];
-        });
-    });
-    return obj;
 }
 
 // Core
@@ -55,13 +44,21 @@ function assign(obj, ...other: Object[]) {
         count: number;
         onIncrement: () => void;
     }) {
+        function inline(fn) {
+            return {
+                type: fn,
+                attrs: null,
+                children: [],
+            };
+        }
+
         return (
             <div class='view' style={{width: '300px', height: '200px'}}>
                 <PrintSize />
-                {(domNode: Element) => {
-                    const rect = domNode.getBoundingClientRect();
+                {inline(() => {
+                    const rect = getParentDOMNode().getBoundingClientRect();
                     return <Heading text={`View: ${rect.width}x${rect.height}`} />;
-                }}
+                })}
                 <Heading text={`Count: ${props.count}`} />
                 <Button
                     onClick={props.onIncrement}
@@ -74,7 +71,7 @@ function assign(obj, ...other: Object[]) {
     let state: {count: number;} = null;
 
     function setState(newState) {
-        state = assign({}, state, newState);
+        state = Object.assign({}, state, newState);
         render(
             document.getElementById('core'),
             <View
@@ -209,10 +206,12 @@ withAnimation();
 (function () {
 
     function Tooltip({text, cx, cy}) {
-        return (domNode: SVGSVGElement) => {
-            const temp = render(domNode, <text font-size={16}>{text}</text>);
-            const box = (temp as SVGTextElement).getBBox();
-            return [
+        const parent = getParentDOMNode();
+        const temp = render(parent, <text font-size={16}>{text}</text>);
+        const box = (temp as SVGTextElement).getBBox();
+        parent.removeChild(temp);
+        return (
+            <g>
                 <rect fill={animate([255, 255, 0])
                     .initial([255, 0, 0])
                     .duration(2000)
@@ -229,13 +228,13 @@ withAnimation();
                     y={cy - box.height / 2}
                     width={box.width}
                     height={box.height}
-                />,
+                />
                 <text font-size={16} text-anchor='middle'
                     x={cx}
                     y={cy - box.y - box.height / 2}
                 >{text}</text>
-            ];
-        };
+            </g>
+        );
     }
 
     render(document.getElementById('lifecycle'), (
@@ -283,7 +282,7 @@ withForms();
     }
 
     function setState(newState) {
-        state = assign({}, state, newState);
+        state = Object.assign({}, state, newState);
         render(
             document.getElementById('forms'),
             <Form

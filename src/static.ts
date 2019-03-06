@@ -1,6 +1,6 @@
 import {createPlugins} from './plugins';
 import {classes, isObject, styles, filterChildren, deepUnbox} from './utils';
-import {Declaration} from './defs';
+import {Declaration, NodeDeclaration} from './defs';
 
 export const pluginsIsVoidTag = createPlugins<string, boolean>()
     .add((tag) => tag in VOID_TAGS);
@@ -52,7 +52,12 @@ export const pluginsProcessText = createPlugins<string, string>()
     .add((text) => escapeHtml(text));
 
 function buildHtml(c: Declaration, tabs: string) {
-    const d = deepUnbox(c);
+    let d: NodeDeclaration;
+    try {
+        d = deepUnbox(c);
+    } catch (err) {
+        return '<!--m-->';
+    }
     const tag = d.type;
     const attrs = d.attrs == null ? '' : Object.keys(d.attrs)
         .filter((key) => !pluginsSkipAttr.apply({attr: key, value: d.attrs[key]}))

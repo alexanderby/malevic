@@ -76,6 +76,10 @@ declare namespace Malevic {
 
     function getAttrs(element: Element): NodeAttrs;
 
+    function getDOMNode(): Node;
+
+    function getParentDOMNode(): Element;
+
     function classes(
         ...args: Array<string | {[cls: string]: boolean}>
     ): string;

@@ -129,10 +129,31 @@ export function getAttrs(element: Element) {
     return elementsAttrs.get(element) || null;
 }
 
+let currentParentDOMNode: Element = null;
+let currentDOMNode: Node = null;
+
+export function getParentDOMNode() {
+    return currentParentDOMNode;
+}
+
+export function getDOMNode() {
+    return currentDOMNode;
+}
+
+function unboxComponent(d: ComponentDeclaration, parent: Element, node: Node) {
+    currentParentDOMNode = parent;
+    currentDOMNode = node;
+    // Warning: Node type can change or return null.
+    const u = deepUnbox(d);
+    currentDOMNode = null;
+    currentParentDOMNode = null;
+    return u;
+}
+
 function createNode(c: Child, parent: Element, next: Node) {
     const isElement = isObject(c);
     const isComponent = isElement && typeof (c as Declaration).type === 'function';
-    const d = isComponent ? deepUnbox(c as Declaration) : (c as NodeDeclaration | string);
+    const d = isComponent ? unboxComponent(c as ComponentDeclaration, parent, null) : (c as NodeDeclaration | string);
     const node = pluginsCreateNode.apply({d, parent});
     if (isElement) {
         const element = node as Element;
@@ -174,7 +195,7 @@ function syncNode(c: Child, existing: Element | Text) {
         return;
     }
 
-    const d = deepUnbox(c);
+    const d = typeof c.type === 'function' ? unboxComponent(c as ComponentDeclaration, existing.parentElement, existing) : c;
     const element = existing as Element;
     const attrs = d.attrs || {};
     let existingAttrs = getAttrs(element);

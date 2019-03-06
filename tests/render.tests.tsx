@@ -1,4 +1,4 @@
-import {m, render, sync, getData} from 'malevic';
+import {m, render, sync, getData, getParentDOMNode, getDOMNode} from 'malevic';
 import {dispatchClick} from './utils';
 
 let container: Element = null;
@@ -258,6 +258,28 @@ describe('lifecycle', () => {
         ));
         expect(container.innerHTML).toEqual('<span><b></b></span>');
     });
+});
+
+test('get DOM nodes before rendering', () => {
+    function Component() {
+        const parent = getParentDOMNode();
+        const node = getDOMNode();
+        return <p>{`${parent.getAttribute('class')}; ${parent.childNodes.length}; ${node != null && parent.firstElementChild === node}`}</p>
+    }
+
+    const el = render(container, (
+        <div class="a">
+            <Component />
+        </div>
+    ));
+    expect(el.querySelector('p').textContent).toEqual('a; 0; false');
+
+    render(container, (
+        <div class="b">
+            <Component />
+        </div>
+    ));
+    expect(el.querySelector('p').textContent).toEqual('b; 1; true');
 });
 
 test('data', () => {

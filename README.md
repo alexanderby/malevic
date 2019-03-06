@@ -69,6 +69,8 @@ render(document.body, (
 ));
 ```
 
+`import {m} from 'malevic';` should be included in every JSX or TSX file.
+
 ## Animation plug-in
 
 There is a built-in animation plug-in.
@@ -175,6 +177,37 @@ function Form({checked, text, num, onCheckChange, onTextChange, onNumChange}) {
 If attribute starts with `on`,
 the corresponding event listener is added to DOM element
 (or removed if value is `null`).
+
+
+
+ ## Getting DOM node before rendering	
+
+ It is possible to get parent DOM node or target DOM node (if it was already rendered) before updating DOM tree. For doing so use `getParentDOMNode` and `getDOMNode` functions.	
+
+ ```jsx	
+import {m, render, getParentDOMNode} from 'malevic';
+
+function inline(fn) {
+    // Make it possible to put component functions inline
+    return {type: fn, attrs: null, children: []};
+}
+
+render(document.body, (	
+    <main>	
+        <header></header>
+        {inline(() => {
+            const parent = getParentDOMNode();
+            const rect = parent.getBoundingClientRect();	
+            return [	
+                <h3>Size</h3>,	
+                <p>{`Width: ${rect.width}`}</p>,	
+                <p>{`Height: ${rect.height}`}</p>	
+            ];	
+        })}
+        <footer></footer>	
+    </main>	
+));	
+```
 
 ## Assigning data to element
 
