@@ -1,4 +1,4 @@
-import {RecursiveArray, ChildDeclaration} from './defs';
+import {Child, Declaration, NodeDeclaration, ComponentDeclaration} from './defs';
 
 export function classes(
     ...args: Array<string | {[cls: string]: boolean}>
@@ -29,20 +29,27 @@ export function isObject(value) {
     return typeof value === 'object' && value != null;
 }
 
-export function toArray<T>(obj: ArrayLike<T>): T[] {
-    return Array.prototype.slice.call(obj);
-}
-
-export function flatten<T>(arr: RecursiveArray<T>) {
-    return arr.reduce((flat: T[], toFlatten) => {
-        return flat.concat(Array.isArray(toFlatten) ? flatten(toFlatten) : toFlatten);
-    }, []);
-}
-
-function isEmptyDeclaration(d: ChildDeclaration) {
+export function isEmptyDeclaration(d: Child) {
     return d == null || d === '';
 }
 
-export function flattenDeclarations(declarations: RecursiveArray<ChildDeclaration>): ChildDeclaration[] {
-    return flatten(declarations).filter((c) => !isEmptyDeclaration(c));
+export function filterChildren(declarations: Child[]): Child[] {
+    return declarations.filter((c) => !isEmptyDeclaration(c));
+}
+
+function unbox(d: ComponentDeclaration) {
+    const component = d.type;
+    // Note: When there are no attributes, JSX produces `null`
+    // and it prevents from assigning default value
+    const props = d.attrs == null ? undefined : d.attrs;
+    const children = d.children;
+    return component(props, ...children);
+}
+
+export function deepUnbox(d: Declaration) {
+    let r = d;
+    while (typeof r.type === 'function') {
+        r = unbox(r as ComponentDeclaration);
+    }
+    return r as NodeDeclaration;
 }

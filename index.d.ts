@@ -1,14 +1,22 @@
 declare namespace Malevic {
 
     interface NodeDeclaration {
-        tag: string;
+        type: string;
         attrs: NodeAttrs;
-        children: Array<ChildDeclaration | RecursiveArray<ChildDeclaration>>;
+        children: Child[];
     }
 
-    type ChildDeclaration = NodeDeclaration | string;
+    interface ComponentDeclaration<T = any> {
+        type: Component<T>;
+        attrs: T;
+        children: Child[];
+    }
 
-    type SingleChildFunction = (parent: Element) => ChildDeclaration;
+    type Declaration = NodeDeclaration | ComponentDeclaration;
+
+    type Component<T = any> = (props: T, ...children: Child[]) => Declaration;
+
+    type Child = string | Declaration;
 
     interface DomEventListener<T = Element> {
         (this: Element, e: Event & {target: T}): void;
@@ -41,25 +49,12 @@ declare namespace Malevic {
         [attr: string]: any | DomEventListener<T>;
     }
 
-    interface RecursiveArray<T> extends Array<T | RecursiveArray<T>> { }
-
-    function html(
-        tagOrComponent: (
-            string | ((attrs, ...children) => (
-                ChildDeclaration |
-                RecursiveArray<ChildDeclaration>
-            ))
-        ),
-        attrs: NodeAttrs,
-        ...children: Array<(
-            ChildDeclaration |
-            RecursiveArray<ChildDeclaration>
-        )>
-    ): NodeDeclaration;
+    function m(tag: string, attrs: NodeAttrs, ...children: Child[]): NodeDeclaration;
+    function m<T>(component: Component<T>, props: T, ...children: Child[]): ComponentDeclaration<T>;
 
     function render(
         target: Element,
-        declaration: NodeDeclaration
+        declaration: Declaration
     ): Element;
     function render(
         target: Element,
@@ -67,19 +62,23 @@ declare namespace Malevic {
     ): Text;
     function render(
         target: Element,
-        declaration: ChildDeclaration[]
+        declaration: Child | Child[]
     ): Node[];
 
     function sync(
         target: Element,
-        declaration: NodeDeclaration | SingleChildFunction
+        declaration: Declaration
     ): Element;
     function sync(
         target: Text,
-        text: string | SingleChildFunction
+        text: string
     ): Text;
 
     function getAttrs(element: Element): NodeAttrs;
+
+    function getDOMNode(): Node;
+
+    function getParentDOMNode(): Element;
 
     function classes(
         ...args: Array<string | {[cls: string]: boolean}>
@@ -91,7 +90,7 @@ declare namespace Malevic {
 
     function getData(node: Element): any;
 
-    function renderToString(declaration: NodeDeclaration): string;
+    function renderToString(declaration: Declaration): string;
 
     function escapeHtml(s: any): string;
 
@@ -106,8 +105,8 @@ declare namespace Malevic {
 
     const plugins: {
         render: {
-            createNode: PluginsCollection<{d: ChildDeclaration, parent: Node}, Node>;
-            matchNodes: PluginsCollection<{d: NodeDeclaration; element: Element;}, [ChildDeclaration, Node][]>;
+            createNode: PluginsCollection<{d: NodeDeclaration | string, parent: Node}, Node>;
+            matchNodes: PluginsCollection<{d: Declaration; element: Element;}, [Declaration, Node][]>;
             mountNode: PluginsCollection<{node: Node; parent: Node; next: Node;}, boolean>;
             setAttribute: PluginsCollection<{element: Element; attr: string; value: any;}, boolean>;
             unmountNode: PluginsCollection<{node: Node; parent: Node;}, boolean>;
@@ -182,6 +181,6 @@ declare namespace JSX {
         };
     }
 
-    interface Element extends Malevic.NodeDeclaration { }
+    type Element = Malevic.Declaration;
 
 }

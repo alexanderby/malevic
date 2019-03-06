@@ -137,7 +137,7 @@ async function debug() {
             ts: {
                 target: 'es5',
                 jsx: 'react',
-                jsxFactory: 'html'
+                jsxFactory: 'm'
             },
         });
 }

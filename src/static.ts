@@ -1,6 +1,6 @@
 import {createPlugins} from './plugins';
-import {classes, flattenDeclarations, isObject, styles} from './utils';
-import {NodeDeclaration} from './defs';
+import {classes, isObject, styles, filterChildren, deepUnbox} from './utils';
+import {Declaration, NodeDeclaration} from './defs';
 
 export const pluginsIsVoidTag = createPlugins<string, boolean>()
     .add((tag) => tag in VOID_TAGS);
@@ -51,8 +51,14 @@ export const pluginsStringifyAttr = createPlugins<{attr: string; value: any;}, s
 export const pluginsProcessText = createPlugins<string, string>()
     .add((text) => escapeHtml(text));
 
-function buildHtml(d: NodeDeclaration, tabs: string) {
-    const tag = d.tag;
+function buildHtml(c: Declaration, tabs: string) {
+    let d: NodeDeclaration;
+    try {
+        d = deepUnbox(c);
+    } catch (err) {
+        return '<!--m-->';
+    }
+    const tag = d.type;
     const attrs = d.attrs == null ? '' : Object.keys(d.attrs)
         .filter((key) => !pluginsSkipAttr.apply({attr: key, value: d.attrs[key]}))
         .map((key) => {
@@ -71,11 +77,11 @@ function buildHtml(d: NodeDeclaration, tabs: string) {
 
     let htmlText = `${tabs}<${tag}${attrs}>`;
     let shouldIndentClosingTag = false;
-    flattenDeclarations(d.children)
+    filterChildren(d.children)
         .forEach((c) => {
             if (isObject(c)) {
                 shouldIndentClosingTag = true;
-                htmlText += `\n${buildHtml(c as NodeDeclaration, `${tabs}    `)}`;
+                htmlText += `\n${buildHtml(c as Declaration, `${tabs}    `)}`;
             } else {
                 htmlText += pluginsProcessText.apply(c as string);
             }
@@ -83,12 +89,12 @@ function buildHtml(d: NodeDeclaration, tabs: string) {
     if (shouldIndentClosingTag) {
         htmlText += `\n${tabs}`;
     }
-    htmlText += `</${d.tag}>`;
+    htmlText += `</${d.type}>`;
 
     return htmlText;
 }
 
-export function renderToString(declaration: NodeDeclaration) {
+export function renderToString(declaration: Declaration) {
     if (isObject(declaration)) {
         return buildHtml(declaration, '');
     }
