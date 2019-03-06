@@ -11,7 +11,7 @@ Suitable for building framework-independent dynamic widgets as well as small web
 
 ## Basic example
 
-- `html()` function creates DOM element declaration that looks like `{type, attrs, children}`.
+- `m()` function creates DOM element declaration that looks like `{type, attrs, children}`.
 - `render()` function renders nodes inside a DOM element.
 If differences with existing DOM nodes are found,
 necessary nodes or attributes are replaced.
