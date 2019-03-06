@@ -6,13 +6,13 @@ export interface NodeDeclaration {
 
 export interface ComponentDeclaration<T = any> {
     type: Component<T>;
-    attrs: T;
+    attrs: T & {key?: any};
     children: Child[];
 }
 
 export type Declaration = NodeDeclaration | ComponentDeclaration;
 
-export type Component<T = any> = (props: T, ...children: Child[]) => Declaration;
+export type Component<T = any> = (props: T & {key?: any}, ...children: Child[]) => Declaration;
 
 export type Child = string | Declaration;
 
@@ -21,6 +21,7 @@ export interface DomEventListener {
 }
 
 export interface NodeAttrs {
+    key?: any;
     data?: any;
     class?: string | {[cls: string]: any;} | (string | {[cls: string]: any;})[];
     style?: string | {[prop: string]: any;};

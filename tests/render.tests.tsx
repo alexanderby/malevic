@@ -287,3 +287,86 @@ test('data', () => {
     const el = render(container, <div data={data} />);
     expect(getData(el)).toBe(data);
 });
+
+describe('ordering', () => {
+    test('sort', () => {
+        const data = [
+            {name: 'John', id: {}, type: 0},
+            {name: 'Alex', id: 'a', type: 1},
+            {name: 'Carl', id: 'c', type: 0},
+            {name: 'Sony', id: {}, type: 0},
+            {name: 'Bony', id: 'b', type: 1},
+        ];
+        const Component = ({label, key}) => <li class="c">{label}</li>;
+        const renderData = () => {
+            render(container, (
+                <ul>
+                    {data.map(({id, name, type}) => (type === 0 ?
+                        <li class="_" key={id}>{name}</li> :
+                        <Component key={id} label={name} />
+                    ))}
+                </ul>
+            ));
+        };
+
+        renderData();
+        expect(container.innerHTML).toEqual([
+            '<ul>',
+            '<li class="_">John</li>',
+            '<li class="c">Alex</li>',
+            '<li class="_">Carl</li>',
+            '<li class="_">Sony</li>',
+            '<li class="c">Bony</li>',
+            '</ul>',
+        ].join(''));
+
+        const childAt = (i) => container.firstElementChild.children.item(i);
+        const nodes = {
+            a: childAt(1),
+            b: childAt(4),
+            c: childAt(2),
+            j: childAt(0),
+            s: childAt(3),
+        };
+        data.sort((a, b) => a.name.localeCompare(b.name));
+        renderData();
+        expect(container.innerHTML).toEqual([
+            '<ul>',
+            '<li class="c">Alex</li>',
+            '<li class="c">Bony</li>',
+            '<li class="_">Carl</li>',
+            '<li class="_">John</li>',
+            '<li class="_">Sony</li>',
+            '</ul>',
+        ].join(''));
+        expect(childAt(0)).toBe(nodes.a);
+        expect(childAt(1)).toBe(nodes.b);
+        expect(childAt(2)).toBe(nodes.c);
+        expect(childAt(3)).toBe(nodes.j);
+        expect(childAt(4)).toBe(nodes.s);
+    });
+
+    test('all the keys should be uniq', () => {
+        expect(() => {
+            render(container, (
+                <div>
+                    <span key="x" />
+                    <span key="y" />
+                    <span key="x" />
+                </div>
+            ));
+        }).toThrow(/should have different keys/);
+    });
+
+    test('all siblings should have keys if any has', () => {
+        expect(() => {
+            render(container, (
+                <div>
+                    <span key="x" />
+                    <span />
+                    <span key="y" />
+                </div>
+            ));
+        }).toThrow(/did not have key/);
+    });
+});

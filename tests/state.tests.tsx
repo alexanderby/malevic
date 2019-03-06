@@ -23,14 +23,18 @@ describe('state', () => {
                     <button onclick={() => setState({count: state.count + 1})}>
                         {text}
                     </button> {state.count}
-                    {children}
+                    {children.length > 0 ? (
+                        <span>
+                            {children}
+                        </span>
+                    ) : null}
                 </div>
             );
         });
 
         const element = render(container, (
             <main>
-                <Component text="Apples" />
+                <Component text="Apples" key="a" />
             </main>
         ));
         expect(element.innerHTML).toEqual([
@@ -44,72 +48,78 @@ describe('state', () => {
 
         render(container, (
             <main>
-                <Component text="Oranges" />
-                <Component text="Apples" />
+                <Component text="Oranges" key="o" />
+                <Component text="Apples" key="a" />
             </main>
         ));
         expect(element.innerHTML).toEqual([
-            '<div><button>Oranges</button> 1</div>',
-            '<div class="empty"><button>Apples</button> 0</div>',
+            '<div class="empty"><button>Oranges</button> 0</div>',
+            '<div><button>Apples</button> 1</div>',
         ].join(''));
 
         const buttons = Array.from(element.querySelectorAll('button'));
         buttons.forEach(dispatchClick);
         expect(element.innerHTML).toEqual([
-            '<div><button>Oranges</button> 2</div>',
-            '<div><button>Apples</button> 1</div>',
-        ].join(''));
-
-        render(container, (
-            <main>
-                <Component text="Oranges" />
-            </main>
-        ));
-        expect(element.innerHTML).toEqual([
-            '<div><button>Oranges</button> 2</div>',
-        ].join(''));
-
-        render(container, (
-            <main>
-                <Component text="Apples" />
-                <Component text="Oranges" />
-            </main>
-        ));
-        expect(element.innerHTML).toEqual([
+            '<div><button>Oranges</button> 1</div>',
             '<div><button>Apples</button> 2</div>',
-            '<div class="empty"><button>Oranges</button> 0</div>',
+        ].join(''));
+
+        render(container, (
+            <main>
+                <Component text="Oranges" key="o" />
+            </main>
+        ));
+        expect(element.innerHTML).toEqual([
+            '<div><button>Oranges</button> 1</div>',
+        ].join(''));
+
+        render(container, (
+            <main>
+                <Component text="Apples" key="a" />
+                <Component text="Oranges" key="o" />
+            </main>
+        ));
+        expect(element.innerHTML).toEqual([
+            '<div class="empty"><button>Apples</button> 0</div>',
+            '<div><button>Oranges</button> 1</div>',
         ].join(''));
 
         dispatchClick(element.querySelector('button'));
         expect(element.innerHTML).toEqual([
-            '<div><button>Apples</button> 3</div>',
-            '<div class="empty"><button>Oranges</button> 0</div>',
+            '<div><button>Apples</button> 1</div>',
+            '<div><button>Oranges</button> 1</div>',
         ].join(''));
 
         render(container, (
             <main>
-                <Component text="Apples">
-                    <Component text="Oranges" />
+                <Component text="Apples" key="a">
+                    <Component text="Oranges" key="o" />
                 </Component>
             </main>
         ));
         expect(element.innerHTML).toEqual([
-            '<div><button>Apples</button> 3',
+            '<div><button>Apples</button> 1',
+            '<span>',
             '<div class="empty"><button>Oranges</button> 0</div>',
+            '</span>',
             '</div>',
         ].join(''));
 
         dispatchClick(element.querySelector('.empty button'));
         expect(element.innerHTML).toEqual([
-            '<div><button>Apples</button> 3',
+            '<div><button>Apples</button> 1',
+            '<span>',
             '<div><button>Oranges</button> 1</div>',
+            '</span>',
             '</div>',
         ].join(''));
 
         dispatchClick(element.querySelector('button'));
         expect(element.innerHTML).toEqual([
-            '<div><button>Apples</button> 4',
+            '<div><button>Apples</button> 2',
+            '<span>',
             '<div><button>Oranges</button> 1</div>',
+            '</span>',
             '</div>',
         ].join(''));
     });

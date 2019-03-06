@@ -93,6 +93,12 @@ export const pluginsSetAttribute = createPlugins<{element: Element; attr: string
         }
         return null;
     })
+    .add(({attr}) => {
+        if (attr === 'key') {
+            return true;
+        }
+        return null;
+    })
     .add(({element, attr, value}) => {
         if (attr === 'class' && isObject(value)) {
             let cls: string;
@@ -170,15 +176,21 @@ function createNode(c: Child, parent: Element, next: Node) {
         }
     }
     pluginsMountNode.apply({node, parent, next});
-    if (node instanceof Element && didMountHandlers.has(node)) {
+    if (!(node instanceof Element)) {
+        return node;
+    }
+    if (didMountHandlers.has(node)) {
         didMountHandlers.get(node)(node);
         mountedElements.set(node, true);
     }
-    if (isElement && node instanceof Element && !nativeContainers.has(node)) {
+    if (isElement && !nativeContainers.has(node)) {
         syncChildNodes(d as NodeDeclaration, node);
     }
     if (isComponent) {
-        componentMatches.set(node as Element, (c as ComponentDeclaration).type);
+        componentMatches.set(node, (c as ComponentDeclaration).type);
+    }
+    if (isElement && (c as Declaration).attrs && (c as Declaration).attrs.key != null) {
+        keyMatches.set(node, (c as Declaration).attrs.key);
     }
     return node;
 }
@@ -241,14 +253,44 @@ function removeNode(node: Node, parent: Element) {
 type NodeMatch = [Child, Node];
 
 const componentMatches = new WeakMap<Element, Component>();
+const keyMatches = new WeakMap<Node, any>();
 
 export const pluginsMatchNodes = createPlugins<{d: Declaration, element: Element}, NodeMatch[]>()
     .add(({d, element}) => {
-        const matches: NodeMatch[] = [];
         const declarations: Child[] = Array.isArray(d.children) ? filterChildren(d.children) : [];
+        const nodes = Array.from(element.childNodes);
+
+        const declarationsKeys = new Map<any, Declaration>();
+        declarations
+            .filter((c) => isObject(c) && (c as Declaration).attrs && (c as Declaration).attrs.key != null)
+            .forEach((c: Declaration) => {
+                if (declarationsKeys.has(c.attrs.key)) {
+                    throw new Error('Siblings should have different keys');
+                }
+                declarationsKeys.set(c.attrs.key, c);
+            });
+
+        if (declarationsKeys.size > 0 && declarationsKeys.size !== declarations.length) {
+            // TODO: Support mixed siblings with keys and without.
+            throw new Error('Some siblings did not have keys');
+        }
+
+        if (declarationsKeys.size > 0) {
+            const matchedByKey = nodes
+                .filter((node) => keyMatches.has(node) && declarationsKeys.has(keyMatches.get(node)))
+                .reduce((map, node: Element) => {
+                    map.set(keyMatches.get(node), node);
+                    return map;
+                }, new Map<any, Node>());
+            return declarations.map((d: Declaration) => {
+                const key = d.attrs.key;
+                const node = matchedByKey.has(key) ? matchedByKey.get(key) : null;
+                return [d, node] as NodeMatch;
+            });
+        }
 
         let nodeIndex = 0;
-        declarations.forEach((c) => {
+        return declarations.map((c) => {
             const isElement = isObject(c);
             const isText = !isElement;
 
@@ -278,10 +320,8 @@ export const pluginsMatchNodes = createPlugins<{d: Declaration, element: Element
                     break;
                 }
             }
-            matches.push([c, found]);
+            return [c, found] as NodeMatch;
         });
-
-        return matches;
     });
 
 function commit(matches: NodeMatch[], element: Element) {
@@ -292,6 +332,19 @@ function commit(matches: NodeMatch[], element: Element) {
     Array.from(element.childNodes)
         .filter((node) => !matchedNodes.has(node))
         .forEach((node) => removeNode(node, element));
+
+    const remainingNodes = Array.from(matchedNodes.values());
+    if (remainingNodes.some((node) => keyMatches.has(node))) {
+        let a: Node;
+        let b: Node;
+        for (let i = remainingNodes.length - 2; i >= 0; i--) {
+            a = remainingNodes[i];
+            b = remainingNodes[i + 1];
+            if (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_PRECEDING) {
+                b.parentElement.insertBefore(a, b);
+            }
+        }
+    }
 
     let prevNode: Node = null;
     matches

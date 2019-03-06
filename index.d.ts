@@ -8,13 +8,13 @@ declare namespace Malevic {
 
     interface ComponentDeclaration<T = any> {
         type: Component<T>;
-        attrs: T;
+        attrs: T & {key?: any};
         children: Child[];
     }
 
     type Declaration = NodeDeclaration | ComponentDeclaration;
 
-    type Component<T = any> = (props: T, ...children: Child[]) => Declaration;
+    type Component<T = any> = (props: T & {key?: any}, ...children: Child[]) => Declaration;
 
     type Child = string | Declaration;
 
@@ -23,6 +23,7 @@ declare namespace Malevic {
     }
 
     interface NodeAttrs<E = Element, T = Element> {
+        key?: any;
         data?: any;
         class?: string | {[cls: string]: any;} | (string | {[cls: string]: any;})[];
         style?: string | {[prop: string]: any;};

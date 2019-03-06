@@ -30,7 +30,7 @@ export function useState<S>(initialState: S) {
     return {state, setState};
 }
 
-export default function withState<P = any, S = any>(component: Component) {
+export default function withState<P = any, S = any>(component: Component): Component {
     function StateComponent<P>(props: P, ...children: Child[]) {
         isComponentUnboxing = true;
         const node = getDOMNode();
