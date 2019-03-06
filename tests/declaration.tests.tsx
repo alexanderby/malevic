@@ -44,4 +44,7 @@ test('declaration', () => {
             }
         ]
     });
+
+    const C = {} as any;
+    expect(() => <C />).toThrow(/Unsupported declaration type/);
 });

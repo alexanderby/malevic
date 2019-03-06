@@ -25,6 +25,6 @@ export function m(
         const component = tagOrComponent;
         return {type: component, attrs, children};
     }
-    return null;
+    throw new Error('Unsupported declaration type');
 }
 
