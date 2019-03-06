@@ -3,7 +3,7 @@
 Minimalistic reactive UI library.
 As simple as possible.
 Extendable.
-*7KB minified (13KB with animations)*.
+*8KB minified (13KB with animations)*.
 
 ![Malevič.js logo](https://rawgit.com/alexanderby/malevic/master/logo-256x256.svg)
 
