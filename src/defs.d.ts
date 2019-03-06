@@ -30,3 +30,5 @@ export interface NodeAttrs {
     willunmount?: (el: Element) => void;
     [attr: string]: any | DomEventListener;
 }
+
+export interface RecursiveArray<T> extends Array<T | RecursiveArray<T>> { }

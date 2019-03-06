@@ -141,12 +141,14 @@ export function getDOMNode() {
 }
 
 function unboxComponent(d: ComponentDeclaration, parent: Element, node: Node) {
+    const prevParentDOMNode = currentParentDOMNode;
+    const prevDOMNode = currentDOMNode;
     currentParentDOMNode = parent;
     currentDOMNode = node;
     // Warning: Node type can change or return null.
     const u = deepUnbox(d);
-    currentDOMNode = null;
-    currentParentDOMNode = null;
+    currentDOMNode = prevDOMNode;
+    currentParentDOMNode = prevParentDOMNode;
     return u;
 }
 
@@ -190,12 +192,12 @@ function collectAttrs(element: Element): NodeAttrs {
 }
 
 function syncNode(c: Child, existing: Element | Text) {
-    if (typeof c === 'string') {
+    if (!isObject(c)) {
         existing.textContent = c == null ? '' : String(c);
         return;
     }
 
-    const d = typeof c.type === 'function' ? unboxComponent(c as ComponentDeclaration, existing.parentElement, existing) : c;
+    const d = typeof (c as Declaration).type === 'function' ? unboxComponent(c as ComponentDeclaration, existing.parentElement, existing) : c as NodeDeclaration;
     const element = existing as Element;
     const attrs = d.attrs || {};
     let existingAttrs = getAttrs(element);

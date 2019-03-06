@@ -136,6 +136,32 @@ Built-in interpolator can interpolate between numbers and strings containing num
 />
 ```
 
+## State plug-in	
+
+State plug-in lets re-render a subtree in response for interaction:	
+```jsx	
+import {m} from 'malevic';	
+import withState, {useState} from 'malevic/state';	
+function Stateful({items}) {
+    const {state, setState} = useState({isExpanded: false});
+    return (	
+        <div>	
+            <button onclick={() => setState({isExpanded: true})}>	
+                Expand	
+            </button>	
+            <ul class={{'expanded': state.isExpanded}}>	
+                {items.map((text) => <li>{text}</li>)}	
+            </ul>	
+        </div>	
+    );	
+}	
+export default withState(Stateful);	
+```	
+
+Initial state should be passed to `useState` function.
+`setState` should not be called inside a component,
+only in event handlers or async callbacks.
+
 ## Forms plug-in
 
 Forms plug-in makes form elements work in reactive manner:

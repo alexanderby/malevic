@@ -141,9 +141,16 @@ declare namespace Malevic {
 
     function Forms(): void;
 
-    namespace State { }
+    namespace State {
 
-    function State(fn: (attrs, ...children) => NodeDeclaration, initialState?): (attrs, ...children) => NodeDeclaration;
+        function useState<S>(initialState: S): {
+            state: S;
+            setState: (newState: Partial<S>) => void;
+        }
+
+    }
+
+    function State(component: Component): Component;
 
 }
 
@@ -161,6 +168,7 @@ declare module 'malevic/forms' {
 }
 
 declare module 'malevic/state' {
+    export const useState: typeof Malevic.State.useState;
     export default Malevic.State;
 }
 

@@ -1,3 +1,5 @@
+import {flatten} from './utils';
+
 import {
     Declaration,
     NodeDeclaration,
@@ -14,6 +16,7 @@ export function m(
     attrs: any,
     ...children: Child[]
 ): Declaration {
+    children = flatten(children);
     if (typeof tagOrComponent === 'string') {
         const tag = tagOrComponent;
         return {type: tag, attrs, children};

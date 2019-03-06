@@ -1,4 +1,4 @@
-import {Child, Declaration, NodeDeclaration, ComponentDeclaration} from './defs';
+import {Child, Declaration, NodeDeclaration, ComponentDeclaration, RecursiveArray} from './defs';
 
 export function classes(
     ...args: Array<string | {[cls: string]: boolean}>
@@ -52,4 +52,10 @@ export function deepUnbox(d: Declaration) {
         r = unbox(r as ComponentDeclaration);
     }
     return r as NodeDeclaration;
+}
+
+export function flatten<T>(arr: RecursiveArray<T>) {
+    return arr.reduce((flat: T[], toFlatten) => {
+        return flat.concat(Array.isArray(toFlatten) ? flatten(toFlatten) : toFlatten);
+    }, []);
 }

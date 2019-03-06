@@ -15,7 +15,7 @@
     "build": "node tasks/build.js --release",
     "debug": "node tasks/build.js --debug",
     "test": "jest --coverage",
-    "test:debug": "node --inspect-brk ./node_modules/jest/bin/jest --runInBand --watch",
+    "test:debug": "node --inspect-brk ./node_modules/jest/bin/jest --runInBand --no-cache --watch",
     "test:dev": "jest --watch"
   },
   "repository": {
