@@ -69,7 +69,7 @@ render(document.body, (
 ));
 ```
 
-`import {m} from 'malevic';` should be included in every JSX or TSX file.
+`m` is a factory function for creating declaration tree from JSX, so `import {m} from 'malevic';` should be included in every JSX or TSX file.
 
 ## Animation plug-in
 
@@ -177,8 +177,6 @@ function Form({checked, text, num, onCheckChange, onTextChange, onNumChange}) {
 If attribute starts with `on`,
 the corresponding event listener is added to DOM element
 (or removed if value is `null`).
-
-
 
  ## Getting DOM node before rendering	
 
