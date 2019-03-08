@@ -1,4 +1,5 @@
 import {m, render, sync, renderToString} from 'malevic';
+import withState, {useState} from 'malevic/state';
 
 let container: Element = null;
 
@@ -29,6 +30,31 @@ describe('server-side rendering', () => {
             '    <b style="color: red;">red</b> ',
             '    <i class="sunny">sun</i> 2018!',
             '</label>'
+        ].join('\n'));
+    });
+
+    test('render state component to string using initial state', () => {
+        const A = withState(({x}) => {
+            const {state} = useState({y: 2});
+            return (
+                <div>
+                    <span>{x}</span>
+                    <span>{state.y}</span>
+                    <B />
+                </div>
+            );
+        });
+        const B = withState(() => {
+            const {state} = useState({z: 3});
+            return <span>{state.z}</span>
+        });
+
+        expect(renderToString(<A x={1} />)).toEqual([
+            '<div>',
+            '    <span>1</span>',
+            '    <span>2</span>',
+            '    <span>3</span>',
+            '</div>'
         ].join('\n'));
     });
 
