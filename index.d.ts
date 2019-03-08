@@ -151,7 +151,7 @@ declare namespace Malevic {
 
     }
 
-    function State(component: Component): Component;
+    function State<T>(component: Component<T>): Component<T>;
 
 }
 
