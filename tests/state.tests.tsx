@@ -124,6 +124,32 @@ describe('state', () => {
         ].join(''));
     });
 
+    test('multiple state props', () => {
+        const Component = withState(({x}) => {
+            const {state, setState} = useState({y: 20, z: 30});
+            const {y, z} = state;
+            return (
+                <div>
+                    <button class="y" onclick={() => setState({y: y + 1})}></button>
+                    <button class="z" onclick={() => setState({z: z + 1})}></button>
+                    <p>{`x: ${x}; y: ${y}; z: ${z};`}</p>
+                </div>
+            );
+        });
+
+        render(container, <Component x={10} />);
+        expect(container.querySelector('p').textContent).toEqual('x: 10; y: 20; z: 30;');
+
+        dispatchClick(container.querySelector('.y'));
+        expect(container.querySelector('p').textContent).toEqual('x: 10; y: 21; z: 30;');
+
+        render(container, <Component x={11} />);
+        expect(container.querySelector('p').textContent).toEqual('x: 11; y: 21; z: 30;');
+
+        dispatchClick(container.querySelector('.z'));
+        expect(container.querySelector('p').textContent).toEqual('x: 11; y: 21; z: 31;');
+    });
+
     test('prevent infinite recursion', () => {
         const RecursiveComponent = withState(() => {
             const {state, setState} = useState({text: 0});
@@ -142,6 +168,15 @@ describe('state', () => {
         });
 
         expect(() => render(container, <Root />)).toThrow(/should not contain another component/);
+    });
+
+    test('state component should be wrapped into `withState` function', () => {
+        const Component = () => {
+            const {state} = useState({text: 'Hello'});
+            return <h1>{state.text}</h1>;
+        };
+
+        expect(() => render(container, <Component />)).toThrow(/does not support state/);
     });
 
     test('call state after component update', () => {

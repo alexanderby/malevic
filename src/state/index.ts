@@ -13,8 +13,12 @@ let current: ComponentData = null;
 let isComponentUnboxing = false;
 
 export function useState<S>(initialState: S) {
+    if (!isComponentUnboxing) {
+        throw new Error('Component does not support state, wrap it into `withState');
+    }
     const info = current;
-    const state = info.state || initialState;
+    info.state = info.state || initialState;
+    const state = info.state;
     const setState = (newState: Partial<S>) => {
         if (isComponentUnboxing) {
             throw new Error('Calling `setState` inside a component leads to infinite loop');
@@ -44,6 +48,8 @@ export default function withState<P = any, S = any>(component: Component): Compo
         });
         current = info;
         const d = component(props, ...children);
+        current = prev;
+        isComponentUnboxing = false;
         if (typeof d.type !== 'string') {
             throw new Error('A component with state should not contain another component');
         }
@@ -54,8 +60,6 @@ export default function withState<P = any, S = any>(component: Component): Compo
             nodesData.set(el, info);
             prevDidMount && prevDidMount(el);
         };
-        current = prev;
-        isComponentUnboxing = false;
         return d;
     }
 
