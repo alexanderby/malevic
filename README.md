@@ -1,4 +1,4 @@
-# Malevič.js
+# Malevič.js [![npm version](https://img.shields.io/npm/v/malevic.svg?style=flat)](https://www.npmjs.com/package/malevic)
 
 Minimalistic reactive UI library.
 As simple as possible.
