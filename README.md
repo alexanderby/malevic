@@ -9,6 +9,11 @@ Extendable.
 
 Suitable for building framework-independent dynamic widgets as well as small web apps.
 
+## Samples
+
+- [Data visualization](https://alexanderby.github.io/malevic-samples/)
+- [Chrome extension UI](https://chrome.google.com/webstore/detail/dark-reader/eimadpbcbfnmbkopoojfekhnkhdbieeh)
+
 ## Basic example
 
 - `m()` function creates DOM element declaration that looks like `{type, attrs, children}`.
