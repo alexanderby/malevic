@@ -142,11 +142,11 @@ async function release() {
     ]);
 }
 
-async function debug() {
+async function examples() {
     await buildJS(
         {
-            src: './examples/examples.tsx',
-            dest: './examples/examples.js',
+            src: './examples/index.tsx',
+            dest: './examples/index.js',
             moduleFormat: 'iife',
             moduleExports: 'none',
             sourceMaps: 'inline',
@@ -163,8 +163,8 @@ async function run() {
     if (args.includes('--release')) {
         await release();
     }
-    if (args.includes('--debug')) {
-        await debug();
+    if (args.includes('--examples')) {
+        await examples();
     }
 }
 

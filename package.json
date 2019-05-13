@@ -13,7 +13,7 @@
   "license": "MIT",
   "scripts": {
     "build": "node tasks/build.js --release",
-    "debug": "node tasks/build.js --debug",
+    "examples": "node tasks/build.js --examples",
     "test": "jest --coverage",
     "test:debug": "node --inspect-brk ./node_modules/jest/bin/jest --runInBand --no-cache --watch",
     "test:watch": "jest --watch"
