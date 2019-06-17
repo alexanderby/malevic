@@ -1,20 +1,20 @@
-export interface NodeDeclaration {
+export interface NodeSpec {
     type: string;
-    attrs: NodeAttrs;
-    children: Child[];
+    props: NodeAttrs;
+    children: RecursiveArray<Child>;
 }
 
-export interface ComponentDeclaration<T = any> {
-    type: Component<T>;
-    attrs: T & {key?: any};
-    children: Child[];
+export interface ComponentSpec<T = any, K = any> {
+    type: Component<T, K>;
+    props: T & {key?: any};
+    children: RecursiveArray<Child>;
 }
 
-export type Declaration = NodeDeclaration | ComponentDeclaration;
+export type Spec = NodeSpec | ComponentSpec;
 
-export type Component<T = any> = (props: T & {key?: any}, ...children: Child[]) => Declaration;
+export type Component<T = any, K = Child> = (props: T & {key?: any}, ...children: RecursiveArray<Child>) => K | RecursiveArray<K>;
 
-export type Child = string | Declaration;
+export type Child = string | Spec | Node;
 
 export interface DomEventListener {
     (this: Element, e: Event): void;
@@ -22,13 +22,11 @@ export interface DomEventListener {
 
 export interface NodeAttrs {
     key?: any;
-    data?: any;
-    class?: string | {[cls: string]: any;} | (string | {[cls: string]: any;})[];
-    style?: string | {[prop: string]: any;};
-    native?: boolean;
-    didmount?: (el: Element) => void;
-    didupdate?: (el: Element) => void;
-    willunmount?: (el: Element) => void;
+    class?: string | {[cls: string]: any} | (string | {[cls: string]: any})[];
+    style?: string | {[prop: string]: any};
+    attached?: (el: Element) => void;
+    updated?: (el: Element) => void;
+    detached?: (el: Element) => void;
     [attr: string]: any | DomEventListener;
 }
 

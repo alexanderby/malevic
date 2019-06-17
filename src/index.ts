@@ -1,5 +1,5 @@
-export {m} from './declaration';
 export {render, sync, getAttrs, getDOMNode, getParentDOMNode} from './render';
+export {m} from './spec';
 export {classes, styles} from './utils';
 export {getData} from './data';
 export {renderToString, escapeHtml} from './static';

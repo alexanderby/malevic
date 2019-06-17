@@ -15,7 +15,7 @@ export function addListener(element: Element, event: string, listener: DomEventL
         eventListeners.set(element, listeners);
     }
     if (listeners[event] !== listener) {
-        if (event in listeners) {
+        if (listeners.hasOwnProperty(event)) {
             element.removeEventListener(event, listeners[event]);
         }
         element.addEventListener(event, listener);
@@ -30,7 +30,7 @@ export function removeListener(element: Element, event: string) {
     } else {
         return;
     }
-    if (event in listeners) {
+    if (listeners.hasOwnProperty(event)) {
         element.removeEventListener(event, listeners[event]);
         delete listeners[event];
     }

@@ -14,6 +14,7 @@
   "scripts": {
     "build": "node tasks/build.js --release",
     "examples": "node tasks/build.js --examples",
+    "test:new": "node --inspect-brk ./node_modules/jest/bin/jest --runInBand --no-cache --watch dom.tests.tsx",
     "test": "jest --coverage",
     "test:debug": "node --inspect-brk ./node_modules/jest/bin/jest --runInBand --no-cache --watch",
     "test:watch": "jest --watch"
