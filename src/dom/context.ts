@@ -1,69 +1,85 @@
+import {LinkedList} from '../utils/linked-list';
 import {isDOMVNode, VNode} from './vnode';
+
+export interface VDOMContext {
+    addVNode(vnode: VNode): void;
+    getVNodeContext(vnode: VNode): VNodeContext;
+    replaceVNode(old: VNode, vnode: VNode): void;
+}
 
 export interface VNodeContext {
     parentNode: Node;
     node: Node;
     nodes: Node[];
-    domContext: DOMContext;
+    sibling: Node;
+    vdom: VDOMContext;
 }
 
-interface VNodeLink {
+interface VLink {
     parentNode: Node;
     node: Node;
 }
 
-export interface DOMContext {
-    addVNode(vnode: VNode): void;
-    getVNodeContext(vnode: VNode): VNodeContext;
+interface VHub {
+    node: Node;
+    links: LinkedList<VLink>;
 }
 
-export function createDOMContext(rootNode: Node): DOMContext {
+export function createVDOMContext(rootNode: Node): VDOMContext {
     const contexts = new WeakMap<VNode, VNodeContext>();
-    const links = new WeakMap<VNode, VNodeLink[]>();
+    const hubs = new WeakMap<Node, VHub>();
+    const parentNodes = new WeakMap<VNode, Node>();
+    const passingLinks = new WeakMap<VNode, LinkedList<VLink>>();
     const linkedParents = new WeakSet<VNode>();
 
-    function createVNodeContext(vnode: VNode, parentNode: Node) {
-        let context: VNodeContext;
-        if (isDOMVNode(vnode)) {
-            const node = vnode.node;
-            context = {
-                parentNode,
-                node,
-                nodes: [node],
-                domContext,
-            };
-        } else {
-            context = {
-                parentNode,
-                get node() {
-                    const nonEmptyLink = links.get(vnode).find(({node}) => node != null);
-                    return nonEmptyLink ? nonEmptyLink.node : null;
-                },
-                get nodes() {
-                    return links.get(vnode)
-                        .map((link) => link.node)
-                        .filter((node) => node != null);
-                },
-                domContext,
-            }
-        }
-        contexts.set(vnode, context);
-    }
+    function creatVNodeContext(vnode: VNode) {
+        const parentNode = parentNodes.get(vnode);
 
-    function getVNodeContext(vnode: VNode) {
-        return contexts.get(vnode);
+        contexts.set(vnode, {
+            parentNode,
+            get node() {
+                const linked = passingLinks.get(vnode).find((link) => link.node != null);
+                return linked ? linked.node : null;
+            },
+            get nodes() {
+                return passingLinks.get(vnode).map((link) => link.node).filter(((node) => node));
+            },
+            get sibling() {
+                const hub = hubs.get(parentNode);
+                let current = passingLinks.get(vnode).first;
+                while (current = hub.links.before(current)) {
+                    if (current.node) {
+                        return current.node;
+                    }
+                }
+                return null;
+            },
+            vdom: domContext,
+        });
     }
 
     function setRootVNode(vnode: VNode) {
         const parentNode = rootNode.parentElement;
-        links.set(vnode, [{
+        const node = rootNode;
+        const links = new LinkedList<VLink>({
             parentNode,
-            node: rootNode,
-        }]);
-        createVNodeContext(vnode, parentNode);
+            node,
+        });
+        passingLinks.set(vnode, links.copy());
+        parentNodes.set(vnode, parentNode);
+        hubs.set(parentNode, {
+            node: parentNode,
+            links,
+        });
+
+        creatVNodeContext(vnode);
     }
 
     function addVNode(vnode: VNode) {
+        if (contexts.has(vnode)) {
+            return;
+        }
+
         const parent = vnode.parent();
 
         if (parent == null) {
@@ -71,44 +87,97 @@ export function createDOMContext(rootNode: Node): DOMContext {
             return;
         }
 
-        const isParentDOMVNode = isDOMVNode(parent);
         const isBranch = linkedParents.has(parent);
+        const parentNode = isDOMVNode(parent) ?
+            parent.node :
+            parentNodes.get(parent);
+        parentNodes.set(vnode, parentNode);
+        const vnodeLinks = new LinkedList<VLink>()
+        passingLinks.set(vnode, vnodeLinks);
 
-        const parentContext = contexts.get(parent);
-        const parentNode = isParentDOMVNode ?
-            parentContext.node :
-            parentContext.parentNode;
-
-        const vnodeLinks: VNodeLink[] = [];
-        links.set(vnode, vnodeLinks);
-
-        if (isParentDOMVNode || isBranch) {
-            const newLink: VNodeLink = {
+        if (isBranch) {
+            const newLink: VLink = {
                 parentNode,
                 node: null,
             };
 
-            let current = vnode;
-            do {
-                links.get(current).push(newLink);
-                current = current.parent();
-            } while (!isDOMVNode(current));
+            for (
+                let current = vnode;
+                current && !isDOMVNode(current);
+                current = current.parent()
+            ) {
+                passingLinks.get(current).push(newLink);
+            }
+
+            hubs.get(parentNode).links.push(newLink);
         } else {
-            const parentLinks = links.get(parent);
-            vnodeLinks.push(...parentLinks);
             linkedParents.add(parent);
+
+            const links = isDOMVNode(parent) ? hubs.get(parentNode).links : passingLinks.get(parent);
+            links.forEach((link) => vnodeLinks.push(link));
         }
 
         if (isDOMVNode(vnode)) {
-            vnodeLinks.forEach((link) => link.node = vnode.node);
+            const {node} = vnode;
+            hubs.set(node, {
+                node,
+                links: new LinkedList({
+                    parentNode: node,
+                    node: null,
+                }),
+            });
+
+            vnodeLinks.forEach((link) => link.node = node);
         }
 
-        createVNodeContext(vnode, parentNode);
+        creatVNodeContext(vnode);
+    }
+
+    function getVNodeContext(vnode: VNode) {
+        return contexts.get(vnode);
+    }
+
+    function replaceVNode(old: VNode, vnode: VNode) {
+        if (vnode.parent() == null) {
+            setRootVNode(vnode);
+            return;
+        }
+
+        const oldContext = contexts.get(old);
+        const {parentNode} = oldContext;
+        parentNodes.set(vnode, parentNode);
+        const hub = hubs.get(parentNode);
+        const oldLinks = passingLinks.get(old);
+
+        const newLink: VLink = {
+            parentNode,
+            node: null,
+        };
+        const allLinks: LinkedList<VLink>[] = [];
+        let current: VNode = old;
+        while ((current = current.parent()) && !isDOMVNode(current)) {
+            allLinks.push(passingLinks.get(current));
+        }
+        allLinks.push(hub.links);
+        allLinks.forEach((links) => {
+            const nextLink = links.after(oldLinks.last);
+            oldLinks.forEach((link) => links.delete(link));
+            if (nextLink) {
+                links.insertBefore(newLink, nextLink);
+            } else {
+                links.push(newLink);
+            }
+        });
+        const vnodeLinks = new LinkedList(newLink);
+        passingLinks.set(vnode, vnodeLinks);
+
+        creatVNodeContext(vnode);
     }
 
     const domContext = {
         addVNode,
         getVNodeContext,
+        replaceVNode,
     };
 
     return domContext;

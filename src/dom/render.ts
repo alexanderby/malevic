@@ -1,16 +1,21 @@
 import {Spec} from '../defs';
 import {matchChildren} from './match-children';
 import {createVNode, VNode} from './vnode';
-import {createDOMContext, DOMContext} from './context';
+import {createVDOMContext, VDOMContext} from './context';
 
 export const LEAVE = Symbol();
 
 export function exec(
     vnode: VNode,
     old: VNode,
-    domContext: DOMContext,
+    domContext: VDOMContext,
 ) {
-    vnode && domContext.addVNode(vnode);
+    if (vnode && old && vnode.parent() === old.parent()) {
+        domContext.replaceVNode(old, vnode);
+    } else if (vnode) {
+        domContext.addVNode(vnode);
+    }
+
     const context = domContext.getVNodeContext(vnode);
     const oldContext = domContext.getVNodeContext(old);
 
@@ -29,7 +34,7 @@ export function exec(
     }
 
     if (didMatch) {
-        const result = vnode.update(old, oldContext);
+        const result = vnode.update(old, context);
         if (result === LEAVE) {
             old.children().forEach((child) => child.parent(vnode));
         } else {
@@ -43,18 +48,18 @@ export function exec(
 }
 
 const roots = new WeakMap<Node, VNode>();
-const domContexts = new WeakMap<Node, DOMContext>();
+const domContexts = new WeakMap<Node, VDOMContext>();
 
 export function render(node: Element, spec: Spec): Element {
     const vnode = createVNode(spec, null);
     const old = roots.get(node) || null;
     roots.set(node, vnode);
 
-    let domContext: DOMContext;
+    let domContext: VDOMContext;
     if (domContexts.has(node)) {
         domContext = domContexts.get(node);
     } else {
-        domContext = createDOMContext(node);
+        domContext = createVDOMContext(node);
         domContexts.set(node, domContext);
     }
 

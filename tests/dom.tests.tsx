@@ -261,6 +261,9 @@ describe('DOM', () => {
         ].join('; '));
 
         dispatchClick(button as Element);
+        expect(result.childNodes.length).toBe(2);
+        expect(result.childNodes.item(0)).toBe(button);
+        expect(result.childNodes.item(1)).toBe(label);
         expect(label.textContent).toBe([
             'store.count: 1',
             'props.char: x',
@@ -278,6 +281,9 @@ describe('DOM', () => {
                 m(Component, {char: 'y'}, 'C', 'D'),
             )
         ));
+        expect(result.childNodes.length).toBe(2);
+        expect(result.childNodes.item(0)).toBe(button);
+        expect(result.childNodes.item(1)).toBe(label);
         expect(label.textContent).toBe([
             'store.count: 1',
             'props.char: y',
@@ -291,6 +297,11 @@ describe('DOM', () => {
         ].join('; '));
 
         dispatchClick(button as Element);
+        expect(result.childNodes.length).toBe(3);
+        expect(result.childNodes.item(0)).toBe(button);
+        expect(result.childNodes.item(1)).toBe(label);
+        expect(target.childNodes.item(2)).toBeInstanceOf(Text);
+        expect(target.childNodes.item(2).textContent).toBe('Extra');
         expect(label.textContent).toBe([
             'store.count: 2',
             'props.char: y',
@@ -302,7 +313,27 @@ describe('DOM', () => {
             'node[0] is Button: true',
             'node[1] is Label: true',
         ].join('; '));
+
+        render(target, (
+            m('div', null,
+                m(Component, {char: 'y'}, 'C', 'D'),
+            )
+        ));
+        expect(result.childNodes.length).toBe(3);
+        expect(result.childNodes.item(0)).toBe(button);
+        expect(result.childNodes.item(1)).toBe(label);
         expect(target.childNodes.item(2)).toBeInstanceOf(Text);
         expect(target.childNodes.item(2).textContent).toBe('Extra');
+        expect(label.textContent).toBe([
+            'store.count: 2',
+            'props.char: y',
+            'prev.props.char: y',
+            'children: C, D',
+            'prev.children: C, D',
+            'nodes.length: 3',
+            'node is Button: true',
+            'node[0] is Button: true',
+            'node[1] is Label: true',
+        ].join('; '));
     });
 });

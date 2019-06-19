@@ -100,7 +100,8 @@ class ElementVNode extends VNodeBase {
     }
 
     update(prev: ElementVNode, context: VNodeContext) {
-        const element = context.node as Element;
+        const prevContext = context.vdom.getVNodeContext(prev);
+        const element = prevContext.node as Element;
         syncAttrs(element, this.spec.props, prev.spec.props);
         this.child = new DOMVNode(element, this.spec.children, this);
     }
@@ -175,22 +176,33 @@ class ComponentVNode extends VNodeBase {
     }
 
     private createContext(context: VNodeContext) {
-        const {node, nodes, parentNode} = context;
+        const {parentNode} = context;
         const {spec, prev, store} = this;
 
         return {
             spec,
             prev,
             store,
-            node: node as Element,
-            nodes,
+            get node() {
+                return context.node;
+            },
+            get nodes() {
+                return context.nodes;
+            },
             parent: parentNode as Element,
             attached: (fn) => store[symbols.ATTACHED] = fn,
             detached: (fn) => store[symbols.DETACHED] = fn,
             updated: (fn) => store[symbols.UPDATED] = fn,
             refresh: () => {
-                const vnode = createVNode(this.spec, this.parent());
-                exec(vnode, this, context.domContext);
+                this.prev = this.spec;
+                const unboxed = this.unbox(context);
+                if (unboxed === LEAVE) {
+                    return;
+                }
+
+                const prevChild = this.child;
+                this.child = createVNode(unboxed, this);
+                exec(this.child, prevChild, context.vdom);
             },
             leave: () => LEAVE,
         };
@@ -220,8 +232,9 @@ class ComponentVNode extends VNodeBase {
     update(prev: ComponentVNode, context: VNodeContext) {
         this.store = prev.store;
         this.prev = prev.spec;
+        const prevContext = context.vdom.getVNodeContext(prev);
 
-        const unboxed = this.unbox(context);
+        const unboxed = this.unbox(prevContext);
         let result = null;
 
         if (unboxed === LEAVE) {
@@ -283,7 +296,8 @@ class TextVNode extends VNodeBase {
     }
 
     update(prev: TextVNode, context: VNodeContext) {
-        const {node} = context;
+        const prevContext = context.vdom.getVNodeContext(prev);
+        const {node} = prevContext;
         if (this.text !== prev.text) {
             node.textContent = this.text;
         }
@@ -316,9 +330,22 @@ class DOMVNode extends VNodeBase {
         this.childVNodes = this.childSpecs.map((spec) => createVNode(spec, this));
     }
 
+    private insertNode(context: VNodeContext) {
+        const shouldInsert = !(
+            context.parentNode === this.node.parentElement &&
+            context.sibling == this.node.previousSibling
+        );
+        if (shouldInsert) {
+            const target = context.sibling ?
+                context.sibling.nextSibling :
+                context.parentNode.firstChild;
+            context.parentNode.insertBefore(this.node, target);
+        }
+    }
+
     attach(context: VNodeContext) {
         this.wrap();
-        context.parentNode.appendChild(this.node);
+        this.insertNode(context);
     }
 
     detach(context: VNodeContext) {
@@ -327,7 +354,7 @@ class DOMVNode extends VNodeBase {
 
     update(prev: DOMVNode, context: VNodeContext) {
         this.wrap();
-        context.parentNode.appendChild(this.node);
+        this.insertNode(context);
     }
 
     children() {
