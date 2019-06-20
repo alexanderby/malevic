@@ -19,7 +19,6 @@ export function matchChildren(vnode: VNode, old: VNode) {
     const keys = new Set();
     children.forEach((v) => {
         let match: VNode = null;
-        let guess: VNode = null;
         const key = v.key();
         if (key != null) {
             if (keys.has(key)) {
@@ -27,13 +26,19 @@ export function matchChildren(vnode: VNode, old: VNode) {
             }
             keys.add(key);
             if (oldChildrenByKey.has(key)) {
-                guess = oldChildrenByKey.get(key);
+                const old = oldChildrenByKey.get(key);
+                if (v.matches(old)) {
+                    match = old;
+                }
             }
         } else if (oldChildrenWithoutKey.length > 0) {
-            guess = oldChildrenWithoutKey.shift();
-        }
-        if (guess && v.matches(guess)) {
-            match = guess;
+            let guess;
+            while (guess = oldChildrenWithoutKey.shift()) {
+                if (v.matches(guess)) {
+                    match = guess;
+                    break;
+                }
+            }
         }
         matches.push([v, match]);
         if (match) {

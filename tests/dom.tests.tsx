@@ -53,26 +53,26 @@ describe('DOM', () => {
     test('second time render', () => {
         const result1 = render(target, (
             m('div', {class: 'c1'},
-                m('span', null,
+                m('span', {class: 's1'},
                     'Hello',
                 ),
                 ' ',
-                m('span', {class: 's2'},
+                m('span', null,
                     'World!',
                 ),
             )
         ));
-        const span2 = result1.querySelector('.s2');
-        const text2 = span2.childNodes.item(0);
+        const span1 = result1.querySelector('.s1');
+        const text1 = span1.childNodes.item(0);
 
         const result2 = render(target, (
             m('div', {class: 'c2'},
-                m('div', null,
-                    'Hello',
+                m('span', null,
+                    'Aloha',
                 ),
                 ' ',
-                m('span', null,
-                    'again',
+                m('div', null,
+                    'World!',
                 ),
             )
         ));
@@ -80,15 +80,15 @@ describe('DOM', () => {
         expect(result1).toBe(result2);
         expect(result2.className).toBe('c2');
         expect(result2.childNodes.length).toBe(3);
-        expect(result2.childNodes.item(0)).toBeInstanceOf(HTMLDivElement);
+        expect(result2.childNodes.item(0)).toBeInstanceOf(HTMLSpanElement);
         expect(result2.childNodes.item(1)).toBeInstanceOf(Text);
-        expect(result2.childNodes.item(2)).toBeInstanceOf(HTMLSpanElement);
-        expect(result2.childNodes.item(0).textContent).toBe('Hello');
+        expect(result2.childNodes.item(2)).toBeInstanceOf(HTMLDivElement);
+        expect(result2.childNodes.item(0).textContent).toBe('Aloha');
         expect(result2.childNodes.item(1).textContent).toBe(' ');
-        expect(result2.childNodes.item(2).textContent).toBe('again');
-        expect(result2.querySelector('span')).toBe(span2);
+        expect(result2.childNodes.item(2).textContent).toBe('World!');
+        expect(result2.querySelector('span')).toBe(span1);
         expect(result2.querySelector('span').childNodes.item(0)).toBeInstanceOf(Text);
-        expect(result2.querySelector('span').childNodes.item(0)).toBe(text2);
+        expect(result2.querySelector('span').childNodes.item(0)).toBe(text1);
     });
 
     test('events', () => {
@@ -380,7 +380,7 @@ describe('DOM', () => {
 
         const a = render(target, (
             m(A, {x: 5},
-                m(B, {x: 3}),
+                m(B, {x: 3, extra: false}),
             )
         )) as HTMLElement;
         const b1 = a.querySelector('.b1');
@@ -492,5 +492,106 @@ describe('DOM', () => {
         expect(target.childNodes.length).toBe(2);
         expect((target.childNodes.item(0) as HTMLElement).className).toBe('');
         expect((target.childNodes.item(1) as HTMLElement).className).toBe('a');
+    });
+
+    test('match by key', () => {
+        const keys = [{}, 3, 's', true];
+        render(target, m('div', null,
+            m('span', {key: keys[0]}),
+            m('span', {key: keys[1]}),
+            m('b', null),
+            m('i', null),
+            m('span', {key: keys[2]}),
+            m('span', {key: keys[3]}),
+            m('a', null),
+        ));
+        const nodes = Array.from(target.childNodes);
+
+        render(target, m('div', null,
+            m('span', {key: keys[1]}),
+            m('span', {key: keys[3]}),
+            m('i', null),
+            m('a', null),
+            m('b', null),
+            m('span', {key: keys[2]}),
+        ));
+
+        expect(target.childNodes.item(0)).toBe(nodes[1]);
+        expect(target.childNodes.item(1)).toBe(nodes[5]);
+        expect(target.childNodes.item(2)).toBe(nodes[3]);
+        expect(target.childNodes.item(3)).toBe(nodes[6]);
+        expect(nodes.includes(target.childNodes.item(4))).toBe(false);
+        expect(target.childNodes.item(5)).toBe(nodes[4]);
+
+        const List = ({items}) => {
+            return m('ul', null,
+                ...items.map((item) => m(Item, {label: item, key: item})),
+            );
+        };
+        const Item = ({label}) => {
+            return m('li', null, label);
+        };
+
+        render(target, m('div', null,
+            List({
+                items: [
+                    'A',
+                    'B',
+                    'C',
+                    'D',
+                ]
+            }),
+        ));
+
+        expect(target.firstChild.childNodes.length).toBe(4);
+
+        const [a, b, c, d] = Array.from(target.firstChild.childNodes);
+
+        render(target, m('div', null,
+            List({
+                items: [
+                    'D',
+                    'C',
+                    'A',
+                    'B',
+                ]
+            }),
+        ));
+
+        expect(target.firstChild.childNodes.item(0)).toBe(d);
+        expect(target.firstChild.childNodes.item(1)).toBe(c);
+        expect(target.firstChild.childNodes.item(2)).toBe(a);
+        expect(target.firstChild.childNodes.item(3)).toBe(b);
+
+        const A = () => m('span', null);
+        const B = () => m('span', null);
+
+        render(target, (
+            m('div', null,
+                m('span', {key: 0}),
+                m('span', {key: 1}),
+                m(A, {key: 2}),
+                m(A, {key: 3}),
+            )
+        ));
+        const s = Array.from(target.childNodes);
+
+        render(target, (
+            m('div', null,
+                m('a', {key: 0}),
+                m('span', {key: 1}),
+                m(B, {key: 2}),
+                m(A, {key: 3}),
+            )
+        ));
+
+        expect(s.includes(target.childNodes.item(0))).toBe(false);
+        expect(target.childNodes.item(1)).toBe(s[1]);
+        expect(s.includes(target.childNodes.item(2))).toBe(false);
+        expect(target.childNodes.item(3)).toBe(s[3]);
+
+        expect(
+            () => render(target, m('div', null, m('span', {key: 0}), m('span', {key: 0})))
+        ).toThrow('Duplicate key');
     });
 });
