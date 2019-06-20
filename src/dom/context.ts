@@ -59,7 +59,7 @@ export function createVDOMContext(rootNode: Node): VDOMContext {
     }
 
     function setRootVNode(vnode: VNode) {
-        const parentNode = rootNode.parentElement;
+        const parentNode = rootNode.parentElement || document.createDocumentFragment();
         const node = rootNode;
         const links = new LinkedList<VLink>({
             parentNode,

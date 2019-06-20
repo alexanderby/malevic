@@ -16,17 +16,28 @@ afterEach(() => {
 
 describe('DOM', () => {
     test('first time render', () => {
-        const result = render(target, (
-            m('div', {class: 'c'},
-                m('span', null,
-                    'Hello',
-                ),
+        const spec = {
+            type: 'div',
+            props: {class: 'c'},
+            children: [
+                {
+                    type: 'span',
+                    props: {},
+                    children: [
+                        'Hello',
+                    ],
+                },
                 ' ',
-                m('span', null,
-                    'World!',
-                ),
-            )
-        ));
+                {
+                    type: 'span',
+                    props: {},
+                    children: [
+                        'World!',
+                    ],
+                },
+            ],
+        };
+        const result = render(target, spec);
 
         expect(result).toBe(target);
         expect(result.className).toBe('c');
@@ -335,5 +346,151 @@ describe('DOM', () => {
             'node[0] is Button: true',
             'node[1] is Label: true',
         ].join('; '));
+    });
+
+    test('refresh part of VDOM', () => {
+        const A = ({x}, ...children) => {
+            const context = getContext();
+            const {count = 0} = context.store;
+            const onclick = () => {
+                context.store.count = count + 1;
+                context.refresh();
+            };
+            return m('div', {class: 'a', 'data-count': count + x, onclick}, ...children);
+        };
+        const B = ({x, extra}, ...children) => {
+            const context = getContext();
+            const {b1 = 1, b2 = 1} = context.store;
+            const onB1Click = () => {
+                context.store.b1 = b1 + 1;
+                context.refresh();
+            };
+            const onB2Click = (e: MouseEvent) => {
+                e.stopPropagation();
+                context.store.b2 = b2 + 1;
+                context.refresh();
+            };
+            return [
+                extra ? m('label', null, 'extra') : null,
+                m('span', {class: 'b1', key: 1, onclick: onB1Click}, String(b1 + x)),
+                ...children,
+                m('span', {class: 'b2', key: 2, onclick: onB2Click}, String(b2 + x)),
+            ];
+        };
+
+        const a = render(target, (
+            m(A, {x: 5},
+                m(B, {x: 3}),
+            )
+        )) as HTMLElement;
+        const b1 = a.querySelector('.b1');
+        const b2 = a.querySelector('.b2');
+        const p = a.parentElement;
+
+        expect(a).toBe(target);
+        expect(a.className).toBe('a');
+        expect(a.dataset.count).toBe('5');
+        expect(a.childNodes.length).toBe(2);
+        expect(a.childNodes.item(0)).toBe(b1);
+        expect(a.childNodes.item(1)).toBe(b2);
+        expect(b1.textContent).toBe('4');
+        expect(b2.textContent).toBe('4');
+
+        dispatchClick(b1);
+        expect(a.dataset.count).toBe('6');
+        expect(a.childNodes.length).toBe(2);
+        expect(a.querySelector('.b1')).toBe(b1);
+        expect(a.querySelector('.b2')).toBe(b2);
+        expect(b1.textContent).toBe('5');
+        expect(b2.textContent).toBe('4');
+
+        dispatchClick(b2);
+        expect(a.dataset.count).toBe('6');
+        expect(a.childNodes.length).toBe(2);
+        expect(a.querySelector('.b1')).toBe(b1);
+        expect(a.querySelector('.b2')).toBe(b2);
+        expect(b1.textContent).toBe('5');
+        expect(b2.textContent).toBe('5');
+
+        dispatchClick(a);
+        expect(a.parentNode).toBe(p);
+        expect(a.dataset.count).toBe('7');
+        expect(a.childNodes.length).toBe(2);
+        expect(a.childNodes.item(0)).toBe(b1);
+        expect(a.childNodes.item(1)).toBe(b2);
+        expect(b1.textContent).toBe('5');
+        expect(b2.textContent).toBe('5');
+
+        const a2 = render(target, (
+            m(A, {x: 0},
+                m(B, {x: 0, extra: true}),
+            )
+        ));
+
+        expect(a2).toBe(a);
+        expect(a.className).toBe('a');
+        expect(a.dataset.count).toBe('2');
+        expect(a.childNodes.length).toBe(3);
+        expect(a.childNodes.item(0).textContent).toBe('extra');
+        expect(a.childNodes.item(1)).toBe(b1);
+        expect(a.childNodes.item(2)).toBe(b2);
+        expect(b1.textContent).toBe('2');
+        expect(b2.textContent).toBe('2');
+
+        render(target, (
+            m(A, {x: 0},
+                m(B, {x: 0, extra: true},
+                    'placeholder',
+                ),
+            )
+        ));
+
+        expect(a.childNodes.length).toBe(4);
+        expect(a.childNodes.item(0).textContent).toBe('extra');
+        expect(a.childNodes.item(1)).toBe(b1);
+        expect(a.childNodes.item(2).textContent).toBe('placeholder');
+        expect(a.childNodes.item(3)).toBe(b2);
+        expect(b1.textContent).toBe('2');
+        expect(b2.textContent).toBe('2');
+
+        dispatchClick(b1);
+        expect(a.dataset.count).toBe('3');
+        expect(a.childNodes.length).toBe(4);
+        expect(a.childNodes.item(0).textContent).toBe('extra');
+        expect(a.childNodes.item(1)).toBe(b1);
+        expect(a.childNodes.item(2).textContent).toBe('placeholder');
+        expect(a.childNodes.item(3)).toBe(b2);
+        expect(b1.textContent).toBe('3');
+        expect(b2.textContent).toBe('2');
+    });
+
+    test('DOM node as a child', () => {
+        const A = ({}, ...children) => {
+            let domNode: HTMLElement;
+            const existing = getContext().node;
+            if (existing) {
+                domNode.classList.add('b');
+            } else {
+                domNode = document.createElement('span');
+                render(domNode, (
+                    m('span',
+                        {class: 'a'},
+                        ...children
+                    ))
+                );
+            }
+            return domNode;
+        };
+
+        render(target, (
+            m('div', null,
+                m('span', null),
+                m(A, null),
+            )
+        ));
+
+        expect(target.childNodes.length).toBe(2);
+        expect((target.childNodes.item(0) as HTMLElement).className).toBe('');
+        expect((target.childNodes.item(1) as HTMLElement).className).toBe('a');
     });
 });
