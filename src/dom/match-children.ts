@@ -1,6 +1,6 @@
 import {VNode} from './vnode';
 
-export function matchChildren(vnode: VNode, old: VNode) {
+export default function matchChildren(vnode: VNode, old: VNode) {
     const oldChildren = old.children();
     const oldChildrenByKey = new Map<any, VNode>();
     const oldChildrenWithoutKey: VNode[] = [];
@@ -19,6 +19,7 @@ export function matchChildren(vnode: VNode, old: VNode) {
     const keys = new Set();
     children.forEach((v) => {
         let match: VNode = null;
+        let guess: VNode = null;
         const key = v.key();
         if (key != null) {
             if (keys.has(key)) {
@@ -26,19 +27,13 @@ export function matchChildren(vnode: VNode, old: VNode) {
             }
             keys.add(key);
             if (oldChildrenByKey.has(key)) {
-                const old = oldChildrenByKey.get(key);
-                if (v.matches(old)) {
-                    match = old;
-                }
+                guess = oldChildrenByKey.get(key);
             }
         } else if (oldChildrenWithoutKey.length > 0) {
-            let guess;
-            while (guess = oldChildrenWithoutKey.shift()) {
-                if (v.matches(guess)) {
-                    match = guess;
-                    break;
-                }
-            }
+            guess = oldChildrenWithoutKey.shift();
+        }
+        if (v.matches(guess)) {
+            match = guess;
         }
         matches.push([v, match]);
         if (match) {

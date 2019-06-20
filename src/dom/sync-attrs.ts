@@ -36,7 +36,7 @@ function setEventListener(element: Element, event: string, listener: DomEventLis
     }
 }
 
-export function syncAttrs(element: Element, attrs: NodeAttrs, prev: NodeAttrs) {
+export default function syncAttrs(element: Element, attrs: NodeAttrs, prev: NodeAttrs) {
     const values = new Map<string, any>();
 
     const newKeys = new Set(Object.keys(attrs || {}));

@@ -1,10 +1,13 @@
 import {LinkedList} from '../utils/linked-list';
+import exec from './execute';
 import {isDOMVNode, VNode} from './vnode';
 
-export interface VDOMContext {
+export interface VDOM {
+    execute(vnode: VNode, old: VNode): void;
     addVNode(vnode: VNode): void;
     getVNodeContext(vnode: VNode): VNodeContext;
     replaceVNode(old: VNode, vnode: VNode): void;
+    LEAVE: Symbol;
 }
 
 export interface VNodeContext {
@@ -12,7 +15,7 @@ export interface VNodeContext {
     node: Node;
     nodes: Node[];
     sibling: Node;
-    vdom: VDOMContext;
+    vdom: VDOM;
 }
 
 interface VLink {
@@ -25,12 +28,18 @@ interface VHub {
     links: LinkedList<VLink>;
 }
 
-export function createVDOMContext(rootNode: Node): VDOMContext {
+export default function createVDOM(rootNode: Node): VDOM {
     const contexts = new WeakMap<VNode, VNodeContext>();
     const hubs = new WeakMap<Node, VHub>();
     const parentNodes = new WeakMap<VNode, Node>();
     const passingLinks = new WeakMap<VNode, LinkedList<VLink>>();
     const linkedParents = new WeakSet<VNode>();
+
+    const LEAVE = Symbol();
+
+    function execute(vnode: VNode, old: VNode) {
+        exec(vnode, old, vdom);
+    }
 
     function creatVNodeContext(vnode: VNode) {
         const parentNode = parentNodes.get(vnode);
@@ -54,7 +63,7 @@ export function createVDOMContext(rootNode: Node): VDOMContext {
                 }
                 return null;
             },
-            vdom: domContext,
+            vdom,
         });
     }
 
@@ -174,11 +183,13 @@ export function createVDOMContext(rootNode: Node): VDOMContext {
         creatVNodeContext(vnode);
     }
 
-    const domContext = {
+    const vdom = {
+        execute,
         addVNode,
         getVNodeContext,
         replaceVNode,
+        LEAVE
     };
 
-    return domContext;
+    return vdom;
 }

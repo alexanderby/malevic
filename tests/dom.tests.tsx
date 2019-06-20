@@ -50,9 +50,10 @@ describe('DOM', () => {
         expect(result.childNodes.item(2).textContent).toBe('World!');
     });
 
-    test('second time render', () => {
+    test('update', () => {
         const result1 = render(target, (
             m('div', {class: 'c1'},
+                null,
                 m('span', {class: 's1'},
                     'Hello',
                 ),
@@ -62,11 +63,20 @@ describe('DOM', () => {
                 ),
             )
         ));
-        const span1 = result1.querySelector('.s1');
+
+        expect(result1.childNodes.length).toBe(3);
+        expect(result1.childNodes.item(0)).toBeInstanceOf(HTMLSpanElement);
+        expect(result1.childNodes.item(1)).toBeInstanceOf(Text);
+        expect(result1.childNodes.item(2)).toBeInstanceOf(HTMLSpanElement);
+
+        const span1 = result1.childNodes.item(0);
         const text1 = span1.childNodes.item(0);
+        const space = result1.childNodes.item(1);
+        const span2 = result1.childNodes.item(2);
 
         const result2 = render(target, (
             m('div', {class: 'c2'},
+                m('br', null),
                 m('span', null,
                     'Aloha',
                 ),
@@ -79,16 +89,18 @@ describe('DOM', () => {
 
         expect(result1).toBe(result2);
         expect(result2.className).toBe('c2');
-        expect(result2.childNodes.length).toBe(3);
-        expect(result2.childNodes.item(0)).toBeInstanceOf(HTMLSpanElement);
-        expect(result2.childNodes.item(1)).toBeInstanceOf(Text);
-        expect(result2.childNodes.item(2)).toBeInstanceOf(HTMLDivElement);
-        expect(result2.childNodes.item(0).textContent).toBe('Aloha');
-        expect(result2.childNodes.item(1).textContent).toBe(' ');
-        expect(result2.childNodes.item(2).textContent).toBe('World!');
-        expect(result2.querySelector('span')).toBe(span1);
-        expect(result2.querySelector('span').childNodes.item(0)).toBeInstanceOf(Text);
-        expect(result2.querySelector('span').childNodes.item(0)).toBe(text1);
+        expect(result2.childNodes.length).toBe(4);
+        expect(result2.childNodes.item(0)).toBeInstanceOf(HTMLBRElement);
+        expect(result2.childNodes.item(1)).toBeInstanceOf(HTMLSpanElement);
+        expect(result2.childNodes.item(1)).toBe(span1);
+        expect(result2.childNodes.item(1).firstChild).toBe(text1);
+        expect(result2.childNodes.item(1).textContent).toBe('Aloha');
+        expect(result2.childNodes.item(2)).toBeInstanceOf(Text);
+        expect(result2.childNodes.item(2).textContent).toBe(' ');
+        expect(result2.childNodes.item(2)).toBe(space);
+        expect(result2.childNodes.item(3)).toBeInstanceOf(HTMLDivElement);
+        expect(result2.childNodes.item(3).textContent).toBe('World!');
+        expect(span2.parentElement).toBe(null);
     });
 
     test('events', () => {
@@ -510,16 +522,16 @@ describe('DOM', () => {
         render(target, m('div', null,
             m('span', {key: keys[1]}),
             m('span', {key: keys[3]}),
-            m('i', null),
             m('a', null),
+            m('i', null),
             m('b', null),
             m('span', {key: keys[2]}),
         ));
 
         expect(target.childNodes.item(0)).toBe(nodes[1]);
         expect(target.childNodes.item(1)).toBe(nodes[5]);
-        expect(target.childNodes.item(2)).toBe(nodes[3]);
-        expect(target.childNodes.item(3)).toBe(nodes[6]);
+        expect(nodes.includes(target.childNodes.item(2))).toBe(false);
+        expect(target.childNodes.item(3)).toBe(nodes[3]);
         expect(nodes.includes(target.childNodes.item(4))).toBe(false);
         expect(target.childNodes.item(5)).toBe(nodes[4]);
 

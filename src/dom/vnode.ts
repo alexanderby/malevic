@@ -1,9 +1,8 @@
 import {Spec, NodeSpec, ComponentSpec, Child, RecursiveArray} from '../defs';
 import {isNodeSpec, isComponentSpec} from '../utils';
-import {createElement} from './create-element';
-import {exec, LEAVE} from './render';
-import {syncAttrs} from './sync-attrs';
-import {VNodeContext} from './context';
+import createElement from './create-element';
+import syncAttrs from './sync-attrs';
+import {VNodeContext} from './vdom';
 
 export interface VNode {
     matches(other: VNode): boolean;
@@ -196,15 +195,15 @@ class ComponentVNode extends VNodeBase {
             refresh: () => {
                 this.prev = this.spec;
                 const unboxed = this.unbox(context);
-                if (unboxed === LEAVE) {
+                if (unboxed === context.vdom.LEAVE) {
                     return;
                 }
 
                 const prevChild = this.child;
                 this.child = createVNode(unboxed, this);
-                exec(this.child, prevChild, context.vdom);
+                context.vdom.execute(this.child, prevChild);
             },
-            leave: () => LEAVE,
+            leave: () => context.vdom.LEAVE,
         };
     }
 
@@ -223,7 +222,7 @@ class ComponentVNode extends VNodeBase {
 
     attach(context: VNodeContext) {
         const unboxed = this.unbox(context);
-        if (unboxed === LEAVE) {
+        if (unboxed === context.vdom.LEAVE) {
             throw new Error('Nothing to leave');
         }
         this.child = createVNode(unboxed, this);
@@ -237,7 +236,7 @@ class ComponentVNode extends VNodeBase {
         const unboxed = this.unbox(prevContext);
         let result = null;
 
-        if (unboxed === LEAVE) {
+        if (unboxed === context.vdom.LEAVE) {
             result = unboxed;
             this.child = prev.child;
         } else {
