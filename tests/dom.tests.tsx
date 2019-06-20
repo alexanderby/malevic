@@ -606,4 +606,88 @@ describe('DOM', () => {
             () => render(target, m('div', null, m('span', {key: 0}), m('span', {key: 0})))
         ).toThrow('Duplicate key');
     });
+
+    test('leave without changes', () => {
+        const Component = ({x}) => {
+            const context = getContext();
+            const {prev} = context;
+            if (x === -1 || (prev && prev.props.x === x)) {
+                return context.leave();
+            }
+            return m(Item, null);
+        };
+        const Item = () => {
+            const {store} = getContext();
+            const {times = 0} = store;
+            store.times = times + 1;
+            switch (store.times) {
+                case 1: {
+                    return m('div', null);
+                }
+                case 2: {
+                    return m('span', null);
+                }
+                default: {
+                    return m('a', null);
+                }
+            }
+        };
+
+        render(target, (
+            m('div', null,
+                m(Component, {x: -1}),
+                m(Component, {x: -1}),
+                m(Component, {x: -1}),
+            )
+        ));
+        expect(target.childNodes.length).toBe(0);
+
+        render(target, (
+            m('div', null,
+                m(Component, {x: -1}),
+                m(Component, {x: 0}),
+                m(Component, {x: 0}),
+            )
+        ));
+        expect(target.childNodes.length).toBe(2);
+        expect(target.childNodes.item(0)).toBeInstanceOf(HTMLDivElement);
+        expect(target.childNodes.item(1)).toBeInstanceOf(HTMLDivElement);
+
+        const n1 = target.childNodes.item(0);
+        const n2 = target.childNodes.item(1);
+        render(target, (
+            m('div', null,
+                m(Component, {x: 0}),
+                m(Component, {x: 0}),
+                m(Component, {x: 0}),
+            )
+        ));
+        expect(target.childNodes.item(0)).toBeInstanceOf(HTMLDivElement);
+        expect(target.childNodes.item(1)).toBeInstanceOf(HTMLDivElement);
+        expect(target.childNodes.item(2)).toBeInstanceOf(HTMLDivElement);
+        expect(target.childNodes.item(1)).toBe(n1);
+        expect(target.childNodes.item(2)).toBe(n2);
+
+        render(target, (
+            m('div', null,
+                m(Component, {x: 0}),
+                m(Component, {x: 1}),
+                m(Component, {x: 1}),
+            )
+        ));
+        expect(target.childNodes.item(0)).toBeInstanceOf(HTMLDivElement);
+        expect(target.childNodes.item(1)).toBeInstanceOf(HTMLSpanElement);
+        expect(target.childNodes.item(2)).toBeInstanceOf(HTMLSpanElement);
+
+        render(target, (
+            m('div', null,
+                m(Component, {x: 0}),
+                m(Component, {x: 1}),
+                m(Component, {x: 2}),
+            )
+        ));
+        expect(target.childNodes.item(0)).toBeInstanceOf(HTMLDivElement);
+        expect(target.childNodes.item(1)).toBeInstanceOf(HTMLSpanElement);
+        expect(target.childNodes.item(2)).toBeInstanceOf(HTMLAnchorElement);
+    });
 });

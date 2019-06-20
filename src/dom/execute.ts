@@ -7,7 +7,9 @@ export default function execute(
     old: VNode,
     vdom: VDOM,
 ) {
-    if (vnode && old && vnode.parent() === old.parent()) {
+    const didMatch = vnode && old && vnode.matches(old);
+
+    if (didMatch && vnode.parent() === old.parent()) {
         vdom.replaceVNode(old, vnode);
     } else if (vnode) {
         vdom.addVNode(vnode);
@@ -15,8 +17,6 @@ export default function execute(
 
     const context = vdom.getVNodeContext(vnode);
     const oldContext = vdom.getVNodeContext(old);
-
-    const didMatch = vnode && old && vnode.matches(old);
 
     if (old && !didMatch) {
         old.detach(oldContext);
@@ -32,9 +32,7 @@ export default function execute(
 
     if (didMatch) {
         const result = vnode.update(old, context);
-        if (result === vdom.LEAVE) {
-            old.children().forEach((child) => child.parent(vnode));
-        } else {
+        if (result !== vdom.LEAVE) {
             const {matches, unmatched} = matchChildren(vnode, old);
 
             unmatched.forEach((v) => execute(null, v, vdom));

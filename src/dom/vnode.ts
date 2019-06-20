@@ -171,7 +171,7 @@ class ComponentVNode extends VNodeBase {
     }
 
     children() {
-        return [this.child];
+        return this.child ? [this.child] : [];
     }
 
     private createContext(context: VNodeContext) {
@@ -201,7 +201,7 @@ class ComponentVNode extends VNodeBase {
 
                 const prevChild = this.child;
                 this.child = createVNode(unboxed, this);
-                context.vdom.execute(this.child, prevChild);
+                context.vdom.execute(this.child, prevChild || null);
             },
             leave: () => context.vdom.LEAVE,
         };
@@ -222,10 +222,8 @@ class ComponentVNode extends VNodeBase {
 
     attach(context: VNodeContext) {
         const unboxed = this.unbox(context);
-        if (unboxed === context.vdom.LEAVE) {
-            throw new Error('Nothing to leave');
-        }
-        this.child = createVNode(unboxed, this);
+        const childSpec = unboxed === context.vdom.LEAVE ? null : unboxed;
+        this.child = createVNode(childSpec, this);
     }
 
     update(prev: ComponentVNode, context: VNodeContext) {
@@ -239,6 +237,7 @@ class ComponentVNode extends VNodeBase {
         if (unboxed === context.vdom.LEAVE) {
             result = unboxed;
             this.child = prev.child;
+            context.vdom.adoptVNode(this.child, this);
         } else {
             this.child = createVNode(unboxed, this);
         }

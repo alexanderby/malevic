@@ -1,10 +1,12 @@
-export class LinkedList<T extends {}> {
+export default class LinkedList<T extends {}> {
     first: T;
     last: T;
     private nexts = new WeakMap<T, T>();
     private prevs = new WeakMap<T, T>();
 
     constructor(...items: T[]) {
+        this.first = null;
+        this.last = null;
         items.forEach((item) => this.push(item));
     }
 
@@ -24,10 +26,11 @@ export class LinkedList<T extends {}> {
     }
 
     insertBefore(newItem: T, refItem: T) {
-        const next = this.after(refItem);
-        this.prevs.set(newItem, refItem);
-        this.nexts.set(newItem, next);
-        this.nexts.set(refItem, newItem);
+        const prev = this.before(refItem);
+        this.prevs.set(newItem, prev);
+        this.nexts.set(newItem, refItem);
+        this.prevs.set(refItem, newItem);
+        prev && this.nexts.set(prev, newItem);
         refItem === this.first && (this.first = newItem);
     }
 

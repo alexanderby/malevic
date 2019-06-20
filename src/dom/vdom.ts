@@ -1,4 +1,4 @@
-import {LinkedList} from '../utils/linked-list';
+import LinkedList from '../utils/linked-list';
 import exec from './execute';
 import {isDOMVNode, VNode} from './vnode';
 
@@ -7,6 +7,7 @@ export interface VDOM {
     addVNode(vnode: VNode): void;
     getVNodeContext(vnode: VNode): VNodeContext;
     replaceVNode(old: VNode, vnode: VNode): void;
+    adoptVNode(vnode: VNode, parent: VNode): void;
     LEAVE: Symbol;
 }
 
@@ -101,6 +102,7 @@ export default function createVDOM(rootNode: Node): VDOM {
             parent.node :
             parentNodes.get(parent);
         parentNodes.set(vnode, parentNode);
+
         const vnodeLinks = new LinkedList<VLink>()
         passingLinks.set(vnode, vnodeLinks);
 
@@ -146,6 +148,20 @@ export default function createVDOM(rootNode: Node): VDOM {
         return contexts.get(vnode);
     }
 
+    function getAncestorsLinks(vnode: VNode) {
+        const parentNode = parentNodes.get(vnode);
+        const hub = hubs.get(parentNode);
+
+        const allLinks: LinkedList<VLink>[] = [];
+        let current: VNode = vnode;
+        while ((current = current.parent()) && !isDOMVNode(current)) {
+            allLinks.push(passingLinks.get(current));
+        }
+        allLinks.push(hub.links);
+
+        return allLinks;
+    }
+
     function replaceVNode(old: VNode, vnode: VNode) {
         if (vnode.parent() == null) {
             setRootVNode(vnode);
@@ -155,20 +171,14 @@ export default function createVDOM(rootNode: Node): VDOM {
         const oldContext = contexts.get(old);
         const {parentNode} = oldContext;
         parentNodes.set(vnode, parentNode);
-        const hub = hubs.get(parentNode);
         const oldLinks = passingLinks.get(old);
 
         const newLink: VLink = {
             parentNode,
             node: null,
         };
-        const allLinks: LinkedList<VLink>[] = [];
-        let current: VNode = old;
-        while ((current = current.parent()) && !isDOMVNode(current)) {
-            allLinks.push(passingLinks.get(current));
-        }
-        allLinks.push(hub.links);
-        allLinks.forEach((links) => {
+
+        getAncestorsLinks(vnode).forEach((links) => {
             const nextLink = links.after(oldLinks.last);
             oldLinks.forEach((link) => links.delete(link));
             if (nextLink) {
@@ -177,17 +187,29 @@ export default function createVDOM(rootNode: Node): VDOM {
                 links.push(newLink);
             }
         });
+
         const vnodeLinks = new LinkedList(newLink);
         passingLinks.set(vnode, vnodeLinks);
 
         creatVNodeContext(vnode);
     }
 
-    const vdom = {
+    function adoptVNode(vnode: VNode, parent: VNode) {
+        const vnodeLinks = passingLinks.get(vnode);
+        const parentLinks = passingLinks.get(parent).copy();
+        vnode.parent(parent);
+        getAncestorsLinks(vnode).forEach((links) => {
+            vnodeLinks.forEach((link) => links.insertBefore(link, parentLinks.first));
+            parentLinks.forEach((link) => links.delete(link));
+        });
+    }
+
+    const vdom: VDOM = {
         execute,
         addVNode,
         getVNodeContext,
         replaceVNode,
+        adoptVNode,
         LEAVE
     };
 
