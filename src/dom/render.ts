@@ -5,7 +5,7 @@ import {createVNode, VNode} from './vnode';
 const roots = new WeakMap<Node, VNode>();
 const vdoms = new WeakMap<Node, VDOM>();
 
-export default function render(node: Element, spec: Spec): Element {
+export function render(node: Element, spec: Spec): Element {
     const vnode = createVNode(spec, null);
     const old = roots.get(node) || null;
     roots.set(node, vnode);
@@ -21,4 +21,9 @@ export default function render(node: Element, spec: Spec): Element {
     vdom.execute(vnode, old);
 
     return vdom.getVNodeContext(vnode).node as Element;
+}
+
+export function teardown(node: Element) {
+    roots.delete(node);
+    vdoms.delete(node);
 }

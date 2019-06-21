@@ -1,5 +1,5 @@
 import {m} from '../src/spec';
-import {render, getContext} from '../src/dom';
+import {render, teardown, getContext} from '../src/dom';
 import {dispatchClick} from './utils';
 
 let target: Element = null;
@@ -689,5 +689,163 @@ describe('DOM', () => {
         expect(target.childNodes.item(0)).toBeInstanceOf(HTMLDivElement);
         expect(target.childNodes.item(1)).toBeInstanceOf(HTMLSpanElement);
         expect(target.childNodes.item(2)).toBeInstanceOf(HTMLAnchorElement);
+    });
+
+    test('lifecycle', () => {
+        const attachedNodes = [];
+        const detachedNodes = [];
+        const updatedNodes = [];
+
+        const attached = (...nodes: Node[]) => attachedNodes.push(...nodes.map((n) => (n as Element).className));
+        const detached = (...nodes: Node[]) => detachedNodes.push(...nodes.map((n) => (n as Element).className));
+        const updated = (...nodes: Node[]) => updatedNodes.push(...nodes.map((n) => (n as Element).className));
+
+        render(target, (
+            m('div', {class: 'n0', attached, detached, updated},
+                m('span', {class: 'n0-0', attached, detached, updated},
+                    m('span', {class: 'n0-0-0', attached, detached, updated}),
+                    m('span', {class: 'n0-0-1', attached, detached, updated}),
+                ),
+                m('span', {class: 'n0-1', attached, detached, updated},
+                    null,
+                    m('span', {class: 'n0-1-1', attached, detached, updated}),
+                ),
+            )
+        ));
+
+        expect(attachedNodes.join(' ')).toBe('n0-0-0 n0-0-1 n0-0 n0-1-1 n0-1 n0');
+        expect(detachedNodes.join(' ')).toBe('');
+        expect(updatedNodes.join(' ')).toBe('');
+
+        attachedNodes.splice(0);
+        detachedNodes.splice(0);
+        updatedNodes.splice(0);
+
+        render(target, (
+            m('div', {class: 'n0', attached, detached, updated},
+                m('div', {class: 'x0-0', attached, detached, updated},
+                    m('span', {class: 'x0-0-0', attached, detached, updated}),
+                    m('span', {class: 'x0-0-1', attached, detached, updated}),
+                ),
+                m('span', {class: 'n0-1', attached, detached, updated},
+                    m('span', {class: 'n0-1-0', attached, detached, updated}),
+                    m('span', {class: 'n0-1-1', attached, detached, updated}),
+                ),
+            )
+        ));
+
+        expect(attachedNodes.join(' ')).toBe('x0-0-0 x0-0-1 x0-0 n0-1-0');
+        expect(detachedNodes.join(' ')).toBe('n0-0-0 n0-0-1 n0-0');
+        expect(updatedNodes.join(' ')).toBe('n0-1-1 n0-1 n0');
+
+        teardown(target);
+        while (target.lastChild) {
+            target.removeChild(target.lastChild);
+        }
+        attachedNodes.splice(0);
+        detachedNodes.splice(0);
+        updatedNodes.splice(0);
+
+        const Component = ({class: className}, ...children) => {
+            const context = getContext();
+            const name = className.toUpperCase();
+            context.attached((...nodes) => attachedNodes.push(`${name}(${nodes.filter((n) => n).map((n: Element) => n.className).join(', ')})`));
+            context.detached((...nodes) => detachedNodes.push(`${name}(${nodes.filter((n) => n).map((n: Element) => n.className).join(', ')})`));
+            context.updated((...nodes) => updatedNodes.push(`${name}(${nodes.filter((n) => n).map((n: Element) => n.className).join(', ')})`));
+            return m('div', {class: className, attached, detached, updated}, ...children);
+        };
+        const Wrapper = ({name, shouldUpdate}, ...children) => {
+            const context = getContext();
+            context.attached((...nodes) => attachedNodes.push(`${name}(${nodes.filter((n) => n).map((n: Element) => n.className).join(', ')})`));
+            context.detached((...nodes) => detachedNodes.push(`${name}(${nodes.filter((n) => n).map((n: Element) => n.className).join(', ')})`));
+            context.updated((...nodes) => updatedNodes.push(`${name}(${nodes.filter((n) => n).map((n: Element) => n.className).join(', ')})`));
+            if (!shouldUpdate) {
+                return context.leave();
+            }
+            switch (children.length) {
+                case 0: {
+                    return null;
+                }
+                case 1: {
+                    return children[0];
+                }
+                default: {
+                    return children;
+                }
+            }
+        };
+
+        render(target, (
+            m(Component, {class: 'c0'},
+                m(Component, {class: 'c1'}),
+                m(Wrapper, {name: 'W2', shouldUpdate: true},
+                    m(Component, {class: 'c3'},
+                        null,
+                        m(Component, {class: 'c4'})
+                    ),
+                    m(Wrapper, {name: 'W5', shouldUpdate: false},
+                        m(Component, {class: 'c6'}),
+                    ),
+                ),
+            )
+        ));
+
+        expect(attachedNodes.join(' ')).toBe('c1 C1(c1) c4 C4(c4) c3 C3(c3) W5() W2(c3) c0 C0(c0)');
+        expect(detachedNodes.join(' ')).toBe('');
+        expect(updatedNodes.join(' ')).toBe('');
+
+        attachedNodes.splice(0);
+        detachedNodes.splice(0);
+        updatedNodes.splice(0);
+
+        render(target, (
+            m(Component, {class: 'c0'},
+                null,
+                m(Wrapper, {name: 'W2', shouldUpdate: false},
+                    m(Component, {class: 'c3'},
+                        m(Component, {class: 'c7'}),
+                        m(Component, {class: 'c4'})
+                    ),
+                    m(Wrapper, {name: 'W5', shouldUpdate: true},
+                        m(Component, {class: 'c6'}),
+                    ),
+                ),
+            )
+        ));
+
+        expect(attachedNodes.join(' ')).toBe('');
+        expect(detachedNodes.join(' ')).toBe('c1 C1(c1)');
+        expect(updatedNodes.join(' ')).toBe('c0 C0(c0)');
+
+        attachedNodes.splice(0);
+        detachedNodes.splice(0);
+        updatedNodes.splice(0);
+
+        render(target, (
+            m(Component, {class: 'c0'},
+                null,
+                m(Wrapper, {name: 'W2', shouldUpdate: true},
+                    m(Component, {class: 'c3'},
+                        m(Component, {class: 'c7'}),
+                        m(Component, {class: 'c4'})
+                    ),
+                    m(Wrapper, {name: 'W5', shouldUpdate: true},
+                        m(Component, {class: 'c6'}),
+                    ),
+                ),
+            )
+        ));
+
+        expect(attachedNodes.join(' ')).toBe('c7 C7(c7) c6 C6(c6)');
+        expect(detachedNodes.join(' ')).toBe('');
+        expect(updatedNodes.join(' ')).toBe('c4 C4(c4) c3 C3(c3) W5(c6) W2(c3, c6) c0 C0(c0)');
+
+        expect(target.className).toBe('c0');
+        expect(target.childNodes.length).toBe(2);
+        expect((target.childNodes.item(0) as Element).className).toBe('c3');
+        expect(target.childNodes.item(0).childNodes.length).toBe(2);
+        expect((target.childNodes.item(0).childNodes.item(0) as Element).className).toBe('c7');
+        expect((target.childNodes.item(0).childNodes.item(1) as Element).className).toBe('c4');
+        expect((target.childNodes.item(1) as Element).className).toBe('c6');
     });
 });

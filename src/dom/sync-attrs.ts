@@ -36,6 +36,13 @@ function setEventListener(element: Element, event: string, listener: DomEventLis
     }
 }
 
+const specialAttrs = new Set([
+    'key',
+    'attached',
+    'detached',
+    'updated',
+]);
+
 export default function syncAttrs(element: Element, attrs: NodeAttrs, prev: NodeAttrs) {
     const values = new Map<string, any>();
 
@@ -54,7 +61,7 @@ export default function syncAttrs(element: Element, attrs: NodeAttrs, prev: Node
         } else if (attr.startsWith('on')) {
             const event = attr.substring(2);
             setEventListener(element, event, value);
-        } else if (attr === 'key') {
+        } else if (specialAttrs.has(attr)) {
         } else if (value == null || value === false) {
             element.removeAttribute(attr);
         } else {

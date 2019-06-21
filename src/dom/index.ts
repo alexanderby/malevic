@@ -1,2 +1,2 @@
-export {default as render} from './render';;
+export {render, teardown} from './render';;
 export {getComponentContext as getContext} from './vnode';

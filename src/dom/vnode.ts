@@ -347,7 +347,9 @@ class DOMVNode extends VNodeBase {
     }
 
     detach(context: VNodeContext) {
-        context.parentNode.removeChild(this.node);
+        if (this.node.isConnected) {
+            context.parentNode.removeChild(this.node);
+        }
     }
 
     update(prev: DOMVNode, context: VNodeContext) {
