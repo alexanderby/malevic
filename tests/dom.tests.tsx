@@ -848,4 +848,43 @@ describe('DOM', () => {
         expect((target.childNodes.item(0).childNodes.item(1) as Element).className).toBe('c4');
         expect((target.childNodes.item(1) as Element).className).toBe('c6');
     });
+
+    test('special attributes', () => {
+        const element = render(target, (
+            m('div', {
+                class: 'c',
+                style: 'background-color: red;',
+            })
+        )) as HTMLElement;
+        expect(element.className).toBe('c');
+        expect(element.style.backgroundColor).toBe('red');
+        expect(element.style.getPropertyPriority('background-color')).toBe('');
+
+        render(target, (
+            m('div', {
+                class: {'a': true, 'b': false},
+                style: {'background-color': 'blue'}
+            })
+        ));
+        expect(element.className).toBe('a');
+        expect(element.style.backgroundColor).toBe('blue');
+        expect(element.style.getPropertyPriority('background-color')).toBe('');
+
+        render(target, (
+            m('div', {
+                class: ['c', false, 'd', {'e': true, 'f': false}],
+                style: {'background-color': 'blue !important'}
+            })
+        ));
+        expect(element.className).toBe('c d e');
+        expect(element.style.backgroundColor).toBe('blue');
+        expect(element.style.getPropertyPriority('background-color')).toBe('important');
+
+        render(target, (
+            m('div', {})
+        ));
+        expect(element.className).toBe('');
+        expect(element.style.backgroundColor).toBe('');
+        expect(element.style.getPropertyPriority('background-color')).toBe('');
+    });
 });
