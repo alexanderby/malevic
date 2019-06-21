@@ -55,6 +55,10 @@ export default function createVDOM(rootNode: Node): VDOM {
                 return passingLinks.get(vnode).map((link) => link.node).filter(((node) => node));
             },
             get sibling() {
+                if (parentNode === rootNode.parentElement) {
+                    return passingLinks.get(vnode).first.node.previousSibling;
+                }
+
                 const hub = hubs.get(parentNode);
                 let current = passingLinks.get(vnode).first;
                 while (current = hub.links.before(current)) {

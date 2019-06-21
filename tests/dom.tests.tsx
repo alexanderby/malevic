@@ -101,6 +101,27 @@ describe('DOM', () => {
         expect(result2.childNodes.item(3)).toBeInstanceOf(HTMLDivElement);
         expect(result2.childNodes.item(3).textContent).toBe('World!');
         expect(span2.parentElement).toBe(null);
+
+        teardown(target);
+        while (target.lastChild) {
+            target.removeChild(target.lastChild);
+        }
+
+        const n0 = document.createElement('span');
+        const n1 = document.createElement('span');
+        const n2 = document.createElement('span');
+        target.append(n0, n1, n2);
+
+        const r = render(n1, (
+            m('span', {class: 'target'})
+        ));
+
+        expect(r).toBe(n1);
+        expect(target.childNodes.length).toBe(3);
+        expect(target.childNodes.item(0)).toBe(n0);
+        expect(target.childNodes.item(1)).toBe(n1);
+        expect(target.childNodes.item(2)).toBe(n2);
+        expect(r.className).toBe('target');
     });
 
     test('events', () => {
