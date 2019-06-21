@@ -1,6 +1,8 @@
-import {NodeAttrs, DomEventListener} from '../defs';
-import {addListener, removeListener} from '../events';
-import {isObject, classes, styles} from '../utils';
+import {NodeAttrs, DOMEventListener} from '../defs';
+import {createPluginsStore} from '../plugins';
+import {classes, styles} from '../utils/attrs';
+import {isObject} from '../utils/misc';
+import {addEventListener, removeEventListener} from './events';
 
 interface ClassObject {
     [cls: string]: any;
@@ -20,6 +22,7 @@ interface StyleObject {
 }
 
 function setStyleObject(element: Element, styleObj: StyleObject) {
+    // TODO: Use `style.setProperty` and `style.removeProperty`.
     const style = styles(styleObj);
     if (style) {
         element.setAttribute('style', style);
@@ -28,11 +31,11 @@ function setStyleObject(element: Element, styleObj: StyleObject) {
     }
 }
 
-function setEventListener(element: Element, event: string, listener: DomEventListener) {
+function setEventListener(element: Element, event: string, listener: DOMEventListener) {
     if (typeof listener === 'function') {
-        addListener(element, event, listener);
+        addEventListener(element, event, listener);
     } else {
-        removeListener(element, event);
+        removeEventListener(element, event);
     }
 }
 
@@ -43,7 +46,17 @@ const specialAttrs = new Set([
     'updated',
 ]);
 
-export default function syncAttrs(element: Element, attrs: NodeAttrs, prev: NodeAttrs) {
+export interface PluginSetAttrProps {
+    element: Element;
+    attr: string;
+    value: any;
+    prev: any;
+}
+
+export const PLUGINS_SET_ATTR = Symbol();
+export const pluginsSetAttr = createPluginsStore<PluginSetAttrProps>();
+
+export function syncAttrs(element: Element, attrs: NodeAttrs, prev: NodeAttrs) {
     const values = new Map<string, any>();
 
     const newKeys = new Set(Object.keys(attrs || {}));
@@ -53,7 +66,23 @@ export default function syncAttrs(element: Element, attrs: NodeAttrs, prev: Node
         .forEach((key) => values.set(key, null));
     newKeys.forEach((key) => values.set(key, attrs[key]));
 
+    const hasPlugins = pluginsSetAttr.length() > 0;
+
     values.forEach((value, attr) => {
+        if (hasPlugins) {
+            const result = pluginsSetAttr.apply({
+                element,
+                attr,
+                value,
+                get prev() {
+                    return prev && prev.hasOwnProperty(attr) ? prev[attr] : null;
+                },
+            });
+            if (result != null) {
+                return;
+            }
+        }
+
         if (attr === 'class' && isObject(value)) {
             setClassObject(element, value);
         } else if (attr === 'style' && isObject(value)) {

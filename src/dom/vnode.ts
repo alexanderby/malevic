@@ -1,7 +1,7 @@
 import {Spec, NodeSpec, ComponentSpec, Child, RecursiveArray} from '../defs';
-import {isNodeSpec, isComponentSpec} from '../utils';
+import {isNodeSpec, isComponentSpec} from '../utils/spec';
 import createElement from './create-element';
-import syncAttrs from './sync-attrs';
+import {syncAttrs, pluginsSetAttr, PLUGINS_SET_ATTR} from './sync-attrs';
 import {VNodeContext} from './vdom';
 
 export interface VNode {
@@ -220,7 +220,20 @@ class ComponentVNode extends VNodeBase {
         return unboxed;
     }
 
+    private addPlugins() {
+        if (this.spec.type[PLUGINS_SET_ATTR]) {
+            this.spec.type[PLUGINS_SET_ATTR].forEach((plugin) => pluginsSetAttr.add(plugin));
+        }
+    }
+
+    private deletePlugins() {
+        if (this.spec.type[PLUGINS_SET_ATTR]) {
+            this.spec.type[PLUGINS_SET_ATTR].forEach((plugin) => pluginsSetAttr.delete(plugin));
+        }
+    }
+
     attach(context: VNodeContext) {
+        this.addPlugins();
         const unboxed = this.unbox(context);
         const childSpec = unboxed === context.vdom.LEAVE ? null : unboxed;
         this.child = createVNode(childSpec, this);
@@ -231,6 +244,7 @@ class ComponentVNode extends VNodeBase {
         this.prev = prev.spec;
         const prevContext = context.vdom.getVNodeContext(prev);
 
+        this.addPlugins();
         const unboxed = this.unbox(prevContext);
         let result = null;
 
@@ -254,6 +268,7 @@ class ComponentVNode extends VNodeBase {
     }
 
     attached(context: VNodeContext) {
+        this.deletePlugins();
         this.handle(symbols.ATTACHED, context);
     }
 
@@ -262,6 +277,7 @@ class ComponentVNode extends VNodeBase {
     }
 
     updated(context: VNodeContext) {
+        this.deletePlugins();
         this.handle(symbols.UPDATED, context);
     }
 }

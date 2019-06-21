@@ -1,5 +1,5 @@
 import {m} from '../src/spec';
-import {render, teardown, getContext} from '../src/dom';
+import {render, teardown, getContext, plugins} from '../src/dom';
 import {dispatchClick} from './utils';
 
 let target: Element = null;
@@ -907,5 +907,77 @@ describe('DOM', () => {
         expect(element.className).toBe('');
         expect(element.style.backgroundColor).toBe('');
         expect(element.style.getPropertyPriority('background-color')).toBe('');
+    });
+
+    test('plugins', () => {
+        const withRGBColor = (Component) => {
+            plugins.setAttribute.add(Component, ({element, attr, value, prev}) => {
+                if (attr === 'color' && Array.isArray(value)) {
+                    if (Array.isArray(value)) {
+                        const shouldUpdate = !Array.isArray(prev) || !(value.every((v, i) => v[i] === prev[i]));
+                        if (shouldUpdate) {
+                            (element as HTMLElement).style.color = `rgb(${value[0]}, ${value[1]}, ${value[2]})`;
+                        }
+                    } else {
+                        (element as HTMLElement).style.color = '';
+                    }
+                    if (prev) {
+                        (element as HTMLElement).dataset.prevRGB = prev.join(' ');
+                    }
+                    return true;
+                }
+            });
+            return Component;
+        };
+
+        const Colored = withRGBColor(({color}, ...children) => {
+            return m('span', {color, class: 'colored'}, ...children);
+        });
+
+        render(target, (
+            m('div', {color: [0, 0, 0]},
+                m(Colored, {color: [0, 0, 0]},
+                    m('span', {color: null}),
+                    m(Colored, {color: [128, 128, 128]},
+                        m('span', {color: [0, 0, 0]}),
+                    ),
+                    m('span', {color: [255, 128, 0]}),
+                ),
+                m('span', {color: [0, 128, 255]}),
+            )
+        ));
+
+        expect(target.getAttribute('color')).toBe('0,0,0');
+        expect(target.hasAttribute('style')).toBe(false);
+        expect(target.children[0].className).toBe('colored');
+        expect(target.children[0].hasAttribute('color')).toBe(false);
+        expect(target.children[0].getAttribute('style')).toBe('color: rgb(0, 0, 0);');
+        expect(target.children[0].children[0].hasAttribute('color')).toBe(false);
+        expect(target.children[0].children[0].hasAttribute('style')).toBe(false);
+        expect(target.children[0].children[1].className).toBe('colored');
+        expect(target.children[0].children[1].hasAttribute('color')).toBe(false);
+        expect(target.children[0].children[1].getAttribute('style')).toBe('color: rgb(128, 128, 128);');
+        expect(target.children[0].children[1].children[0].hasAttribute('color')).toBe(false);
+        expect(target.children[0].children[1].children[0].getAttribute('style')).toBe('color: rgb(0, 0, 0);');
+        expect(target.children[0].children[2].hasAttribute('color')).toBe(false);
+        expect(target.children[0].children[2].getAttribute('style')).toBe('color: rgb(255, 128, 0);');
+        expect(target.children[1].getAttribute('color')).toBe('0,128,255');
+        expect(target.children[1].hasAttribute('style')).toBe(false);
+
+        render(target, (
+            m('div', {color: [0, 0, 0]},
+                m(Colored, {color: [255, 255, 255]}),
+                m('span', {color: [0, 128, 255]}),
+            )
+        ));
+
+        expect(target.getAttribute('color')).toBe('0,0,0');
+        expect(target.hasAttribute('style')).toBe(false);
+        expect(target.children[0].className).toBe('colored');
+        expect(target.children[0].hasAttribute('color')).toBe(false);
+        expect(target.children[0].getAttribute('style')).toBe('color: rgb(255, 255, 255);');
+        expect(target.children[0].getAttribute('data-prev-r-g-b')).toBe('0 0 0');
+        expect(target.children[1].getAttribute('color')).toBe('0,128,255');
+        expect(target.children[1].hasAttribute('style')).toBe(false);
     });
 });

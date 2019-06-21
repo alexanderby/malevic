@@ -14,9 +14,9 @@ export type Spec = NodeSpec | ComponentSpec;
 
 export type Component<T = any, K = Child> = (props: T & {key?: any}, ...children: RecursiveArray<Child>) => K | RecursiveArray<K>;
 
-export type Child = string | Spec | Node;
+export type Child = Spec | string | Node | null;
 
-export interface DomEventListener {
+export interface DOMEventListener {
     (this: Element, e: Event): void;
 }
 
@@ -27,7 +27,7 @@ export interface NodeAttrs {
     attached?: (el: Element) => void;
     updated?: (el: Element) => void;
     detached?: (el: Element) => void;
-    [attr: string]: any | DomEventListener;
+    [attr: string]: any | DOMEventListener;
 }
 
-export interface RecursiveArray<T> extends Array<T | RecursiveArray<T>> { }
+export interface RecursiveArray<T> extends Array<T | RecursiveArray<T>> {}
