@@ -979,5 +979,39 @@ describe('DOM', () => {
         expect(target.children[0].getAttribute('data-prev-r-g-b')).toBe('0 0 0');
         expect(target.children[1].getAttribute('color')).toBe('0,128,255');
         expect(target.children[1].hasAttribute('style')).toBe(false);
+
+        teardown(target);
+        while (target.lastChild) {
+            target.removeChild(target.lastChild);
+        }
+
+        const XHTML_NS = 'http://www.w3.org/1999/xhtml';
+        const SVG_NS = 'http://www.w3.org/2000/svg';
+
+        const withSVGNamespace = (Component) => {
+            plugins.createElement.add(Component, ({spec, parent}) => {
+                if (spec.type.startsWith('svg:')) {
+                    const tag = spec.type.substring(4);
+                    return document.createElementNS(SVG_NS, tag);
+                }
+                return null;
+            });
+            return Component;
+        };
+
+        const App = withSVGNamespace(({}, ...children) => {
+            return m('div', null, ...children);
+        });
+
+        render(target, (
+            m(App, null,
+                m('svg:a', null),
+                m('a', null),
+            )
+        ));
+
+        expect(target.namespaceURI).toBe(XHTML_NS);
+        expect(target.children[0].namespaceURI).toBe(SVG_NS);
+        expect(target.children[1].namespaceURI).toBe(XHTML_NS);
     });
 });

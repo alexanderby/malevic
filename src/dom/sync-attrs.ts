@@ -46,15 +46,15 @@ const specialAttrs = new Set([
     'updated',
 ]);
 
-export interface PluginSetAttrProps {
+export interface PluginSetAttributeProps {
     element: Element;
     attr: string;
     value: any;
     prev: any;
 }
 
-export const PLUGINS_SET_ATTR = Symbol();
-export const pluginsSetAttr = createPluginsStore<PluginSetAttrProps>();
+export const PLUGINS_SET_ATTRIBUTE = Symbol();
+export const pluginsSetAttribute = createPluginsStore<PluginSetAttributeProps>();
 
 export function syncAttrs(element: Element, attrs: NodeAttrs, prev: NodeAttrs) {
     const values = new Map<string, any>();
@@ -66,11 +66,11 @@ export function syncAttrs(element: Element, attrs: NodeAttrs, prev: NodeAttrs) {
         .forEach((key) => values.set(key, null));
     newKeys.forEach((key) => values.set(key, attrs[key]));
 
-    const hasPlugins = pluginsSetAttr.length() > 0;
+    const hasPlugins = pluginsSetAttribute.length() > 0;
 
     values.forEach((value, attr) => {
         if (hasPlugins) {
-            const result = pluginsSetAttr.apply({
+            const result = pluginsSetAttribute.apply({
                 element,
                 attr,
                 value,

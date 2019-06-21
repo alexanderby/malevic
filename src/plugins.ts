@@ -1,6 +1,6 @@
 export type Plugin<P, R = any> = (props: P) => R;
 
-interface PluginsStore<P, R> {
+export interface PluginsStore<P, R = any> {
     add(plugin: Plugin<P, R>): this;
     apply(props: P): R;
     delete(plugin: Plugin<P, R>): void;
