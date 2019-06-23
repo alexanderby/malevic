@@ -10,6 +10,7 @@ export interface PluginCreateElementProps {
 }
 
 export const PLUGINS_CREATE_ELEMENT = Symbol();
+
 export const pluginsCreateElement = createPluginsStore<PluginCreateElementProps, Element>();
 
 export function createElement(spec: NodeSpec, parent: Element) {

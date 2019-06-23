@@ -54,6 +54,7 @@ export interface PluginSetAttributeProps {
 }
 
 export const PLUGINS_SET_ATTRIBUTE = Symbol();
+
 export const pluginsSetAttribute = createPluginsStore<PluginSetAttributeProps>();
 
 export function syncAttrs(element: Element, attrs: NodeAttrs, prev: NodeAttrs) {
@@ -66,10 +67,8 @@ export function syncAttrs(element: Element, attrs: NodeAttrs, prev: NodeAttrs) {
         .forEach((key) => values.set(key, null));
     newKeys.forEach((key) => values.set(key, attrs[key]));
 
-    const hasPlugins = pluginsSetAttribute.length() > 0;
-
     values.forEach((value, attr) => {
-        if (hasPlugins) {
+        if (!pluginsSetAttribute.empty()) {
             const result = pluginsSetAttribute.apply({
                 element,
                 attr,

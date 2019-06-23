@@ -1,5 +1,5 @@
 import {Spec, NodeSpec, ComponentSpec, Child, RecursiveArray} from '../defs';
-import {PluginsStore, Plugin} from '../plugins';
+import {addComponentPlugins, deleteComponentPlugins, PluginsStore, Plugin} from '../plugins';
 import {isNodeSpec, isComponentSpec} from '../utils/spec';
 import {createElement, pluginsCreateElement, PLUGINS_CREATE_ELEMENT} from './create-element';
 import {syncAttrs, pluginsSetAttribute, PLUGINS_SET_ATTRIBUTE} from './sync-attrs';
@@ -148,7 +148,7 @@ const symbols = {
     UPDATED: Symbol(),
 };
 
-const knownPlugins = [
+const domPlugins = [
     [PLUGINS_CREATE_ELEMENT, pluginsCreateElement],
     [PLUGINS_SET_ATTRIBUTE, pluginsSetAttribute],
 ] as [symbol, PluginsStore<any>][];
@@ -226,22 +226,12 @@ class ComponentVNode extends VNodeBase {
         return unboxed;
     }
 
-    private iteratePlugins(iterator: (plugins: PluginsStore<any>, plugin: Plugin<any>) => void) {
-        const Component = this.spec.type;
-        knownPlugins
-            .filter(([key]) => Component[key])
-            .forEach(([key, plugins]) => {
-                return Component[key]
-                    .forEach((plugin) => iterator(plugins, plugin));
-            });
-    }
-
     private addPlugins() {
-        this.iteratePlugins((plugins, plugin) => plugins.add(plugin));
+        addComponentPlugins(this.spec.type, domPlugins);
     }
 
     private deletePlugins() {
-        this.iteratePlugins((plugins, plugin) => plugins.delete(plugin));
+        deleteComponentPlugins(this.spec.type, domPlugins);
     }
 
     attach(context: VNodeContext) {

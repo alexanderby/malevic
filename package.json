@@ -16,6 +16,7 @@
     "examples": "node tasks/build.js --examples",
     "test:new": "jest --runInBand --no-cache --watch dom.tests.tsx",
     "test:new-debug": "node --inspect-brk ./node_modules/jest/bin/jest --runInBand --no-cache --watch dom.tests.tsx",
+    "test:stringify": "jest --runInBand --no-cache --watch stringify.tests.tsx",
     "test:utils": "jest --runInBand --no-cache --watch utils.tests.tsx",
     "test": "jest --coverage",
     "test:debug": "node --inspect-brk ./node_modules/jest/bin/jest --runInBand --no-cache --watch",
