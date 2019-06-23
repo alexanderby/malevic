@@ -3,7 +3,7 @@ import {addComponentPlugins, deleteComponentPlugins, PluginsStore} from '../plug
 import {isNodeSpec, isComponentSpec} from '../utils/spec';
 import {stringifyAttribute, pluginsStringifyAttribute, PLUGINS_STRINGIFY_ATTRIBUTE} from './attr';
 import {escapeHTML} from './escape';
-import {shouldSkipAttribute, pluginsSkipAttribute, PLUGINS_SKIP_ATTRIBUTE} from './skip';
+import {shouldSkipAttribute, pluginsSkipAttribute, PLUGINS_SKIP_ATTRIBUTE} from './skip-attr';
 import {processText} from './text';
 import {isVoidTag, pluginsIsVoidTag, PLUGINS_IS_VOID_TAG} from './void';
 
@@ -36,7 +36,7 @@ const stringifyPlugins = [
 
 export interface StringifyOptions {
     indent: string;
-    level: number;
+    depth: number;
 }
 
 abstract class VNode {
@@ -51,6 +51,7 @@ class VElement extends VNode {
     tag: string;
     attrs: Map<string, string>;
     children: VNode[];
+    isVoid: boolean;
 
     constructor(spec: NodeSpec) {
         super();
@@ -60,18 +61,19 @@ class VElement extends VNode {
         Object.entries(spec.props)
             .filter(([attr, value]) => !shouldSkipAttribute(attr, value))
             .forEach(([attr, value]) => this.attrs.set(attr, stringifyAttribute(attr, value)));
+        this.isVoid = isVoidTag(this.tag);
     }
 
-    stringify({indent, level}: StringifyOptions) {
+    stringify({indent, depth}: StringifyOptions) {
         const lines: string[] = [];
 
-        const left = leftPad(indent, level);
+        const left = leftPad(indent, depth);
         const attrs = Array.from(this.attrs.entries())
             .map(([attr, value]) => value === '' ? attr : `${attr}="${value}"`)
             .join(' ');
         const open = `${left}<${this.tag}${attrs ? ` ${attrs}` : ''}>`;
 
-        if (isVoidTag(this.tag)) {
+        if (this.isVoid) {
             lines.push(open);
         } else {
             const close = `</${this.tag}>`;
@@ -82,10 +84,10 @@ class VElement extends VNode {
                 this.children[0] instanceof VText &&
                 !(this.children[0] as VText).text.includes('\n')
             ) {
-                lines.push(`${open}${this.children[0].stringify({indent, level: 0})}${close}`);
+                lines.push(`${open}${this.children[0].stringify({indent, depth: 0})}${close}`);
             } else {
                 lines.push(open);
-                this.children.forEach((child) => lines.push(child.stringify({indent, level: level + 1})));
+                this.children.forEach((child) => lines.push(child.stringify({indent, depth: depth + 1})));
                 lines.push(`${left}${close}`);
             }
         }
@@ -102,8 +104,8 @@ class VText extends VNode {
         this.text = processText(text);
     }
 
-    stringify({indent, level}: StringifyOptions) {
-        const left = leftPad(indent, level);
+    stringify({indent, depth}: StringifyOptions) {
+        const left = leftPad(indent, depth);
         return `${left}${this.text.replace(/\n/g, `\n${left}`)}`;
     }
 }
@@ -116,8 +118,8 @@ class VComment extends VNode {
         this.text = escapeHTML(text);
     }
 
-    stringify({indent, level}: StringifyOptions) {
-        return `${leftPad(indent, level)}<!--${this.text}-->`;
+    stringify({indent, depth}: StringifyOptions) {
+        return `${leftPad(indent, depth)}<!--${this.text}-->`;
     }
 }
 
