@@ -118,9 +118,11 @@ declare namespace Malevic {
         };
     }
 
-    namespace Forms { }
+    namespace Forms {
 
-    function Forms(): void;
+        function withForms<T extends Component>(type: T): T;
+
+    }
 
     namespace State {
 
@@ -173,7 +175,7 @@ declare module 'malevic/dom' {
 }
 
 declare module 'malevic/forms' {
-    export default Malevic.Forms;
+    export = Malevic.Forms;
 }
 
 declare module 'malevic/state' {
