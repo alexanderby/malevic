@@ -229,7 +229,8 @@ class ComponentVNode extends VNodeBase {
             updated: (fn) => store[symbols.UPDATED] = fn,
             refresh: () => {
                 this.prev = this.spec;
-                const unboxed = this.unbox(context);
+                const latestContext = context.vdom.getVNodeContext(this);
+                const unboxed = this.unbox(latestContext);
                 if (unboxed === context.vdom.LEAVE) {
                     return;
                 }

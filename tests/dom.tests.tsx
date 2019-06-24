@@ -717,6 +717,52 @@ describe('DOM', () => {
         expect(target.childNodes.item(0)).toBeInstanceOf(HTMLDivElement);
         expect(target.childNodes.item(1)).toBeInstanceOf(HTMLSpanElement);
         expect(target.childNodes.item(2)).toBeInstanceOf(HTMLAnchorElement);
+
+        teardown(target);
+        while (target.lastChild) {
+            target.removeChild(target.lastChild);
+        }
+
+        let attached: Node;
+        let updated: Node;
+
+        const Dummy = () => {
+            const context = getContext();
+            context.attached((node) => attached = node);
+            context.updated((node) => updated = node);
+            if (!context.store.init) {
+                context.store.init = true;
+                return context.leave();
+            }
+            if (context.store.clicked) {
+                (context.node as HTMLElement).classList.add('awaiting');
+                context.store.clicked = false;
+                return context.leave();
+            }
+            return m('button', {
+                class: {
+                    'init': context.store.init,
+                },
+                onclick: () => {
+                    context.store.clicked = true;
+                    context.refresh();
+                },
+            });
+        };
+
+        render(target, <div><Dummy /></div>);
+        expect(target.firstChild).toBe(null);
+        expect(attached).toBe(null);
+
+        render(target, <div><Dummy /></div>);
+        expect(target.firstChild).toBeInstanceOf(HTMLButtonElement);
+        expect(updated).toBe(target.firstChild);
+
+        dispatchClick(target.firstElementChild);
+        expect(target.firstElementChild.className).toBe('init awaiting');
+
+        render(target, <div><Dummy /></div>);
+        expect(target.firstElementChild.className).toBe('init');
     });
 
     test('lifecycle', () => {
