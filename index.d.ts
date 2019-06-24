@@ -131,9 +131,13 @@ declare namespace Malevic {
             setState: (newState: Partial<S>) => void;
         }
 
-    }
+        function useState<S>(initialState: S): {
+            state: S;
+            setState: (newState: Partial<S>) => void;
+        }
 
-    function State<T>(component: Component<T>): Component<T>;
+        function withState<T extends Component>(type: T): T;
+    }
 
     namespace String {
 
@@ -179,8 +183,7 @@ declare module 'malevic/forms' {
 }
 
 declare module 'malevic/state' {
-    export const useState: typeof Malevic.State.useState;
-    export default Malevic.State;
+    export = Malevic.State;
 }
 
 declare module 'malevic/string' {

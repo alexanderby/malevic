@@ -1,7 +1,7 @@
 import {Component} from 'malevic';
 import {plugins as domPlugins} from 'malevic/dom';
 
-export function withForms(type: Component) {
+export function withForms<T extends Component>(type: T): T {
     domPlugins.setAttribute
         .add(type, ({element, attr, value}) => {
             if (

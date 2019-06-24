@@ -10,7 +10,7 @@ import {
     Interpolator,
 } from './interpolate';
 
-export function withAnimation(type: Component) {
+export function withAnimation<T extends Component>(type: T): T {
     domPlugins && domPlugins.setAttribute
         .add(type, ({element, attr, value, prev}) => {
             if (!(value instanceof AnimationDeclaration)) {
