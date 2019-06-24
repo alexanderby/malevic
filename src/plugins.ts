@@ -71,9 +71,9 @@ export function deleteComponentPlugins(component: Component, pairs: [symbol, Plu
     iterateComponentPlugins(component, pairs, (plugins, plugin) => plugins.delete(plugin));
 }
 
-export function createPluginsAPI<T>(key: symbol) {
+export function createPluginsAPI<T, K = any>(key: symbol) {
     return {
-        add(component: Component, plugin: Plugin<T>) {
+        add(component: Component, plugin: Plugin<T, K>) {
             if (!component[key]) {
                 component[key] = [];
             }

@@ -15,9 +15,9 @@ export function stringify(spec: Spec, {indent = '    ', depth = 0} = {}) {
 }
 
 export const plugins = {
-    stringifyAttribute: createPluginsAPI<PluginStringifyAttributeProps>(PLUGINS_STRINGIFY_ATTRIBUTE),
-    skipAttribute: createPluginsAPI<PluginSkipAttributeProps>(PLUGINS_SKIP_ATTRIBUTE),
-    isVoidTag: createPluginsAPI<string>(PLUGINS_IS_VOID_TAG),
+    stringifyAttribute: createPluginsAPI<PluginStringifyAttributeProps, string>(PLUGINS_STRINGIFY_ATTRIBUTE),
+    skipAttribute: createPluginsAPI<PluginSkipAttributeProps, boolean>(PLUGINS_SKIP_ATTRIBUTE),
+    isVoidTag: createPluginsAPI<string, boolean>(PLUGINS_IS_VOID_TAG),
 };
 
 export function isStringifying() {

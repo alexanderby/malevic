@@ -1,36 +1,35 @@
 declare namespace Malevic {
 
-    interface NodeDeclaration {
+    interface NodeSpec {
         type: string;
-        attrs: NodeAttrs;
-        children: Child[];
+        props: NodeAttrs;
+        children: RecursiveArray<Child>;
     }
 
-    interface ComponentDeclaration<T = any> {
-        type: Component<T>;
-        attrs: T & {key?: any};
-        children: Child[];
+    interface ComponentSpec<T = any, K = any> {
+        type: Component<T, K>;
+        props: T & {key?: any};
+        children: RecursiveArray<Child>;
     }
 
-    type Declaration = NodeDeclaration | ComponentDeclaration;
+    type Spec = NodeSpec | ComponentSpec;
 
-    type Component<T = any> = (props: T & {key?: any}, ...children: Child[]) => Declaration;
+    type Component<T = any, K = Child> = (props: T & {key?: any}, ...children: RecursiveArray<Child>) => K | RecursiveArray<K>;
 
-    type Child = string | Declaration;
+    type Child = Spec | string | Node | null;
 
-    interface DomEventListener<T = Element> {
-        (this: Element, e: Event & {target: T}): void;
+    interface DOMEventListener {
+        (this: Element, e: Event): void;
     }
 
     interface NodeAttrs<E = Element, T = Element> {
         key?: any;
-        data?: any;
-        class?: string | {[cls: string]: any;} | (string | {[cls: string]: any;})[];
-        style?: string | {[prop: string]: any;};
-        native?: boolean;
-        didmount?: (el: E) => void;
-        didupdate?: (el: E) => void;
-        willunmount?: (el: E) => void;
+        class?: string | {[cls: string]: any} | (string | {[cls: string]: any})[];
+        style?: string | {[prop: string]: any};
+        attached?: (el: Element) => void;
+        updated?: (el: Element) => void;
+        detached?: (el: Element) => void;
+        [attr: string]: any | DOMEventListener;
 
         onclick?: (this: E, e: MouseEvent & {target: T}) => void;
         ondblclick?: (this: E, e: MouseEvent & {target: T}) => void;
@@ -46,79 +45,16 @@ declare namespace Malevic {
         onkeydown?: (this: E, e: KeyboardEvent & {target: T}) => void;
         onkeyup?: (this: E, e: KeyboardEvent & {target: T}) => void;
         onkeypress?: (this: E, e: KeyboardEvent & {target: T}) => void;
-
-        [attr: string]: any | DomEventListener<T>;
+        onscroll?: (this: E, e: Event & {target: T}) => void;
     }
 
-    function m(tag: string, attrs: NodeAttrs, ...children: Child[]): NodeDeclaration;
-    function m<T>(component: Component<T>, props: T, ...children: Child[]): ComponentDeclaration<T>;
+    type Plugin<P, R = any> = (props: P) => R;
 
-    function render(
-        target: Element,
-        declaration: Declaration
-    ): Element;
-    function render(
-        target: Element,
-        text: string
-    ): Text;
-    function render(
-        target: Element,
-        declaration: Child | Child[]
-    ): Node[];
-
-    function sync(
-        target: Element,
-        declaration: Declaration
-    ): Element;
-    function sync(
-        target: Text,
-        text: string
-    ): Text;
-
-    function getAttrs(element: Element): NodeAttrs;
-
-    function getDOMNode(): Node;
-
-    function getParentDOMNode(): Element;
-
-    function classes(
-        ...args: Array<string | {[cls: string]: boolean}>
-    ): string;
-
-    function styles(
-        declarations: {[cssProp: string]: string}
-    ): string;
-
-    function getData(node: Element): any;
-
-    function renderToString(declaration: Declaration): string;
-
-    function escapeHtml(s: any): string;
-
-    interface Plugin<P, R> {
-        (props: P): R;
+    interface RecursiveArray<T> extends Array<T | RecursiveArray<T>> {
     }
 
-    interface PluginsCollection<P, R> {
-        add(plugin: Plugin<P, R>): this;
-        apply(props: P): R;
-    }
-
-    const plugins: {
-        render: {
-            createNode: PluginsCollection<{d: NodeDeclaration | string, parent: Node}, Node>;
-            matchNodes: PluginsCollection<{d: Declaration; element: Element;}, [Declaration, Node][]>;
-            mountNode: PluginsCollection<{node: Node; parent: Node; next: Node;}, boolean>;
-            setAttribute: PluginsCollection<{element: Element; attr: string; value: any;}, boolean>;
-            unmountNode: PluginsCollection<{node: Node; parent: Node;}, boolean>;
-        },
-        static: {
-            isVoidTag: PluginsCollection<string, boolean>;
-            processText: PluginsCollection<string, string>;
-            skipAttr: PluginsCollection<{attr: string; value: any;}, boolean>;
-            stringifyAttr: PluginsCollection<{attr: string; value: any;}, string>;
-        }
-    };
+    function m(tag: string, attrs: NodeAttrs, ...children: RecursiveArray<Child>): NodeSpec;
+    function m<T>(component: Component<T>, props: T & {key?: any}, ...children: RecursiveArray<Child>): ComponentSpec<T>;
 
     namespace Animation {
 
@@ -138,6 +74,50 @@ declare namespace Malevic {
 
     function Animation(): void;
 
+    namespace DOM {
+
+        function render(node: Element, spec: Spec): Element;
+
+        function teardown(node: Element): void;
+
+        interface ComponentContext {
+            spec: Spec;
+            prev: Spec;
+            store: any;
+            node: Node;
+            nodes: Node[];
+            parent: Element;
+            attached(fn: (node: Node) => void): void;
+            detached(fn: (node: Node) => void): void;
+            updated(fn: (node: Node) => void): void;
+            refresh(): void;
+            leave(): any;
+        }
+
+        function getContext(): ComponentContext;
+
+        interface PluginCreateElementProps {
+            spec: NodeSpec;
+            parent: Element;
+        }
+
+        interface PluginSetAttributeProps {
+            element: Element;
+            attr: string;
+            value: any;
+            prev: any;
+        }
+
+        const plugins: {
+            createElement: {
+                add(type: Component, plugin: Plugin<PluginCreateElementProps>): void;
+            };
+            setAttribute: {
+                add(type: Component, plugin: Plugin<PluginSetAttributeProps>): void;
+            };
+        };
+    }
+
     namespace Forms { }
 
     function Forms(): void;
@@ -153,6 +133,37 @@ declare namespace Malevic {
 
     function State<T>(component: Component<T>): Component<T>;
 
+    namespace String {
+
+        function stringify(spec: Spec, options?: {indent?: string, depth?: number}): string;
+
+        function isStringifying(): boolean;
+
+        interface PluginStringifyAttributeProps {
+            attr: string;
+            value: any;
+        }
+
+        interface PluginSkipAttributeProps {
+            attr: string;
+            value: any;
+        }
+
+        const plugins: {
+            stringifyAttribute: {
+                add(type: Component, plugin: Plugin<PluginStringifyAttributeProps, string>): void;
+            };
+            skipAttribute: {
+                add(type: Component, plugin: Plugin<PluginSkipAttributeProps, boolean>): void;
+            };
+            isVoidTag: {
+                add(type: Component, plugin: Plugin<string, boolean>): void;
+            };
+        };
+
+        function escapeHTML(s: string): string;
+    }
+
 }
 
 declare module 'malevic' {
@@ -164,6 +175,10 @@ declare module 'malevic/animation' {
     export default Malevic.Animation;
 }
 
+declare module 'malevic/dom' {
+    export = Malevic.DOM;
+}
+
 declare module 'malevic/forms' {
     export default Malevic.Forms;
 }
@@ -171,6 +186,10 @@ declare module 'malevic/forms' {
 declare module 'malevic/state' {
     export const useState: typeof Malevic.State.useState;
     export default Malevic.State;
+}
+
+declare module 'malevic/string' {
+    export = Malevic.String;
 }
 
 declare namespace JSX {
@@ -190,6 +209,6 @@ declare namespace JSX {
         };
     }
 
-    type Element = Malevic.Declaration;
+    type Element = Malevic.Spec;
 
 }

@@ -1,5 +1,5 @@
-import {m} from '../src/spec';
-import {render, teardown, getContext, plugins} from '../src/dom';
+import {m} from 'malevic';
+import {render, teardown, getContext, plugins} from 'malevic/dom';
 import {dispatchClick} from './utils';
 
 let target: Element = null;

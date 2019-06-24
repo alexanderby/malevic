@@ -1,7 +1,7 @@
-import {m} from '../src/spec';
-import {stringify, isStringifying, plugins, escapeHTML} from '../src/stringify';
+import {m} from 'malevic';
+import {stringify, isStringifying, plugins, escapeHTML} from 'malevic/string';
 
-describe('stringify', () => {
+describe('string', () => {
     test('stringify', () => {
         const Component = ({}, ...children) => {
             if (isStringifying()) {

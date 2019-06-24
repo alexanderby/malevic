@@ -10,7 +10,9 @@ module.exports = {
         'js'
     ],
     moduleNameMapper: {
+        'malevic/dom': '<rootDir>/entries/dom',
         'malevic/state': '<rootDir>/entries/state',
+        'malevic/string': '<rootDir>/entries/string',
         'malevic': '<rootDir>/entries',
     },
     collectCoverage: false,
