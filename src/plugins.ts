@@ -43,6 +43,7 @@ export function createPluginsStore<P, R = any>(): PluginsStore<P, R> {
                     break;
                 }
             }
+            return this;
         },
         empty() {
             return plugins.length === 0;
@@ -51,33 +52,39 @@ export function createPluginsStore<P, R = any>(): PluginsStore<P, R> {
 }
 
 function iterateComponentPlugins(
-    component: Component,
+    type: Component,
     pairs: [symbol, PluginsStore<any>][],
     iterator: (plugins: PluginsStore<any>, plugin: Plugin<any>) => void,
 ) {
     pairs
-        .filter(([key]) => component[key])
+        .filter(([key]) => type[key])
         .forEach(([key, plugins]) => {
-            return component[key]
+            return type[key]
                 .forEach((plugin) => iterator(plugins, plugin));
         });
 }
 
-export function addComponentPlugins(component: Component, pairs: [symbol, PluginsStore<any>][]) {
-    iterateComponentPlugins(component, pairs, (plugins, plugin) => plugins.add(plugin));
+export function addComponentPlugins(type: Component, pairs: [symbol, PluginsStore<any>][]) {
+    iterateComponentPlugins(type, pairs, (plugins, plugin) => plugins.add(plugin));
 }
 
-export function deleteComponentPlugins(component: Component, pairs: [symbol, PluginsStore<any>][]) {
-    iterateComponentPlugins(component, pairs, (plugins, plugin) => plugins.delete(plugin));
+export function deleteComponentPlugins(type: Component, pairs: [symbol, PluginsStore<any>][]) {
+    iterateComponentPlugins(type, pairs, (plugins, plugin) => plugins.delete(plugin));
 }
 
-export function createPluginsAPI<T, K = any>(key: symbol) {
-    return {
-        add(component: Component, plugin: Plugin<T, K>) {
-            if (!component[key]) {
-                component[key] = [];
+interface PluginsAPI<T, K = any> {
+    add(type: Component, plugin: Plugin<T, K>): PluginsAPI<T, K>;
+}
+
+export function createPluginsAPI<T, K = any>(key: symbol): PluginsAPI<T, K> {
+    const api = {
+        add(type: Component, plugin: Plugin<T, K>) {
+            if (!type[key]) {
+                type[key] = [];
             }
-            component[key].push(plugin);
+            type[key].push(plugin);
+            return api;
         },
     };
+    return api;
 }

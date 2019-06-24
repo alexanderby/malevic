@@ -50,6 +50,10 @@ declare namespace Malevic {
 
     type Plugin<P, R = any> = (props: P) => R;
 
+    interface PluginsAPI<T, K = any> {
+        add(type: Component, plugin: Plugin<T, K>): PluginsAPI<T, K>;
+    }
+
     interface RecursiveArray<T> extends Array<T | RecursiveArray<T>> {
     }
 
@@ -70,9 +74,9 @@ declare namespace Malevic {
         }
 
         function animate(to: any): AnimationDeclaration;
-    }
 
-    function Animation(): void;
+        function withAnimation<T extends Component>(type: T): T;
+    }
 
     namespace DOM {
 
@@ -109,12 +113,8 @@ declare namespace Malevic {
         }
 
         const plugins: {
-            createElement: {
-                add(type: Component, plugin: Plugin<PluginCreateElementProps>): void;
-            };
-            setAttribute: {
-                add(type: Component, plugin: Plugin<PluginSetAttributeProps>): void;
-            };
+            createElement: PluginsAPI<PluginCreateElementProps>;
+            setAttribute: PluginsAPI<PluginSetAttributeProps>;
         };
     }
 
@@ -150,15 +150,9 @@ declare namespace Malevic {
         }
 
         const plugins: {
-            stringifyAttribute: {
-                add(type: Component, plugin: Plugin<PluginStringifyAttributeProps, string>): void;
-            };
-            skipAttribute: {
-                add(type: Component, plugin: Plugin<PluginSkipAttributeProps, boolean>): void;
-            };
-            isVoidTag: {
-                add(type: Component, plugin: Plugin<string, boolean>): void;
-            };
+            stringifyAttribute: PluginsAPI<PluginStringifyAttributeProps, string>;
+            skipAttribute: PluginsAPI<PluginSkipAttributeProps, boolean>;
+            isVoidTag: PluginsAPI<string, boolean>;
         };
 
         function escapeHTML(s: string): string;
@@ -171,8 +165,7 @@ declare module 'malevic' {
 }
 
 declare module 'malevic/animation' {
-    export const animate: typeof Malevic.Animation.animate;
-    export default Malevic.Animation;
+    export = Malevic.Animation;
 }
 
 declare module 'malevic/dom' {

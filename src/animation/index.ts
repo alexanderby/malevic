@@ -1,26 +1,18 @@
-import {
-    getAttrs,
-    escapeHtml,
-    plugins,
-    styles,
-} from 'malevic';
+import {Component} from 'malevic';
+import {plugins as domPlugins} from 'malevic/dom';
+import {plugins as stringPlugins, escapeHTML} from 'malevic/string';
+import {styles} from '../utils/attrs';
+import {isObject} from '../utils/misc';
+import {easing, createEasingFunction} from './easing';
 import {
     interpolateNumbers,
     interpolateNumbersInString,
     Interpolator,
 } from './interpolate';
-import {easing, createEasingFunction} from './easing';
 
-let registered = false;
-
-export default function withAnimation() {
-    if (registered) {
-        return;
-    }
-    registered = true;
-
-    plugins.render.setAttribute
-        .add(({element, attr, value}) => {
+export function withAnimation(type: Component) {
+    domPlugins && domPlugins.setAttribute
+        .add(type, ({element, attr, value, prev}) => {
             if (!(value instanceof AnimationDeclaration)) {
                 clearAnimation(element, attr);
                 return null;
@@ -33,7 +25,7 @@ export default function withAnimation() {
                 return true;
             }
             let prevValue = null;
-            const prevDeclaration = getAttrs(element)[attr];
+            const prevDeclaration = prev;
             if (prevDeclaration != null && !(prevDeclaration instanceof AnimationDeclaration)) {
                 prevValue = prevDeclaration;
             } else if (prevDeclaration instanceof AnimationDeclaration && prevDeclaration._to != null) {
@@ -44,7 +36,7 @@ export default function withAnimation() {
             scheduleAnimation(element, prevValue, attr, value);
             return true;
         })
-        .add(({element, attr, value}) => {
+        .add(type, ({element, attr, value, prev}) => {
             if (!isAnimatedStyleObj(attr, value)) {
                 return null;
             }
@@ -56,8 +48,7 @@ export default function withAnimation() {
 
             const declarations: {from: any; prop: string; props?: AnimationDeclaration;}[] = [];
             const prevAnimation = animated && animated['style'] instanceof StyleAnimation ? animated['style'] as StyleAnimation : null;
-            const prevAttrs = getAttrs(element);
-            const prevStyleDeclaration = prevAttrs && isObject(prevAttrs['style']) ? prevAttrs['style'] : null;
+            const prevStyleDeclaration = isObject(prev) ? prev : null;
             Object.keys(value).forEach((prop) => {
                 const v = value[prop];
                 if (!(v instanceof AnimationDeclaration)) {
@@ -90,19 +81,19 @@ export default function withAnimation() {
             return true;
         });
 
-    plugins.static.stringifyAttr
-        .add(({value}) => {
+    stringPlugins && stringPlugins.stringifyAttribute
+        .add(type, ({value}) => {
             if (value instanceof AnimationDeclaration) {
                 if (value._from != null) {
-                    return escapeHtml(value._from);
+                    return escapeHTML(value._from);
                 }
                 if (value._to != null) {
-                    return escapeHtml(value._to);
+                    return escapeHTML(value._to);
                 }
             }
             return null;
         })
-        .add(({attr, value}) => {
+        .add(type, ({attr, value}) => {
             if (isAnimatedStyleObj(attr, value)) {
                 const style = {};
                 Object.keys(value).forEach((prop) => {
@@ -117,14 +108,12 @@ export default function withAnimation() {
                         style[prop] = v;
                     }
                 });
-                return escapeHtml(styles(style));
+                return escapeHTML(styles(style));
             }
             return null;
         });
-}
 
-function isObject(value) {
-    return typeof value === 'object' && value != null;
+    return type;
 }
 
 function isAnimatedStyleObj(attr, value) {
