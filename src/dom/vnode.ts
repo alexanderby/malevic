@@ -68,6 +68,8 @@ function nodeMatchesSpec(node: Node, spec: NodeSpec): node is Element {
     return node instanceof Element && spec.type === node.tagName.toLowerCase();
 }
 
+const refinedElements = new WeakSet<Node>();
+
 class ElementVNode extends VNodeBase {
     private spec: NodeSpec;
     private child: DOMVNode;
@@ -96,7 +98,10 @@ class ElementVNode extends VNodeBase {
         let element: Element;
         if (nodeMatchesSpec(existing, this.spec)) {
             element = existing;
-        } else if (!refinedElements.has(parent) && context.vdom.isDOMNodeCaptured(parent)) {
+        } else if (
+            !refinedElements.has(parent) &&
+            context.vdom.isDOMNodeCaptured(parent)
+        ) {
             const sibling = context.sibling;
             const guess = sibling ? (sibling as Element).nextElementSibling : parent.firstElementChild;
             if (guess && !context.vdom.isDOMNodeCaptured(guess) && nodeMatchesSpec(guess, this.spec)) {
@@ -110,7 +115,15 @@ class ElementVNode extends VNodeBase {
     }
 
     attach(context: VNodeContext) {
-        const element = this.getExistingElement(context) || createElement(this.spec, context.parentNode as Element);
+        let element: Element;
+        const existing = this.getExistingElement(context);
+        if (existing) {
+            element = existing;
+        } else {
+            element = createElement(this.spec, context.parentNode as Element);
+            refinedElements.add(element);
+        }
+
         syncAttrs(element, this.spec.props, null);
         this.child = new DOMVNode(element, this.spec.children, this);
     }
@@ -364,8 +377,6 @@ class NullVNode extends VNodeBase {
         return other instanceof NullVNode;
     }
 }
-
-const refinedElements = new WeakSet<Node>();
 
 class DOMVNode extends VNodeBase {
     readonly node: Node;
