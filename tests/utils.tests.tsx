@@ -1,6 +1,31 @@
+import {classes, styles} from '../src/utils/attrs';
 import {LinkedList} from '../src/utils/linked-list';
+import {isObject} from '../src/utils/misc';
 
 describe('utils', () => {
+    test('attrs', () => {
+        expect(classes()).toBe('');
+        expect(classes('c')).toBe('c');
+        expect(classes('a', {'b': true, 'c': false})).toBe('a b');
+        expect(classes('a', null, 'b', 0 as any, 'c', true as any)).toBe('a b c');
+
+        expect(styles({'color': null})).toBe('');
+        expect(styles({'background-color': 'red !important', 'color': 'blue'}))
+            .toBe('background-color: red !important; color: blue;');
+    });
+
+    test('miscellaneous', () => {
+        expect(isObject(null)).toBe(false);
+        expect(isObject(undefined)).toBe(false);
+        expect(isObject(true)).toBe(false);
+        expect(isObject('')).toBe(false);
+        expect(isObject(3)).toBe(false);
+        expect(isObject(Symbol())).toBe(false);
+        expect(isObject({})).toBe(true);
+        expect(isObject([])).toBe(true);
+        expect(isObject(() => null)).toBe(false);
+    });
+
     test('linked list', () => {
         const list = new LinkedList<any>();
         expect(list.first).toBe(null);
