@@ -7,6 +7,7 @@ import {
     NodeAttrs,
     RecursiveArray,
 } from './defs';
+import {isObject} from './utils/misc';
 
 export function m(tag: string, attrs: NodeAttrs, ...children: RecursiveArray<Child>): NodeSpec;
 export function m<T>(component: Component<T>, props: T & {key?: any}, ...children: RecursiveArray<Child>): ComponentSpec<T>;
@@ -25,4 +26,16 @@ export function m(
         return {type: component, props, children};
     }
     throw new Error('Unsupported spec type');
+}
+
+export function isSpec(x: any): x is Spec {
+    return isObject(x) && x.type != null && x.nodeType == null;
+}
+
+export function isNodeSpec(x: any): x is NodeSpec {
+    return isSpec(x) && typeof x.type === 'string';
+}
+
+export function isComponentSpec(x: any): x is ComponentSpec {
+    return isSpec(x) && typeof x.type === 'function';
 }

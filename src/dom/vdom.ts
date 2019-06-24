@@ -1,5 +1,5 @@
-import LinkedList from '../utils/linked-list';
-import exec from './execute';
+import {LinkedList} from '../utils/linked-list';
+import {execute as exec} from './execute';
 import {isDOMVNode, VNode} from './vnode';
 
 export interface VDOM {
@@ -30,7 +30,7 @@ interface VHub {
     links: LinkedList<VLink>;
 }
 
-export default function createVDOM(rootNode: Node): VDOM {
+export function createVDOM(rootNode: Node): VDOM {
     const contexts = new WeakMap<VNode, VNodeContext>();
     const hubs = new WeakMap<Node, VHub>();
     const parentNodes = new WeakMap<VNode, Node>();

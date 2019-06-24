@@ -1,6 +1,6 @@
 import {Spec, NodeSpec, ComponentSpec, Child, RecursiveArray} from '../defs';
-import {addComponentPlugins, deleteComponentPlugins, PluginsStore, Plugin} from '../plugins';
-import {isNodeSpec, isComponentSpec} from '../utils/spec';
+import {addComponentPlugins, deleteComponentPlugins, PluginsStore} from '../plugins';
+import {isNodeSpec, isComponentSpec} from '../spec';
 import {createElement, pluginsCreateElement, PLUGINS_CREATE_ELEMENT} from './create-element';
 import {syncAttrs, pluginsSetAttribute, PLUGINS_SET_ATTRIBUTE} from './sync-attrs';
 import {VNodeContext} from './vdom';

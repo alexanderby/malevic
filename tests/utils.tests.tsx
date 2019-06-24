@@ -1,4 +1,4 @@
-import LinkedList from '../src/utils/linked-list';
+import {LinkedList} from '../src/utils/linked-list';
 
 describe('utils', () => {
     test('linked list', () => {

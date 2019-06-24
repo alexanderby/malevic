@@ -1,6 +1,6 @@
 import {Spec} from '../defs';
 import {createPluginsAPI} from '../plugins';
-import {isSpec} from '../utils/spec';
+import {isSpec} from '../spec';
 import {PLUGINS_STRINGIFY_ATTRIBUTE, PluginStringifyAttributeProps} from './attr';
 import {PLUGINS_SKIP_ATTRIBUTE, PluginSkipAttributeProps} from './skip-attr';
 import {buildVDOM, getStringifyContext} from './vdom';

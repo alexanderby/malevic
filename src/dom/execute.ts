@@ -1,8 +1,8 @@
-import matchChildren from './match-children';
+import {matchChildren} from './match-children';
 import {VDOM} from './vdom';
 import {VNode} from './vnode';
 
-export default function execute(
+export function execute(
     vnode: VNode,
     old: VNode,
     vdom: VDOM,

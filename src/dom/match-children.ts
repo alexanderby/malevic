@@ -1,6 +1,6 @@
 import {VNode} from './vnode';
 
-export default function matchChildren(vnode: VNode, old: VNode) {
+export function matchChildren(vnode: VNode, old: VNode) {
     const oldChildren = old.children();
     const oldChildrenByKey = new Map<any, VNode>();
     const oldChildrenWithoutKey: VNode[] = [];

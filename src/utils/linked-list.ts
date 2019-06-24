@@ -1,4 +1,4 @@
-export default class LinkedList<T extends {}> {
+export class LinkedList<T extends {}> {
     first: T;
     last: T;
     private nexts = new WeakMap<T, T>();

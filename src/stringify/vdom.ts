@@ -1,6 +1,6 @@
 import {NodeSpec, Child, RecursiveArray, ComponentSpec} from '../defs';
 import {addComponentPlugins, deleteComponentPlugins, PluginsStore} from '../plugins';
-import {isNodeSpec, isComponentSpec} from '../utils/spec';
+import {isNodeSpec, isComponentSpec} from '../spec';
 import {stringifyAttribute, pluginsStringifyAttribute, PLUGINS_STRINGIFY_ATTRIBUTE} from './attr';
 import {escapeHTML} from './escape';
 import {shouldSkipAttribute, pluginsSkipAttribute, PLUGINS_SKIP_ATTRIBUTE} from './skip-attr';

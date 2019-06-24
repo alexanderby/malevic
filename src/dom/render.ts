@@ -1,5 +1,5 @@
 import {Spec} from '../defs';
-import createVDOM, {VDOM} from './vdom';
+import {createVDOM, VDOM} from './vdom';
 import {createVNode, VNode} from './vnode';
 
 const roots = new WeakMap<Node, VNode>();
