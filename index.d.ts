@@ -131,11 +131,6 @@ declare namespace Malevic {
             setState: (newState: Partial<S>) => void;
         }
 
-        function useState<S>(initialState: S): {
-            state: S;
-            setState: (newState: Partial<S>) => void;
-        }
-
         function withState<T extends Component>(type: T): T;
     }
 
