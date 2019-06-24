@@ -10,12 +10,12 @@ module.exports = {
         'js'
     ],
     moduleNameMapper: {
-        'malevic/animation': '<rootDir>/entries/animation',
-        'malevic/dom': '<rootDir>/entries/dom',
-        'malevic/forms': '<rootDir>/entries/forms',
-        'malevic/state': '<rootDir>/entries/state',
-        'malevic/string': '<rootDir>/entries/string',
-        'malevic': '<rootDir>/entries',
+        'malevic/animation': '<rootDir>/src/animation',
+        'malevic/dom': '<rootDir>/src/dom',
+        'malevic/forms': '<rootDir>/src/forms',
+        'malevic/state': '<rootDir>/src/state',
+        'malevic/string': '<rootDir>/src/string',
+        'malevic': '<rootDir>/src',
     },
     collectCoverage: false,
     coverageDirectory: 'coverage',

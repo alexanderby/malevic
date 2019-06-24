@@ -14,10 +14,10 @@
         "baseUrl": ".",
         "paths": {
             "malevic": [
-                "entries"
+                "src"
             ],
             "malevic/*": [
-                "entries/*"
+                "src/*"
             ]
         }
     }
