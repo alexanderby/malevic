@@ -202,4 +202,20 @@ describe('state', () => {
             '</div>',
         ].join(''));
     });
+
+    test('value type state', () => {
+        const Component = withState(() => {
+            const {state, setState} = useState(1);
+            return <button onclick={() => setState(state + 1)}>{String(state)}</button>
+        });
+        render(container, <div><Component /></div>);
+        const button = container.querySelector('button');
+        expect(button.textContent).toBe('1');
+
+        dispatchClick(button);
+        expect(button.textContent).toBe('2');
+
+        dispatchClick(button);
+        expect(button.textContent).toBe('3');
+    });
 });

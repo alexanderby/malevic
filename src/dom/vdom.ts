@@ -91,10 +91,6 @@ export function createVDOM(rootNode: Node): VDOM {
     }
 
     function addVNode(vnode: VNode) {
-        if (contexts.has(vnode)) {
-            return;
-        }
-
         const parent = vnode.parent();
 
         if (parent == null) {

@@ -81,8 +81,9 @@ declare namespace Malevic {
     namespace DOM {
 
         function render(node: Element, spec: Spec): Element;
+        function render(node: Text, spec: Spec | string): Text;
 
-        function teardown(node: Element): void;
+        function teardown(node: Element | Text): void;
 
         interface ComponentContext {
             spec: Spec;

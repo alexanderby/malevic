@@ -20,14 +20,7 @@ export function addEventListener(element: Element, event: string, listener: DOME
 }
 
 export function removeEventListener(element: Element, event: string) {
-    let listeners: Map<string, DOMEventListener>;
-    if (eventListeners.has(element)) {
-        listeners = eventListeners.get(element);
-    } else {
-        return;
-    }
-    if (listeners.has(event)) {
-        element.removeEventListener(event, listeners.get(event));
-        listeners.delete(event);
-    }
+    const listeners = eventListeners.get(element);
+    element.removeEventListener(event, listeners.get(event));
+    listeners.delete(event);
 }

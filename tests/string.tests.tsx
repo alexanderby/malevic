@@ -15,9 +15,11 @@ describe('string', () => {
         };
 
         const spec = m('body', {class: {'loaded': true, 'popup': false}, style: null},
-            m('input', {autofocus: true}, 'Content'),
-            m(Component, null,
-                m('b', null, 'Hello!'),
+            m(Array, null,
+                m('input', {autofocus: true}, 'Content'),
+                m(Component, null,
+                    m('b', null, 'Hello!'),
+                ),
             ),
             null,
             [
@@ -135,6 +137,15 @@ describe('string', () => {
             '    </div>',
             '</div>',
         ].join('\n'));
+    });
+
+    test('unsupported spec', () => {
+        expect(() => stringify(m('div', null, document.createElement('a')))).toThrow(/Unable to stringify spec/);
+        expect(() => stringify(m('div', null, (() => null) as any))).toThrow(/Unable to stringify spec/);
+        expect(() => stringify(m('div', null, true as any))).toThrow(/Unable to stringify spec/);
+        expect(() => stringify(m('div', null, 0 as any))).toThrow(/Unable to stringify spec/);
+        expect(() => stringify(m('div', null, {} as any))).toThrow(/Unable to stringify spec/);
+        expect(() => stringify({} as any)).toThrow(/Not a spec/);
     });
 
     test('escape', () => {

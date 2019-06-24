@@ -14,6 +14,13 @@ afterEach(() => {
     target = null;
 });
 
+function cleanup() {
+    teardown(target);
+    while (target.lastChild) {
+        target.removeChild(target.lastChild);
+    }
+}
+
 describe('DOM', () => {
     test('first time render', () => {
         const spec = {
@@ -55,6 +62,15 @@ describe('DOM', () => {
         expect(result.childNodes.item(2).textContent).toBe('crazy');
         expect(result.childNodes.item(3).textContent).toBe(' ');
         expect(result.childNodes.item(4).textContent).toBe('World!');
+
+        cleanup();
+
+        const text = document.createTextNode('x');
+        target.appendChild(text);
+        const textResult = render(text, m(() => 'y', null));
+
+        expect(textResult).toBe(text);
+        expect(text.textContent).toBe('y');
     });
 
     test('update', () => {
@@ -109,10 +125,7 @@ describe('DOM', () => {
         expect(result2.childNodes.item(3).textContent).toBe('World!');
         expect(span2.parentElement).toBe(null);
 
-        teardown(target);
-        while (target.lastChild) {
-            target.removeChild(target.lastChild);
-        }
+        cleanup();
 
         const n0 = document.createElement('span');
         const n1 = document.createElement('span');
@@ -161,17 +174,16 @@ describe('DOM', () => {
         dispatchClick(button);
         expect(count).toBe(2);
 
-        render(target, (
-            m('button',
-                {
-                    onclick: (e: MouseEvent) => {
-                        expect(e.target).toBe(button);
-                        count = 0;
-                    },
-                },
-                'Click me',
-            )
-        ));
+        const onclick = (e: MouseEvent) => {
+            expect(e.target).toBe(button);
+            count--;
+        };
+
+        render(target, m('button', {onclick}, 'Click me'));
+        dispatchClick(button);
+        expect(count).toBe(1);
+
+        render(target, m('button', {onclick}, 'Click me'));
         dispatchClick(button);
         expect(count).toBe(0);
     });
@@ -718,10 +730,7 @@ describe('DOM', () => {
         expect(target.childNodes.item(1)).toBeInstanceOf(HTMLSpanElement);
         expect(target.childNodes.item(2)).toBeInstanceOf(HTMLAnchorElement);
 
-        teardown(target);
-        while (target.lastChild) {
-            target.removeChild(target.lastChild);
-        }
+        cleanup();
 
         let attached: Node;
         let updated: Node;
@@ -812,10 +821,7 @@ describe('DOM', () => {
         expect(detachedNodes.join(' ')).toBe('n0-0-0 n0-0-1 n0-0');
         expect(updatedNodes.join(' ')).toBe('n0-1-1 n0-1 n0');
 
-        teardown(target);
-        while (target.lastChild) {
-            target.removeChild(target.lastChild);
-        }
+        cleanup();
         attachedNodes.splice(0);
         detachedNodes.splice(0);
         updatedNodes.splice(0);
@@ -955,7 +961,7 @@ describe('DOM', () => {
         expect(element.style.getPropertyPriority('background-color')).toBe('important');
 
         render(target, (
-            m('div', {})
+            m('div', {style: {}})
         ));
         expect(element.className).toBe('');
         expect(element.style.backgroundColor).toBe('');
@@ -1033,10 +1039,7 @@ describe('DOM', () => {
         expect(target.children[1].getAttribute('color')).toBe('0,128,255');
         expect(target.children[1].hasAttribute('style')).toBe(false);
 
-        teardown(target);
-        while (target.lastChild) {
-            target.removeChild(target.lastChild);
-        }
+        cleanup();
 
         const XHTML_NS = 'http://www.w3.org/1999/xhtml';
         const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -1186,5 +1189,24 @@ describe('DOM', () => {
         expect((div.childNodes.item(5) as HTMLInputElement).value).toBe('1');
         expect((div.childNodes.item(6) as HTMLInputElement).value).toBe('0');
         expect((div.childNodes.item(7) as HTMLInputElement).value).toBe('-1');
+    });
+
+    test('namespaces', () => {
+        render(target, <div><svg><g /></svg></div>);
+        expect(target.firstElementChild).toBeInstanceOf(SVGSVGElement);
+        expect(target.firstElementChild.firstChild.namespaceURI).toBe(target.firstElementChild.namespaceURI);
+
+        const FAKE_NAMESPACE = 'http://fake.org/v1';
+        const el = document.createElementNS(FAKE_NAMESPACE, 'fake');
+        render(el, <fake><proove /></fake>);
+        expect(el.firstElementChild.tagName).toBe('proove');
+        expect(el.firstElementChild.namespaceURI).toBe(FAKE_NAMESPACE);
+    });
+
+    test('unsupported spec', () => {
+        expect(() => render(target, m('div', null, true as any))).toThrow(/Unable to create virtual node for spec/);
+        expect(() => render(target, m('div', null, {} as any))).toThrow(/Unable to create virtual node for spec/);
+        expect(() => render(target, m('div', null, 0 as any))).toThrow(/Unable to create virtual node for spec/);
+        expect(() => render(target, m('div', null, (() => null) as any))).toThrow(/Unable to create virtual node for spec/);
     });
 });

@@ -30,6 +30,7 @@ describe('utils', () => {
         const list = new LinkedList<any>();
         expect(list.first).toBe(null);
         expect(list.last).toBe(null);
+        expect(list.map((item) => item).length).toBe(0);
 
         const item0 = {};
         list.push(item0);
@@ -37,6 +38,7 @@ describe('utils', () => {
         expect(list.last).toBe(item0);
         expect(list.before(item0)).toBe(null);
         expect(list.after(item0)).toBe(null);
+        expect(list.map((item) => item).length).toBe(1);
 
         const item1 = {};
         list.push(item1);
