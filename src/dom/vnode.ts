@@ -89,12 +89,28 @@ class ElementVNode extends VNodeBase {
         return [this.child];
     }
 
-    attach(context: VNodeContext) {
+    private getExistingElement(context: VNodeContext) {
         const parent = context.parentNode as Element;
         const existing = context.node as Element;
-        const element = nodeMatchesSpec(existing, this.spec) ?
-            existing :
-            createElement(this.spec, parent);
+
+        let element: Element;
+        if (nodeMatchesSpec(existing, this.spec)) {
+            element = existing;
+        } else if (!refinedElements.has(parent) && context.vdom.isDOMNodeCaptured(parent)) {
+            const sibling = context.sibling;
+            const guess = sibling ? (sibling as Element).nextElementSibling : parent.firstElementChild;
+            if (guess && !context.vdom.isDOMNodeCaptured(guess) && nodeMatchesSpec(guess, this.spec)) {
+                element = guess;
+            } else if (guess && !context.vdom.isDOMNodeCaptured(guess)) {
+                parent.removeChild(guess);
+            }
+        }
+
+        return element;
+    }
+
+    attach(context: VNodeContext) {
+        const element = this.getExistingElement(context) || createElement(this.spec, context.parentNode as Element);
         syncAttrs(element, this.spec.props, null);
         this.child = new DOMVNode(element, this.spec.children, this);
     }
@@ -305,9 +321,31 @@ class TextVNode extends VNodeBase {
         return [this.child];
     }
 
+    private getExistingNode(context: VNodeContext) {
+        const parent = context.parentNode;
+        let node: Node;
+        if (context.node instanceof Text) {
+            node = context.node;
+        } else if (!refinedElements.has(parent) && context.vdom.isDOMNodeCaptured(parent)) {
+            const sibling = context.sibling;
+            const guess = sibling ? sibling.nextSibling : parent.firstChild;
+            if (guess && !context.vdom.isDOMNodeCaptured(guess) && guess instanceof Text) {
+                node = guess;
+            }
+        }
+        return node;
+    }
+
     attach(context: VNodeContext) {
-        const existing = context.node;
-        const node = existing instanceof Text ? existing : document.createTextNode(this.text);
+        const existing = this.getExistingNode(context);
+        let node: Node;
+        if (existing) {
+            node = existing;
+            node.textContent = this.text;
+        } else {
+            node = document.createTextNode(this.text);
+        }
+
         this.child = createVNode(node, this);
     }
 
@@ -326,6 +364,8 @@ class NullVNode extends VNodeBase {
         return other instanceof NullVNode;
     }
 }
+
+const refinedElements = new WeakSet<Node>();
 
 class DOMVNode extends VNodeBase {
     readonly node: Node;
@@ -347,15 +387,16 @@ class DOMVNode extends VNodeBase {
     }
 
     private insertNode(context: VNodeContext) {
+        const {parentNode: parent, sibling} = context;
         const shouldInsert = !(
-            context.parentNode === this.node.parentElement &&
-            context.sibling == this.node.previousSibling
+            parent === this.node.parentElement &&
+            sibling === this.node.previousSibling
         );
         if (shouldInsert) {
-            const target = context.sibling ?
-                context.sibling.nextSibling :
-                context.parentNode.firstChild;
-            context.parentNode.insertBefore(this.node, target);
+            const target = sibling ?
+                sibling.nextSibling :
+                parent.firstChild;
+            parent.insertBefore(this.node, target);
         }
     }
 
@@ -373,6 +414,34 @@ class DOMVNode extends VNodeBase {
     update(prev: DOMVNode, context: VNodeContext) {
         this.wrap();
         this.insertNode(context);
+    }
+
+    private refine(context: VNodeContext) {
+        const element = this.node as Element;
+        for (
+            let current: Node = element.lastChild;
+            current != null;
+        ) {
+            if (context.vdom.isDOMNodeCaptured(current)) {
+                current = current.previousSibling;
+            } else {
+                const prev = current.previousSibling;
+                element.removeChild(current);
+                current = prev;
+            }
+        }
+        refinedElements.add(element);
+    }
+
+    attached(context: VNodeContext) {
+        const {node} = this;
+        if (
+            node instanceof Element &&
+            !refinedElements.has(node) &&
+            context.vdom.isDOMNodeCaptured(node)
+        ) {
+            this.refine(context);
+        }
     }
 
     children() {

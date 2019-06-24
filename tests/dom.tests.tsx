@@ -28,6 +28,9 @@ describe('DOM', () => {
                     ],
                 },
                 ' ',
+                null,
+                document.createTextNode('crazy'),
+                ' ',
                 {
                     type: 'span',
                     props: {},
@@ -41,13 +44,17 @@ describe('DOM', () => {
 
         expect(result).toBe(target);
         expect(result.className).toBe('c');
-        expect(result.childNodes.length).toBe(3);
+        expect(result.childNodes.length).toBe(5);
         expect(result.childNodes.item(0)).toBeInstanceOf(HTMLSpanElement);
         expect(result.childNodes.item(1)).toBeInstanceOf(Text);
-        expect(result.childNodes.item(2)).toBeInstanceOf(HTMLSpanElement);
+        expect(result.childNodes.item(2)).toBeInstanceOf(Text);
+        expect(result.childNodes.item(3)).toBeInstanceOf(Text);
+        expect(result.childNodes.item(4)).toBeInstanceOf(HTMLSpanElement);
         expect(result.childNodes.item(0).textContent).toBe('Hello');
         expect(result.childNodes.item(1).textContent).toBe(' ');
-        expect(result.childNodes.item(2).textContent).toBe('World!');
+        expect(result.childNodes.item(2).textContent).toBe('crazy');
+        expect(result.childNodes.item(3).textContent).toBe(' ');
+        expect(result.childNodes.item(4).textContent).toBe('World!');
     });
 
     test('update', () => {
@@ -1013,5 +1020,125 @@ describe('DOM', () => {
         expect(target.namespaceURI).toBe(XHTML_NS);
         expect(target.children[0].namespaceURI).toBe(SVG_NS);
         expect(target.children[1].namespaceURI).toBe(XHTML_NS);
+    });
+
+    test('render to existing DOM', () => {
+        target.innerHTML = [
+            '<div class="app">',
+            '  \n',
+            '  <h1>Heading</h1>',
+            '  <!---->',
+            '  <article>',
+            '    <p>',
+            '      Line 1',
+            '      Line 2',
+            '    </p>',
+            '  </article>',
+            '  <input type="number" value="0">',
+            '  <input type="number" value="1">',
+            '  <span class="unmatched"></span>',
+            '  <input type="number" value="2">',
+            '</div>',
+        ].join('\n');
+
+        const div = target.firstChild as HTMLDivElement;
+        const newline = div.firstChild as Text;
+        const heading = newline.nextSibling as HTMLHeadingElement;
+        const comment = heading.nextSibling.nextSibling as Comment;
+        const article = comment.nextSibling.nextSibling as HTMLElement;
+        const p = article.firstChild.nextSibling as HTMLParagraphElement;
+        const text = p.firstChild as Text;
+        const inputs = Array.from(div.getElementsByTagName('input')) as HTMLInputElement[];
+        const unmatched = div.querySelector('.unmatched') as HTMLSpanElement;
+
+        expect(div).toBeInstanceOf(HTMLDivElement);
+        expect(div.className).toBe('app');
+        expect(newline).toBeInstanceOf(Text);
+        expect(newline.textContent.includes('\n')).toBe(true);
+        expect(heading).toBeInstanceOf(HTMLHeadingElement);
+        expect(heading.textContent).toBe('Heading');
+        expect(comment).toBeInstanceOf(Comment);
+        expect(article).toBeInstanceOf(HTMLElement);
+        expect(article.tagName).toBe('ARTICLE');
+        expect(p).toBeInstanceOf(HTMLParagraphElement);
+        expect(p.childNodes.length).toBe(1);
+        expect(text).toBe(p.firstChild);
+        expect(text.textContent).toMatch(/^\s*Line 1\s*\n\s*Line 2\s*$/);
+        expect(inputs.every((el) => el instanceof HTMLInputElement)).toBe(true);
+        expect(inputs.length).toBe(3);
+        expect(unmatched).toBeInstanceOf(HTMLSpanElement);
+
+        let attachedNode: Node;
+
+        const App = () => {
+            const context = getContext();
+            context.attached((node) => attachedNode = node);
+            return (
+                m('div',
+                    {
+                        class: {
+                            'app': true,
+                            'rendered': context.node != null,
+                        },
+                    },
+                    m('h1', null,
+                        'Heading',
+                    ),
+                    context.node == null ? null : (() => {const b = document.createElement('button'); b.classList.add('sb'); return b;})(),
+                    m(Article, {text: 'Line 1\nLine 2'}),
+                    m(Numbers, {values: [3, 2, 1, 0, -1]}),
+                )
+            );
+        };
+
+        let attachedArticle: Node;
+
+        const Article = ({text}) => {
+            return m('article', {attached: (node) => attachedArticle = node},
+                m('p', null, text),
+            );
+        };
+
+        let attachedNumbers: Node[];
+
+        const Numbers = ({values}) => {
+            const context = getContext();
+            context.attached((...nodes) => attachedNumbers = nodes);
+            return values.map((v) => (
+                m('input', {
+                    type: 'number',
+                    attached: (node: HTMLInputElement) => node.value = v,
+                })
+            ));
+        };
+
+        render(target.firstElementChild, m(App, null));
+
+        expect(target.firstElementChild).toBe(div);
+        expect(attachedNode).toBe(div);
+        expect(div.className).toBe('app rendered');
+        expect(div.childNodes.length).toBe(8);
+        expect(div.childNodes.item(0)).toBe(heading);
+        expect(heading.textContent).toBe('Heading');
+        expect(div.childNodes.item(1)).toBeInstanceOf(HTMLButtonElement);
+        expect(comment.parentNode).toBe(null);
+        expect(attachedArticle).toBe(article);
+        expect(div.childNodes.item(2)).toBe(article);
+        expect(article.childNodes.length).toBe(1);
+        expect(article.childNodes.item(0)).toBe(p);
+        expect(p.childNodes.length).toBe(1);
+        expect(p.childNodes.item(0)).toBe(text);
+        expect(text.textContent).toMatch(/^\s*Line 1\s*\n\s*Line 2\s*$/);
+        expect(attachedNumbers.every((n, i) => n === inputs[i]));
+        expect(div.childNodes.item(3)).toBeInstanceOf(HTMLInputElement);
+        expect(div.childNodes.item(4)).toBeInstanceOf(HTMLInputElement);
+        expect(div.childNodes.item(5)).toBeInstanceOf(HTMLInputElement);
+        expect(div.childNodes.item(6)).toBeInstanceOf(HTMLInputElement);
+        expect(div.childNodes.item(7)).toBeInstanceOf(HTMLInputElement);
+        expect((div.childNodes.item(3) as HTMLInputElement).value).toBe('3');
+        expect((div.childNodes.item(4) as HTMLInputElement).value).toBe('2');
+        expect((div.childNodes.item(5) as HTMLInputElement).value).toBe('1');
+        expect((div.childNodes.item(6) as HTMLInputElement).value).toBe('0');
+        expect((div.childNodes.item(7) as HTMLInputElement).value).toBe('-1');
     });
 });

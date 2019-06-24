@@ -2,7 +2,7 @@ import {Spec, NodeSpec, ComponentSpec} from '../defs';
 import {isObject} from './misc';
 
 export function isSpec(x: any): x is Spec {
-    return isObject(x) && x.type != null;
+    return isObject(x) && x.type != null && x.nodeType == null;
 }
 
 export function isNodeSpec(x: any): x is NodeSpec {

@@ -8,6 +8,7 @@ export interface VDOM {
     getVNodeContext(vnode: VNode): VNodeContext;
     replaceVNode(old: VNode, vnode: VNode): void;
     adoptVNode(vnode: VNode, parent: VNode): void;
+    isDOMNodeCaptured(node: Node): boolean;
     LEAVE: Symbol;
 }
 
@@ -116,13 +117,11 @@ export default function createVDOM(rootNode: Node): VDOM {
                 node: null,
             };
 
-            for (
-                let current = vnode;
-                current && !isDOMVNode(current);
-                current = current.parent()
-            ) {
+            let current = vnode;
+            do {
                 passingLinks.get(current).push(newLink);
-            }
+                current = current.parent();
+            } while (current && !isDOMVNode(current));
 
             hubs.get(parentNode).links.push(newLink);
         } else {
@@ -208,12 +207,17 @@ export default function createVDOM(rootNode: Node): VDOM {
         });
     }
 
+    function isDOMNodeCaptured(node: Node) {
+        return hubs.has(node) && node !== rootNode.parentElement;
+    }
+
     const vdom: VDOM = {
         execute,
         addVNode,
         getVNodeContext,
         replaceVNode,
         adoptVNode,
+        isDOMNodeCaptured,
         LEAVE
     };
 

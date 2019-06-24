@@ -60,7 +60,7 @@ describe('stringify', () => {
 
     test('indent', () => {
         const html = stringify(m('div', null,
-            m('h3', null, 'Header'),
+            m('h3', null, 'Heading'),
             m('p', null, [
                 'Line 1',
                 'Line 2',
@@ -69,7 +69,7 @@ describe('stringify', () => {
 
         expect(html).toBe([
             '    <div>',
-            '      <h3>Header</h3>',
+            '      <h3>Heading</h3>',
             '      <p>',
             '        Line 1',
             '        Line 2',
