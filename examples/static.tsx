@@ -1,7 +1,7 @@
-import {m, render, renderToString} from 'malevic';
-import withAnimation, {animate} from 'malevic/animation';
-
-withAnimation();
+import {m} from 'malevic';
+import {withAnimation, animate} from 'malevic/animation';
+import {render} from 'malevic/dom';
+import {stringify} from 'malevic/string';
 
 function assert(value) {
     if (!value) {
@@ -9,7 +9,7 @@ function assert(value) {
     }
 }
 
-function View({color, child}) {
+const View = withAnimation(({color, child}) => {
     return (
         <div id="static-container">
             <h1 id="static-animation" style={{
@@ -22,10 +22,10 @@ function View({color, child}) {
             <h3 id="static-color" style={{color}}>Color</h3>
         </div >
     );
-}
+});
 
 const container = document.getElementById('static');
-const markup = renderToString(<View color="red" child={<span id="static-replacement">Initial</span>} />);
+const markup = stringify(<View color="red" child={<span id="static-replacement">Initial</span>} />);
 container.innerHTML = markup;
 
 const items = new Set();
@@ -35,7 +35,7 @@ items.add(container.querySelector('#static-replacement'));
 items.add(container.querySelector('#static-color'));
 
 setTimeout(() => {
-    render(container, <View color="blue" child={<code id="static-replacement">Replacement</code>} />);
+    render(container.firstElementChild, <View color="blue" child={<code id="static-replacement">Replacement</code>} />);
     assert(items.has(container.querySelector('#static-container')));
     assert(items.has(container.querySelector('#static-animation')));
     assert(!items.has(container.querySelector('#static-replacement')));

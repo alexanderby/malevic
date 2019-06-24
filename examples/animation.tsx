@@ -1,11 +1,11 @@
-import {m, render, renderToString} from 'malevic';
-import withAnimation, {animate} from 'malevic/animation';
-
-withAnimation();
+import {m} from 'malevic';
+import {render} from 'malevic/dom';
+import {stringify} from 'malevic/string';
+import {withAnimation, animate} from 'malevic/animation';
 
 const DURATION = 2000;
 
-function Circle({x, y, x0, y0}) {
+const Circle = withAnimation(({x, y, x0, y0}) => {
     return (
         <circle
             cx={animate(x).initial(x0).duration(DURATION)}
@@ -13,7 +13,7 @@ function Circle({x, y, x0, y0}) {
             r={5}
         />
     );
-}
+});
 
 function getCurve(p: {x, y}[]) {
     return [
@@ -24,7 +24,7 @@ function getCurve(p: {x, y}[]) {
     ].join(' ');
 }
 
-function Snake({points, color}) {
+const Snake = withAnimation(({points, color}) => {
     return <svg width={100} height={100}>
         <g style={{
             fill: animate(color)
@@ -47,7 +47,7 @@ function Snake({points, color}) {
             <Circle x={points[3].x} y={points[3].y} x0={curve1[3].x} y0={curve1[3].y} />
         </g>
     </svg>
-}
+});
 
 function interpolateHexColor(from: string, to: string) {
     const parse = (x: string) => parseInt(x, 16);
@@ -87,7 +87,7 @@ const target = document.getElementById('animation');
 
 function draw() {
     const tree = <Snake points={state.points} color={state.color} />;
-    const markup = renderToString(tree);
+    const markup = stringify(tree);
     render(target, (
         <div>
             {tree}
@@ -100,7 +100,7 @@ function draw() {
 
 draw();
 
-setInterval(function () {
+setInterval(() => {
     state.points = state.phase === 1 ? curve2 : curve1;
     state.color = state.phase === 1 ? color2 : color1;
     state.phase = state.phase === 1 ? 2 : 1;

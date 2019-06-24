@@ -1,11 +1,13 @@
-import {m, render, getParentDOMNode} from 'malevic';
-import withAnimation, {animate} from 'malevic/animation';
+import {m} from 'malevic';
+import {render, getContext} from 'malevic/dom';
+import {withAnimation, animate} from 'malevic/animation';
 
-withAnimation();
-
-function Tooltip({text, cx, cy}) {
-    const parent = getParentDOMNode();
-    const temp = render(parent, <text font-size={16}>{text}</text>);
+const Tooltip = withAnimation(({text, cx, cy}) => {
+    const {parent} = getContext();
+    const temp = render(
+        parent.appendChild(document.createElementNS(parent.namespaceURI, 'text')),
+        <text font-size={16}>{text}</text>
+    );
     const box = (temp as SVGTextElement).getBBox();
     parent.removeChild(temp);
     return (
@@ -33,10 +35,10 @@ function Tooltip({text, cx, cy}) {
             >{text}</text>
         </g>
     );
-}
+});
 
-render(document.getElementById('lifecycle'), (
+render(document.getElementById('lifecycle'), (<div>
     <svg width="100" height="50">
         <Tooltip text='Hello' cx={50} cy={25} />
     </svg>
-));
+</div>));

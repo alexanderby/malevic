@@ -1,11 +1,10 @@
-import {m, render} from 'malevic';
-import withForms from 'malevic/forms';
+import {m} from 'malevic';
+import {render} from 'malevic/dom';
+import {withForms} from 'malevic/forms';
 
-withForms();
+let state: {text: string, checked: boolean, num: number} = null;
 
-let state: {text: string; checked: boolean; num: number;} = null;
-
-function Form({checked, text, num, onCheckChange, onTextChange, onNumChange}) {
+const Form = withForms(({checked, text, num, onCheckChange, onTextChange, onNumChange}) => {
     return (
         <form onsubmit={(e) => e.preventDefault()}>
             <input
@@ -17,10 +16,10 @@ function Form({checked, text, num, onCheckChange, onTextChange, onNumChange}) {
                 type="number"
                 value={num}
                 readonly={!checked}
-                onchange={(e) => !isNaN(parseFloat(e.target.value)) && onNumChange(e.target.value)}
+                onchange={(e) => !isNaN(e.target.valueAsNumber) && onNumChange(e.target.valueAsNumber)}
                 onkeypress={(e) => {
-                    if (e.keyCode === 13 && !isNaN(parseFloat(e.target.value))) {
-                        onNumChange(e.target.value);
+                    if (e.code === 'Enter' && !isNaN(e.target.valueAsNumber)) {
+                        onNumChange(e.target.valueAsNumber);
                     }
                 }}
             />
@@ -30,12 +29,11 @@ function Form({checked, text, num, onCheckChange, onTextChange, onNumChange}) {
             <pre>{JSON.stringify({checked, text, num}, null, 4)}</pre>
         </form>
     );
-}
+});
 
 function setState(newState) {
     state = Object.assign({}, state, newState);
-    render(
-        document.getElementById('forms'),
+    render(document.getElementById('forms'), (<div>
         <Form
             text={state.text}
             checked={state.checked}
@@ -44,7 +42,7 @@ function setState(newState) {
             onTextChange={(text) => setState({text})}
             onNumChange={(num) => setState({num})}
         />
-    );
+    </div>));
 }
 
 setState({checked: true, text: 'text', num: 5});

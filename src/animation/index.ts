@@ -85,10 +85,10 @@ export function withAnimation<T extends Component>(type: T): T {
         .add(type, ({value}) => {
             if (value instanceof AnimationDeclaration) {
                 if (value._from != null) {
-                    return escapeHTML(value._from);
+                    return escapeHTML(String(value._from));
                 }
                 if (value._to != null) {
-                    return escapeHTML(value._to);
+                    return escapeHTML(String(value._to));
                 }
             }
             return null;

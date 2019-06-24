@@ -1,4 +1,5 @@
-import {m, render} from 'malevic';
+import {m} from 'malevic';
+import {render} from 'malevic/dom';
 
 function View() {
     return (
@@ -18,4 +19,4 @@ function View() {
     );
 }
 
-render(document.getElementById('text'), <View />);
+render(document.getElementById('text'), <div><View /></div>);
