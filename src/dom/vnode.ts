@@ -228,6 +228,10 @@ class ComponentVNode extends VNodeBase {
             detached: (fn) => store[symbols.DETACHED] = fn,
             updated: (fn) => store[symbols.UPDATED] = fn,
             refresh: () => {
+                if (this.lock) {
+                    throw new Error('Calling refresh during unboxing causes infinite loop');
+                }
+
                 this.prev = this.spec;
                 const latestContext = context.vdom.getVNodeContext(this);
                 const unboxed = this.unbox(latestContext);
@@ -243,15 +247,19 @@ class ComponentVNode extends VNodeBase {
         };
     }
 
+    private lock = false;
+
     private unbox(context: VNodeContext) {
         const Component = this.spec.type;
         const props = this.spec.props;
         const children = this.spec.children;
 
+        this.lock = true;
         const prevContext = ComponentVNode.context;
         ComponentVNode.context = this.createContext(context);
         const unboxed = Component(props, ...children);
         ComponentVNode.context = prevContext;
+        this.lock = false;
 
         return unboxed;
     }

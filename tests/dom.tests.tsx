@@ -522,6 +522,15 @@ describe('DOM', () => {
         expect(a.childNodes.item(3)).toBe(b2);
         expect(b1.textContent).toBe('3');
         expect(b2.textContent).toBe('2');
+
+        cleanup();
+
+        const Refresher = () => {
+            const context = getContext();
+            context.refresh();
+            return null;
+        };
+        expect(() => render(target, m(Refresher, null))).toThrow(/infinite loop/);
     });
 
     test('DOM node as a child', () => {
