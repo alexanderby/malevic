@@ -8,8 +8,13 @@ interface ClassObject {
     [cls: string]: any;
 }
 
-function setClassObject(element: Element, classObj: ClassObject | (string | ClassObject)[]) {
-    const cls = Array.isArray(classObj) ? classes(...classObj) : classes(classObj);
+function setClassObject(
+    element: Element,
+    classObj: ClassObject | (string | ClassObject)[],
+) {
+    const cls = Array.isArray(classObj)
+        ? classes(...classObj)
+        : classes(classObj);
     if (cls) {
         element.setAttribute('class', cls);
     } else {
@@ -31,7 +36,11 @@ function setStyleObject(element: Element, styleObj: StyleObject) {
     }
 }
 
-function setEventListener(element: Element, event: string, listener: DOMEventListener) {
+function setEventListener(
+    element: Element,
+    event: string,
+    listener: DOMEventListener,
+) {
     if (typeof listener === 'function') {
         addEventListener(element, event, listener);
     } else {
@@ -39,12 +48,7 @@ function setEventListener(element: Element, event: string, listener: DOMEventLis
     }
 }
 
-const specialAttrs = new Set([
-    'key',
-    'attached',
-    'detached',
-    'updated',
-]);
+const specialAttrs = new Set(['key', 'attached', 'detached', 'updated']);
 
 export interface PluginSetAttributeProps {
     element: Element;
@@ -55,7 +59,9 @@ export interface PluginSetAttributeProps {
 
 export const PLUGINS_SET_ATTRIBUTE = Symbol();
 
-export const pluginsSetAttribute = createPluginsStore<PluginSetAttributeProps>();
+export const pluginsSetAttribute = createPluginsStore<
+    PluginSetAttributeProps
+>();
 
 export function syncAttrs(element: Element, attrs: NodeAttrs, prev: NodeAttrs) {
     const values = new Map<string, any>();
@@ -74,7 +80,9 @@ export function syncAttrs(element: Element, attrs: NodeAttrs, prev: NodeAttrs) {
                 attr,
                 value,
                 get prev() {
-                    return prev && prev.hasOwnProperty(attr) ? prev[attr] : null;
+                    return prev && prev.hasOwnProperty(attr)
+                        ? prev[attr]
+                        : null;
                 },
             });
             if (result != null) {

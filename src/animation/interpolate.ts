@@ -6,25 +6,31 @@ function interpolate(t: number, from: number, to: number) {
     return from * (1 - t) + to * t;
 }
 
-export const interpolateNumbers: Interpolator<number> = function (from: number, to: number) {
+export const interpolateNumbers: Interpolator<number> = function(
+    from: number,
+    to: number,
+) {
     return (t) => interpolate(t, from, to);
 };
 
 function createNumRegExp() {
-    return /[-+]?(?:\d+\.?\d*|\.?\d+)(?:[e][-+]?\d+)?/igm;
+    return /[-+]?(?:\d+\.?\d*|\.?\d+)(?:[e][-+]?\d+)?/gim;
 }
 
 function getNumPositions(line: string) {
-    const positions: {index: number; length: number;}[] = [];
+    const positions: {index: number; length: number}[] = [];
     const regexp = createNumRegExp();
     let match: RegExpExecArray;
-    while (match = regexp.exec(line)) {
+    while ((match = regexp.exec(line))) {
         positions.push({index: match.index, length: match[0].length});
     }
     return positions;
 }
 
-export const interpolateNumbersInString: Interpolator<string> = function (from: string, to: string) {
+export const interpolateNumbersInString: Interpolator<string> = function(
+    from: string,
+    to: string,
+) {
     const posFrom = getNumPositions(from);
     const posTo = getNumPositions(to);
     return (t) => {

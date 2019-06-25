@@ -7,14 +7,12 @@ export interface PluginSkipAttributeProps {
 
 export const PLUGINS_SKIP_ATTRIBUTE = Symbol();
 
-export const pluginsSkipAttribute = createPluginsStore<PluginSkipAttributeProps, boolean>();
+export const pluginsSkipAttribute = createPluginsStore<
+    PluginSkipAttributeProps,
+    boolean
+>();
 
-const specialAttrs = new Set([
-    'key',
-    'attached',
-    'detached',
-    'updated',
-]);
+const specialAttrs = new Set(['key', 'attached', 'detached', 'updated']);
 
 export function shouldSkipAttribute(attr: string, value: any) {
     if (!pluginsSkipAttribute.empty()) {

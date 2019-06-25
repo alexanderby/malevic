@@ -2,7 +2,11 @@ import {DOMEventListener} from '../defs';
 
 const eventListeners = new WeakMap<Element, Map<string, DOMEventListener>>();
 
-export function addEventListener(element: Element, event: string, listener: DOMEventListener) {
+export function addEventListener(
+    element: Element,
+    event: string,
+    listener: DOMEventListener,
+) {
     let listeners: Map<string, DOMEventListener>;
     if (eventListeners.has(element)) {
         listeners = eventListeners.get(element);

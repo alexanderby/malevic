@@ -49,11 +49,16 @@ export function createVDOM(rootNode: Node): VDOM {
         contexts.set(vnode, {
             parentNode,
             get node() {
-                const linked = passingLinks.get(vnode).find((link) => link.node != null);
+                const linked = passingLinks
+                    .get(vnode)
+                    .find((link) => link.node != null);
                 return linked ? linked.node : null;
             },
             get nodes() {
-                return passingLinks.get(vnode).map((link) => link.node).filter(((node) => node));
+                return passingLinks
+                    .get(vnode)
+                    .map((link) => link.node)
+                    .filter((node) => node);
             },
             get sibling() {
                 if (parentNode === rootNode.parentElement) {
@@ -62,7 +67,7 @@ export function createVDOM(rootNode: Node): VDOM {
 
                 const hub = hubs.get(parentNode);
                 let current = passingLinks.get(vnode).first;
-                while (current = hub.links.before(current)) {
+                while ((current = hub.links.before(current))) {
                     if (current.node) {
                         return current.node;
                     }
@@ -74,7 +79,8 @@ export function createVDOM(rootNode: Node): VDOM {
     }
 
     function setRootVNode(vnode: VNode) {
-        const parentNode = rootNode.parentElement || document.createDocumentFragment();
+        const parentNode =
+            rootNode.parentElement || document.createDocumentFragment();
         const node = rootNode;
         const links = new LinkedList<VLink>({
             parentNode,
@@ -99,12 +105,12 @@ export function createVDOM(rootNode: Node): VDOM {
         }
 
         const isBranch = linkedParents.has(parent);
-        const parentNode = isDOMVNode(parent) ?
-            parent.node :
-            parentNodes.get(parent);
+        const parentNode = isDOMVNode(parent)
+            ? parent.node
+            : parentNodes.get(parent);
         parentNodes.set(vnode, parentNode);
 
-        const vnodeLinks = new LinkedList<VLink>()
+        const vnodeLinks = new LinkedList<VLink>();
         passingLinks.set(vnode, vnodeLinks);
 
         if (isBranch) {
@@ -123,7 +129,9 @@ export function createVDOM(rootNode: Node): VDOM {
         } else {
             linkedParents.add(parent);
 
-            const links = isDOMVNode(parent) ? hubs.get(parentNode).links : passingLinks.get(parent);
+            const links = isDOMVNode(parent)
+                ? hubs.get(parentNode).links
+                : passingLinks.get(parent);
             links.forEach((link) => vnodeLinks.push(link));
         }
 
@@ -137,7 +145,7 @@ export function createVDOM(rootNode: Node): VDOM {
                 }),
             });
 
-            vnodeLinks.forEach((link) => link.node = node);
+            vnodeLinks.forEach((link) => (link.node = node));
         }
 
         creatVNodeContext(vnode);
@@ -198,7 +206,9 @@ export function createVDOM(rootNode: Node): VDOM {
         const parentLinks = passingLinks.get(parent).copy();
         vnode.parent(parent);
         getAncestorsLinks(vnode).forEach((links) => {
-            vnodeLinks.forEach((link) => links.insertBefore(link, parentLinks.first));
+            vnodeLinks.forEach((link) =>
+                links.insertBefore(link, parentLinks.first),
+            );
             parentLinks.forEach((link) => links.delete(link));
         });
     }
@@ -214,7 +224,7 @@ export function createVDOM(rootNode: Node): VDOM {
         replaceVNode,
         adoptVNode,
         isDOMNodeCaptured,
-        LEAVE
+        LEAVE,
     };
 
     return vdom;

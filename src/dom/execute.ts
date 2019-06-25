@@ -2,11 +2,7 @@ import {matchChildren} from './match-children';
 import {VDOM} from './vdom';
 import {VNode} from './vnode';
 
-export function execute(
-    vnode: VNode,
-    old: VNode,
-    vdom: VDOM,
-) {
+export function execute(vnode: VNode, old: VNode, vdom: VDOM) {
     const didMatch = vnode && old && vnode.matches(old);
 
     if (didMatch && vnode.parent() === old.parent()) {

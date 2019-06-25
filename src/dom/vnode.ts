@@ -1,8 +1,20 @@
 import {Spec, NodeSpec, ComponentSpec, Child, RecursiveArray} from '../defs';
-import {addComponentPlugins, deleteComponentPlugins, PluginsStore} from '../plugins';
+import {
+    addComponentPlugins,
+    deleteComponentPlugins,
+    PluginsStore,
+} from '../plugins';
 import {isNodeSpec, isComponentSpec} from '../spec';
-import {createElement, pluginsCreateElement, PLUGINS_CREATE_ELEMENT} from './create-element';
-import {syncAttrs, pluginsSetAttribute, PLUGINS_SET_ATTRIBUTE} from './sync-attrs';
+import {
+    createElement,
+    pluginsCreateElement,
+    PLUGINS_CREATE_ELEMENT,
+} from './create-element';
+import {
+    syncAttrs,
+    pluginsSetAttribute,
+    PLUGINS_SET_ATTRIBUTE,
+} from './sync-attrs';
 import {VNodeContext} from './vdom';
 
 export interface VNode {
@@ -44,24 +56,19 @@ abstract class VNodeBase implements VNode {
         return [];
     }
 
-    attach(context: VNodeContext) {
-    }
+    attach(context: VNodeContext) {}
 
-    detach(context: VNodeContext) {
-    }
+    detach(context: VNodeContext) {}
 
     update(old: VNodeBase, context: VNodeContext) {
         return null;
     }
 
-    attached(context: VNodeContext) {
-    }
+    attached(context: VNodeContext) {}
 
-    detached(context: VNodeContext) {
-    }
+    detached(context: VNodeContext) {}
 
-    updated(context: VNodeContext) {
-    }
+    updated(context: VNodeContext) {}
 }
 
 function nodeMatchesSpec(node: Node, spec: NodeSpec): node is Element {
@@ -80,7 +87,9 @@ class ElementVNode extends VNodeBase {
     }
 
     matches(other: VNode) {
-        return other instanceof ElementVNode && this.spec.type === other.spec.type;
+        return (
+            other instanceof ElementVNode && this.spec.type === other.spec.type
+        );
     }
 
     key() {
@@ -103,8 +112,14 @@ class ElementVNode extends VNodeBase {
             context.vdom.isDOMNodeCaptured(parent)
         ) {
             const sibling = context.sibling;
-            const guess = sibling ? (sibling as Element).nextElementSibling : parent.firstElementChild;
-            if (guess && !context.vdom.isDOMNodeCaptured(guess) && nodeMatchesSpec(guess, this.spec)) {
+            const guess = sibling
+                ? (sibling as Element).nextElementSibling
+                : parent.firstElementChild;
+            if (
+                guess &&
+                !context.vdom.isDOMNodeCaptured(guess) &&
+                nodeMatchesSpec(guess, this.spec)
+            ) {
                 element = guess;
             } else if (guess && !context.vdom.isDOMNodeCaptured(guess)) {
                 parent.removeChild(guess);
@@ -198,7 +213,10 @@ class ComponentVNode extends VNodeBase {
     }
 
     matches(other: VNode) {
-        return other instanceof ComponentVNode && this.spec.type === other.spec.type;
+        return (
+            other instanceof ComponentVNode &&
+            this.spec.type === other.spec.type
+        );
     }
 
     key() {
@@ -224,12 +242,14 @@ class ComponentVNode extends VNodeBase {
                 return context.nodes;
             },
             parent: parentNode as Element,
-            attached: (fn) => store[symbols.ATTACHED] = fn,
-            detached: (fn) => store[symbols.DETACHED] = fn,
-            updated: (fn) => store[symbols.UPDATED] = fn,
+            attached: (fn) => (store[symbols.ATTACHED] = fn),
+            detached: (fn) => (store[symbols.DETACHED] = fn),
+            updated: (fn) => (store[symbols.UPDATED] = fn),
             refresh: () => {
                 if (this.lock) {
-                    throw new Error('Calling refresh during unboxing causes infinite loop');
+                    throw new Error(
+                        'Calling refresh during unboxing causes infinite loop',
+                    );
                 }
 
                 this.prev = this.spec;
@@ -348,10 +368,17 @@ class TextVNode extends VNodeBase {
         let node: Node;
         if (context.node instanceof Text) {
             node = context.node;
-        } else if (!refinedElements.has(parent) && context.vdom.isDOMNodeCaptured(parent)) {
+        } else if (
+            !refinedElements.has(parent) &&
+            context.vdom.isDOMNodeCaptured(parent)
+        ) {
             const sibling = context.sibling;
             const guess = sibling ? sibling.nextSibling : parent.firstChild;
-            if (guess && !context.vdom.isDOMNodeCaptured(guess) && guess instanceof Text) {
+            if (
+                guess &&
+                !context.vdom.isDOMNodeCaptured(guess) &&
+                guess instanceof Text
+            ) {
                 node = guess;
             }
         }
@@ -403,7 +430,9 @@ class DOMVNode extends VNodeBase {
     }
 
     private wrap() {
-        this.childVNodes = this.childSpecs.map((spec) => createVNode(spec, this));
+        this.childVNodes = this.childSpecs.map((spec) =>
+            createVNode(spec, this),
+        );
     }
 
     private insertNode(context: VNodeContext) {
@@ -413,9 +442,7 @@ class DOMVNode extends VNodeBase {
             sibling === this.node.previousSibling
         );
         if (shouldInsert) {
-            const target = sibling ?
-                sibling.nextSibling :
-                parent.firstChild;
+            const target = sibling ? sibling.nextSibling : parent.firstChild;
             parent.insertBefore(this.node, target);
         }
     }
@@ -438,10 +465,7 @@ class DOMVNode extends VNodeBase {
 
     private refine(context: VNodeContext) {
         const element = this.node as Element;
-        for (
-            let current: Node = element.lastChild;
-            current != null;
-        ) {
+        for (let current: Node = element.lastChild; current != null; ) {
             if (context.vdom.isDOMNodeCaptured(current)) {
                 current = current.previousSibling;
             } else {
@@ -509,7 +533,10 @@ class ArrayVNode extends VNodeBase {
     }
 }
 
-export function createVNode(spec: Child | RecursiveArray<Child>, parent: VNode): VNode {
+export function createVNode(
+    spec: Child | RecursiveArray<Child>,
+    parent: VNode,
+): VNode {
     if (isNodeSpec(spec)) {
         return new ElementVNode(spec, parent);
     }

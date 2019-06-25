@@ -11,7 +11,9 @@ type UseStateFn<T> = (initialState: T) => StateWrapper<T>;
 
 let currentUseStateFn: UseStateFn<any> = null;
 
-export function useState<T extends {[prop: string]: any}>(initialState: T): StateWrapper<T> {
+export function useState<T extends {[prop: string]: any}>(
+    initialState: T,
+): StateWrapper<T> {
     return currentUseStateFn(initialState);
 }
 
@@ -21,7 +23,9 @@ export function withState<T extends Component>(type: T): T {
 
         const setState = (newState: any) => {
             if (lock) {
-                throw new Error('Setting state during unboxing causes infinite loop');
+                throw new Error(
+                    'Setting state during unboxing causes infinite loop',
+                );
             }
             store.state = {...store.state, ...newState};
             refresh();

@@ -1,14 +1,25 @@
 import {NodeSpec, Child, RecursiveArray, ComponentSpec} from '../defs';
-import {addComponentPlugins, deleteComponentPlugins, PluginsStore} from '../plugins';
+import {
+    addComponentPlugins,
+    deleteComponentPlugins,
+    PluginsStore,
+} from '../plugins';
 import {isNodeSpec, isComponentSpec} from '../spec';
-import {stringifyAttribute, pluginsStringifyAttribute, PLUGINS_STRINGIFY_ATTRIBUTE} from './attr';
+import {
+    stringifyAttribute,
+    pluginsStringifyAttribute,
+    PLUGINS_STRINGIFY_ATTRIBUTE,
+} from './attr';
 import {escapeHTML} from './escape';
-import {shouldSkipAttribute, pluginsSkipAttribute, PLUGINS_SKIP_ATTRIBUTE} from './skip-attr';
+import {
+    shouldSkipAttribute,
+    pluginsSkipAttribute,
+    PLUGINS_SKIP_ATTRIBUTE,
+} from './skip-attr';
 import {processText} from './text';
 import {isVoidTag, pluginsIsVoidTag, PLUGINS_IS_VOID_TAG} from './void';
 
-interface ComponentStringContext {
-}
+interface ComponentStringContext {}
 
 let currentContext: ComponentStringContext = null;
 
@@ -60,7 +71,9 @@ class VElement extends VNode {
         this.attrs = new Map();
         Object.entries(spec.props)
             .filter(([attr, value]) => !shouldSkipAttribute(attr, value))
-            .forEach(([attr, value]) => this.attrs.set(attr, stringifyAttribute(attr, value)));
+            .forEach(([attr, value]) =>
+                this.attrs.set(attr, stringifyAttribute(attr, value)),
+            );
         this.isVoid = isVoidTag(this.tag);
     }
 
@@ -69,7 +82,9 @@ class VElement extends VNode {
 
         const left = leftPad(indent, depth);
         const attrs = Array.from(this.attrs.entries())
-            .map(([attr, value]) => value === '' ? attr : `${attr}="${value}"`)
+            .map(([attr, value]) =>
+                value === '' ? attr : `${attr}="${value}"`,
+            )
             .join(' ');
         const open = `${left}<${this.tag}${attrs ? ` ${attrs}` : ''}>`;
 
@@ -84,10 +99,17 @@ class VElement extends VNode {
                 this.children[0] instanceof VText &&
                 !(this.children[0] as VText).text.includes('\n')
             ) {
-                lines.push(`${open}${this.children[0].stringify({indent, depth: 0})}${close}`);
+                lines.push(
+                    `${open}${this.children[0].stringify({
+                        indent,
+                        depth: 0,
+                    })}${close}`,
+                );
             } else {
                 lines.push(open);
-                this.children.forEach((child) => lines.push(child.stringify({indent, depth: depth + 1})));
+                this.children.forEach((child) =>
+                    lines.push(child.stringify({indent, depth: depth + 1})),
+                );
                 lines.push(`${left}${close}`);
             }
         }

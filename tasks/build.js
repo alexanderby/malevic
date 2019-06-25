@@ -4,7 +4,12 @@ const rollupPluginUglify = require('rollup-plugin-uglify');
 const typescript = require('typescript');
 const package = require('../package');
 
-const date = (new Date()).toLocaleDateString('en-us', {month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC'});
+const date = new Date().toLocaleDateString('en-us', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+});
 const banner = `/* ${package.name}@${package.version} - ${date} */`;
 
 async function buildJS({
@@ -22,13 +27,20 @@ async function buildJS({
         input: src,
         external: dependencies ? Object.keys(dependencies) : null,
         plugins: [
-            rollupPluginTypescript(Object.assign({
-                typescript,
-                removeComments: true
-            }, ts)),
-            minify ? rollupPluginUglify.uglify({
-                output: {preamble: banner}
-            }) : null
+            rollupPluginTypescript(
+                Object.assign(
+                    {
+                        typescript,
+                        removeComments: true,
+                    },
+                    ts,
+                ),
+            ),
+            minify
+                ? rollupPluginUglify.uglify({
+                      output: {preamble: banner},
+                  })
+                : null,
         ].filter((p) => p),
     });
 
@@ -51,7 +63,7 @@ async function buildPackage({src, esm, umd, min, global, dependencies = {}}) {
             dest: esm,
             dependencies,
             moduleFormat: 'es',
-            ts: {target: 'es2015'}
+            ts: {target: 'es2015'},
         }),
         buildJS({
             src,
@@ -59,7 +71,7 @@ async function buildPackage({src, esm, umd, min, global, dependencies = {}}) {
             dependencies,
             globalName: global,
             moduleFormat: 'umd',
-            ts: {target: 'es5'}
+            ts: {target: 'es5'},
         }),
         buildJS({
             src,
@@ -68,7 +80,7 @@ async function buildPackage({src, esm, umd, min, global, dependencies = {}}) {
             dependencies,
             globalName: global,
             moduleFormat: 'umd',
-            ts: {target: 'es5'}
+            ts: {target: 'es5'},
         }),
     ]);
 }
@@ -131,19 +143,18 @@ async function release() {
 }
 
 async function examples() {
-    await buildJS(
-        {
-            src: './examples/index.tsx',
-            dest: './examples/index.js',
-            moduleFormat: 'iife',
-            moduleExports: 'none',
-            sourceMaps: 'inline',
-            ts: {
-                target: 'es5',
-                jsx: 'react',
-                jsxFactory: 'm'
-            },
-        });
+    await buildJS({
+        src: './examples/index.tsx',
+        dest: './examples/index.js',
+        moduleFormat: 'iife',
+        moduleExports: 'none',
+        sourceMaps: 'inline',
+        ts: {
+            target: 'es5',
+            jsx: 'react',
+            jsxFactory: 'm',
+        },
+    });
 }
 
 async function run() {

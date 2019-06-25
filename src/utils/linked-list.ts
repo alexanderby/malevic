@@ -60,7 +60,7 @@ export class LinkedList<T extends {}> {
             if (iterator(current)) {
                 break;
             }
-        } while (current = this.after(current));
+        } while ((current = this.after(current)));
     }
 
     copy() {

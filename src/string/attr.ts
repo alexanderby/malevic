@@ -10,7 +10,10 @@ export interface PluginStringifyAttributeProps {
 
 export const PLUGINS_STRINGIFY_ATTRIBUTE = Symbol();
 
-export const pluginsStringifyAttribute = createPluginsStore<PluginStringifyAttributeProps, string>();
+export const pluginsStringifyAttribute = createPluginsStore<
+    PluginStringifyAttributeProps,
+    string
+>();
 
 export function stringifyAttribute(attr: string, value: any) {
     if (!pluginsStringifyAttribute.empty()) {

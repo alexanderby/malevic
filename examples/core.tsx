@@ -5,40 +5,26 @@ function Heading({text}) {
     return <h3>{text}</h3>;
 }
 
-function Button(props: {text: string, onClick: () => void}) {
-    return (
-        <button onclick={(e) => props.onClick()} >
-            {props.text}
-        </button>
-    );
+function Button(props: {text: string; onClick: () => void}) {
+    return <button onclick={(e) => props.onClick()}>{props.text}</button>;
 }
 
 function PrintSize() {
     const width = document.documentElement.clientWidth;
     const height = document.documentElement.clientHeight;
-    return (
-        <h4>
-            {`Window: ${width}x${height}`}
-        </h4>
-    );
+    return <h4>{`Window: ${width}x${height}`}</h4>;
 }
 
-function View(props: {
-    count: number;
-    onIncrement: () => void;
-}) {
+function View(props: {count: number; onIncrement: () => void}) {
     const {parent} = getContext();
     const rect = parent.getBoundingClientRect();
 
     return (
-        <div class='view' style={{width: '300px', height: '200px'}}>
+        <div class="view" style={{width: '300px', height: '200px'}}>
             <PrintSize />
             <Heading text={`View: ${rect.width}x${rect.height}`} />
             <Heading text={`Count: ${props.count}`} />
-            <Button
-                onClick={props.onIncrement}
-                text='Increment'
-            />
+            <Button onClick={props.onIncrement} text="Increment" />
         </div>
     );
 }
@@ -54,7 +40,7 @@ function setState(newState) {
             onIncrement={() => {
                 setState({count: state.count + 1});
             }}
-        />
+        />,
     );
 }
 
