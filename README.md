@@ -3,7 +3,7 @@
 Minimalistic reactive UI library.
 As simple as possible.
 Extendable.
-*8KB minified (13KB with animations)*.
+*5KB gzipped (7KB with animations)*.
 
 ![Malevič.js logo](https://rawgit.com/alexanderby/malevic/master/logo-256x256.svg)
 
@@ -16,15 +16,16 @@ Suitable for building framework-independent dynamic widgets as well as small web
 
 ## Basic example
 
-- `m()` function creates DOM element declaration that looks like `{type, attrs, children}`.
-- `render()` function renders nodes inside a DOM element.
-If differences with existing DOM nodes are found,
-necessary nodes or attributes are replaced.
+- `m()` function creates a DOM node specification that looks like `{type, props, children}`.
+- `render()` function synchronizes a DOM node with specification.
+If differences are found,
+then necessary children or attributes are replaced.
 
 ```javascript
-import {m, render} from 'malevic';
+import {m} from 'malevic';
+import {render} from 'malevic/dom';
 
-render(document.body, (
+const h3 = render(document.createElement('h3'), (
     m('h3', {class: 'heading'},
         'Hello, World!'
     )
@@ -54,42 +55,266 @@ render(document.body, (
 }
 ```
 
-Component written with JSX will look like:
+Component written in JSX will look like:
 ```jsx
-import {m, render} from 'malevic';
+import {m} from 'malevic';
+import {render} from 'malevic/dom';
 
-function Button({label, handler}) {
+function Button({handler}, ...children) {
     return (
         <button class="x-button" onclick={handler}>
-            {label}
+            {...children}
         </button>
     );
 }
 
 render(document.body, (
-    <Button
-        label="Click me"
-        handler={(e) => alert(e.target)}
-    />
+    <body>
+        <Button handler={(e) => alert(e.target)}>
+            Click me
+        </Button>
+    </body>
 ));
 ```
 
-`m` is a factory function for creating declaration tree from JSX, so `import {m} from 'malevic';` should be included in every JSX or TSX file.
+`m` is a factory function for creating a spec tree from JSX, so `import {m} from 'malevic';` should be included in every JSX or TSX file.
+
+## Listening to events
+
+If attribute starts with `on`,
+a corresponding event listener is added to a DOM element
+(or removed if value is `null`).
+
+```jsx
+<button onclick={(e) => alert(e.target)} />
+```
+
+ ## Getting DOM node before rendering	
+
+ It is possible to get parent DOM node and target DOM node (if it was already rendered) before updating DOM tree.
+ For doing so `getContext` function is used.	
+
+ ```jsx	
+import {m} from 'malevic';
+import {render, getContext} from 'malevic/dom';
+
+function App() {
+    const context = getContext();
+    const {parent, node} = context;
+    const rect = parent.getBoundingClientRect();
+    return (<body>
+        <header></header>
+        <main>
+            <h3>Size</h3>
+            <p>{`Width: ${rect.width}`}</p>
+            <p>{`Height: ${rect.height}`}</p>
+        </main>
+        <footer></footer>
+    </body>);
+}
+
+render(document.body, <App/>);	
+```
+
+If component creates multiple DOM nodes, `context.nodes` property will return all of them
+(when compoent will be rendered the next time):
+
+```jsx
+function Many({items}) {
+    const {nodes} = getContext(); // [header, span, span, footer]
+    return (
+        <Array>
+            <header/>
+            {...items.map((item) => <span>{item}</span>)}
+            <footer/>
+        </Array>
+    );
+}
+```
+
+## Manipulating class list and styles
+
+- Possible **class** attribute values:
+
+```jsx
+<div
+    class="view active"
+    class={['view', null, 'active']}
+    class={{'view': true, 'active': props.isActive}}
+/>
+```
+- Possible **style** attribute values:
+```jsx
+<div
+    style="background: red !important; left: 0;"
+    style={{'background': 'red !important', 'left': 0}}
+/>
+```
+
+## Lifecycle management
+
+- `attached` handler will be invoked after DOM node is created and appended to parent.
+- `updated` handler will be invoked after all attributes of existing DOM node were synchronized.
+- `detached` handler will be invoked after DOM node was removed.
+
+```jsx
+function Heading() {
+    return (
+        <h4
+            native
+            attached={(domNode) => {
+                domNode.classList.add('rendered');
+                domNode.textContent = 'Hello';
+            }}
+        ></h4>
+    );
+}
+render(document.body, <body><Heading /></body>);
+```
+
+It is possible to assign lifecycle handlers for components as well:
+
+```jsx
+function Component() {
+    const context = getContext();
+
+    context.attached((domNode) => domNode.classList.add('init'));
+    context.detached((domNode) => domNode.parentNode == null);
+    context.updated((domNode) => domNode === context.node;
+
+    return <div>Hello</div>;
+}
+```
+
+## Optimizing component re-renders
+
+When virtual DOM checks should be skipped, `context.leave()` function could be used.
+
+```jsx
+function Component(props) {
+    const {prev} = getContext();
+
+    if (prev && prev.props.value === props.value) {
+        return context.leave();
+    }
+
+    return <Nested value={props.value} />;
+}
+```
+
+Here `context.prev` property returns the previous component specification.
+
+## Virtual nodes matching
+
+By default virtual children are matched by component type or element tag name. The `key` property should be used to prevent detaching virtual nodes when children order changes:
+
+```jsx
+render(target, (
+    <List>
+        <Item key={0} />
+        <Item key={1} />
+        <Item key={2} />
+    </List>
+));
+// Attached items: 0, 1, 2
+
+render(target, (
+    <List>
+        <Item key={3} />
+        <Item key={2} />
+        <Item key={1} />
+    </List>
+));
+// Attached items: 3
+// Detached items: 0
+// Updated items: 1, 2
+```
+
+Any value can be used for a `key`, matching is done by strict `===` comparison.
+
+## Using DOM node as a child
+
+Yes. You can just create a DOM node and it will be later injected into the DOM tree:
+
+```jsx
+function Component({class: className}) {
+    let {node} = getContext();
+    if (!node) {
+        node = document.createElement('div');
+    }
+    node.className = className;
+    return node;
+}
+
+render(document.body, (
+    <body>
+        <Component class="native" />
+    </body>
+));
+```
+
+Other possible spec child types are:
+- Object where `type` is a string (will create DOM element).
+- Object where `type` is a function (will invoke a component).
+- Array or object with `type` equal to Array constructor.
+- String (will create a text node).
+- `null` (will leave a placeholder for future nodes).
+
+## Server-side rendering
+
+Malevič.js can simply render inside existing HTML
+without unnecessary DOM tree modifications.
+
+```jsx
+import {m} from 'malevic';
+import {stringify} from 'malevic/string';
+import {createServer} from 'http';
+import App from './app';
+
+createServer((request, response) => response.end(`<!DOCTYPE html>
+<html>
+<head></head>
+${renderToString(
+    <body>
+        <App state={{}} />
+    </body>
+, {indent: '  '})}
+</html>`));
+```
+
+Sometimes a component is tied to DOM and cannot be converted to string properly. `isStringifying` function comes for rescue:
+
+```jsx
+import {m} from 'malevic';
+import {getContext} from 'malevic/dom';
+import {isStringifying} from 'malevic/string';
+
+function Component() {
+    if (isStringifying()) {
+        return <div class="target" />;
+    }
+
+    const {parent} = getContext();
+    const rect = parent.getBoundingClientRect();
+    return <div
+        class="target"
+        style={{width: `${rect.width}px`}}
+    />
+}
+```
 
 ## Animation plug-in
 
-There is a built-in animation plug-in.
-It makes possible to schedule animations like
-`attr={animate(to).initial(from).duration(ms).easing('ease-in-out').interpolate((from,to)=>(t)=>string)}`.
+There is a built-in animation plug-in,
+which makes it possible to schedule attribute animations.
 
 ```jsx
-import {m, render} from 'malevic';
-import withAnimation, {animate} from 'malevic/animation';
+import {m} from 'malevic';
+import {render} from 'malevic/dom';
+import {withAnimation, animate} from 'malevic/animation';
 
-withAnimation();
-
-render(document.body, (
-    <svg width={100} height={100}>
+const Chart = withAnimation(({width, height}) => (
+    <svg width={width} height={height}>
         <circle
             r={5}
             fill="red"
@@ -105,25 +330,34 @@ render(document.body, (
         />
     </svg>
 ));
+
+render(document.body, (
+    <body>
+        <Chart width={200} height={150} />
+    </body>
+));
+
+
 ```
 
 It is possible to animate separate style properties:
 ```jsx
-function Tooltip({text, color, isVisible, x, y}) {
+const Tooltip = withAnimation(({text, color, isVisible, x, y}) => {
     return (
         <div
             class={['tooltip', {'visible': isVisible}]}
             style={{
                 'transform': animate(`translate(${x}px, ${y}px)`),
                 'background-color': animate(color)
-                    .interpolate(interpolateRGB)
+                    .interpolate(d3.interpolateRgb)
             }}
         ></div>
     );
-}
+});
 ```
 
-Built-in interpolator can interpolate between numbers and strings containing numbers with floating points. For other cases (e.g. colors) use custom interpolators:
+Built-in interpolator can interpolate between numbers and strings containing numbers with floating points.
+For other cases (e.g. colors) please use custom interpolators:
 ```jsx
 <rect
     fill={animate([255, 255, 0])
@@ -146,12 +380,13 @@ Built-in interpolator can interpolate between numbers and strings containing num
 State plug-in lets re-render a subtree in response for interaction:	
 ```jsx	
 import {m} from 'malevic';	
-import withState, {useState} from 'malevic/state';	
-function Stateful({items}) {
+import {withState, useState} from 'malevic/state';	
+
+export const Stateful = withState(({items}) => {
     const {state, setState} = useState({isExpanded: false});
     return (	
         <div>	
-            <button onclick={() => setState({isExpanded: true})}>	
+            <button onclick={() => setState({isExpanded: !state.isExpanded})}>	
                 Expand	
             </button>	
             <ul class={{'expanded': state.isExpanded}}>	
@@ -159,24 +394,50 @@ function Stateful({items}) {
             </ul>	
         </div>	
     );	
-}	
-export default withState(Stateful);	
-```	
+});
+```
 
 Initial state should be passed to `useState` function.
 `setState` should not be called inside a component,
 only in event handlers or async callbacks.
+
+State plug-in is a shorthand for manipulating `context.store` property and `context.refresh()` method.
+
+`context.store` is an object that is transferred between matched virtual nodes. Any values can be stored there and used when next component unboxing happens.
+
+`context.refresh()` function refreshes a part of the virtual DOM. It should not be called during the component unboxing.
+
+```jsx
+import {m} from 'malevic';	
+import {getContext} from 'malevic/dom';	
+
+function Stateful(({items}) {
+    const context = getContext();
+    const {store} = context;
+    return (	
+        <div>	
+            <button onclick={() => {
+                context.store.isExpanded = !store.isExpanded;
+                context.refresh();
+            }}>	
+                Expand	
+            </button>	
+            <ul class={{'expanded': store.isExpanded}}>	
+                {items.map((text) => <li>{text}</li>)}	
+            </ul>	
+        </div>	
+    );	
+});
+```
 
 ## Forms plug-in
 
 Forms plug-in makes form elements work in reactive manner:
 ```jsx
 import {m} from 'malevic';
-import withForms from 'malevic/forms';
+import {withForms} from 'malevic/forms';
 
-withForms();
-
-function Form({checked, text, num, onCheckChange, onTextChange, onNumChange}) {
+const Form = withForms(({checked, text, num, onCheckChange, onTextChange, onNumChange}) => {
     return (
         <form onsubmit={(e) => e.preventDefault()}>
             <input
@@ -188,10 +449,14 @@ function Form({checked, text, num, onCheckChange, onTextChange, onNumChange}) {
                 type="number"
                 value={num}
                 readonly={!checked}
-                onchange={(e) => !isNaN(e.target.value) && onNumChange(e.target.value)}
+                onchange={(e) => {
+                    if (!isNaN(e.target.valueAsNumber)) {
+                        onNumChange(e.target.valueAsNumber);
+                    }
+                }}
                 onkeypress={(e) => {
-                    if (e.keyCode === 13 && !isNaN(e.target.value)) {
-                        onNumChange(e.target.value);
+                    if (e.code === 'Enter' && !isNaN(e.target.valueAsNumber)) {
+                        onNumChange(e.target.valueAsNumber);
                     }
                 }}
             />
@@ -200,168 +465,56 @@ function Form({checked, text, num, onCheckChange, onTextChange, onNumChange}) {
             </textarea>
         </form>
     );
-}
+});
 ```
 
-## Listening to events
-
-If attribute starts with `on`,
-the corresponding event listener is added to DOM element
-(or removed if value is `null`).
-
- ## Getting DOM node before rendering	
-
- It is possible to get parent DOM node or target DOM node (if it was already rendered) before updating DOM tree. For doing so use `getParentDOMNode` and `getDOMNode` functions.	
-
- ```jsx	
-import {m, render, getParentDOMNode} from 'malevic';
-
-function inline(fn) {
-    // Make it possible to put component functions inline
-    return {type: fn, attrs: null, children: []};
-}
-
-render(document.body, (	
-    <main>	
-        <header></header>
-        {inline(() => {
-            const parent = getParentDOMNode();
-            const rect = parent.getBoundingClientRect();	
-            return [	
-                <h3>Size</h3>,	
-                <p>{`Width: ${rect.width}`}</p>,	
-                <p>{`Height: ${rect.height}`}</p>	
-            ];	
-        })}
-        <footer></footer>	
-    </main>	
-));	
-```
-
-## Assigning data to element
-
-`data` attribute assigns data to DOM element.
-It can be retrieved in event handlers by calling `getData(domElement)`.
-This can be useful for event delegation.
-
-```jsx
-import {m, getData} from 'malevic';
-
-function ListItem(props) {
-    return <li class="list__item" data={props.data} />;
-}
-
-function List(props) {
-    return (
-        <ul
-            class="list"
-            onclick={(e) => {
-                const data = getData(e.target);
-                props.onClick(data);
-            }}
-        >
-            {...props.items.map(ListItem)}
-        </ul>
-    );
-}
-```
-
-## Syncing with existing DOM element
-```jsx
-import {m, sync} from 'malevic';
-
-sync(document.body, (
-    <body class={{'popup-open': state.isPopupOpen}}>
-        <main />
-    </body>
-));
-```
-
-## Manipulating class list and styles
-
-- Possible **class** attribute values: `class="view active"`, `class={['view', 'active']}`, `class={{'view': true, 'active': props.isActive}}`.
-- Possible **style** attribute values: `style="background: red; left: 0;"`, `style={{'background': 'red', 'left': 0}}`.
-
-## Lifecycle management
-
-- `didmount` handler will be invoked after DOM node is created and appended to parent.
-- `didupdate` handler will be invoked after all attributes of existing DOM node were synchronized.
-- `willunmount` handler will be invoked before DOM node is removed.
-- `native` set to `true` will prevent Malevič.js from touching DOM node's children.
-
-```jsx
-function PrintSize() {
-    return (
-        <h4
-            native
-            didmount={(domNode) => {
-                const width = document.documentElement.clientWidth;
-                const height = document.documentElement.clientHeight;
-                domNode.textContent = `${width}x${height}`;
-            }}
-        ></h4>
-    );
-}
-render(document.body, <PrintSize />);
-```
-
-## Server-side rendering
-
-Malevič.js can simply render inside existing HTML
-without unnecessary DOM tree modifications.
-
-```jsx
-import {m, renderToString} from 'malevic';
-import {createServer} from 'http';
-import App from './app';
-
-createServer((request, response) => response.end(`<!DOCTYPE html>
-<html>
-<head></head>
-${renderToString(
-    <body>
-        <App state={{}} />
-    </body>
-)}
-</html>`));
-```
-
-## Plug-ins
+## Custom plug-ins
 
 There is API for adding custom logic
 and making things more complex.
-- `Plugins.add()` method extends plugins list.
+- `Plugins.add(Component, plugin)` method extends plugins list.
 - If plugin returns `null` or `undefined` the next plugin (added earlier) will be used.
 
 Extendable plug-ins:
-- `render.createNode` creates DOM node.
-- `render.matchNodes` matches declarations with existing DOM nodes.
-- `render.mountNode` inserts created node into DOM.
-- `render.setAttribute` sets element's attribute.
-- `render.unmountNode` removes node from DOM.
-- `static.isVoidTag` determines if self-closing tag should be used.
-- `static.processText` returns text content.
-- `static.skipAttr` determines whether attribute should be skipped.
-- `static.stringifyAttr` converts attribute to string.
+- `dom.createElement` creates DOM element.
+- `dom.setAttribute` sets DOM element's attribute.
+- `string.isVoidTag` determines if HTML tag is void (empty) and cannot have closing tag.
+- `string.skipAttribute` determines whether attribute should be skipped.
+- `string.stringifyAttribute` converts attribute value to string.
+**To prevent XSS attacks always use `escapeHTML` function**.
 
 ```javascript
-import {plugins, classes} from 'malevic';
+import {plugins} from 'malevic/dom';
+
+const Component = () => <div/>;
 
 const map = new WeakMap();
 
-plugins.render.setAttribute
-    .add(function ({element, attr, value}) {
-        if (attr === 'data') {
-            map.set(element, data);
-            return true;
-        }
-        return null;
-    })
-    .add(function ({element, attr, value}) {
-        if (attr === 'class' && typeof value === 'object') {
-            element.setAttribute('class', classes(value));
+plugins.setAttribute
+    .add(Component, ({element, attr, value, prev}) => {
+        if (attr === 'data' && value !== prev) {
+            map.set(element, value);
             return true;
         }
         return null;
     });
+
+const div = render(
+    document.createElement('div'),
+    <Component data={5} />
+);
+
+map.get(div) === 5;
 ```
+
+## Breaking changes since version 0.12
+
+Everything was broken up:
+- `render` function now works as a `sync`.
+- Built-in ability to read previous props and store state.
+- Parent and target DOM nodes can be retrieved using `getContext()` function.
+- Lifecycle methods were renamed from `didmount`, `didupdate` and `willunmount` to `attached`, `updated` and `detached` (called after DOM node removal).
+- Components can return arrays.
+- `native` attribute was removed, just use a DOM node as a child.
+- Added ability to leave a component without changes.
+- Limited plug-ins scope.

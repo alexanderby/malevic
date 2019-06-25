@@ -45,6 +45,27 @@ test('spec', () => {
         ]
     });
 
+    expect(
+        <Array>
+            <header />
+            {...([1, 2, 3].map((n) => <div>{String(n)}</div>))}
+            <footer />
+        </Array>
+    ).toEqual({
+        type: Array,
+        props: {},
+        children: [
+            {type: 'header', props: {}, children: []},
+            // hmmm, why it was wrapped into an array?
+            [
+                {type: 'div', props: {}, children: ['1']},
+                {type: 'div', props: {}, children: ['2']},
+                {type: 'div', props: {}, children: ['3']},
+            ],
+            {type: 'footer', props: {}, children: []},
+        ]
+    });
+
     const C = {} as any;
     expect(() => <C />).toThrow(/Unsupported spec type/);
 });
