@@ -191,6 +191,7 @@ declare namespace JSX {
     interface IntrinsicElements {
         [tag: string]: Malevic.NodeAttrs;
         input: Malevic.NodeAttrs<HTMLInputElement, HTMLInputElement> & {
+            value?: any;
             onchange?: (this: HTMLInputElement, e: Event & {target: HTMLInputElement}) => void;
             oninput?: (this: HTMLInputElement, e: Event & {target: HTMLInputElement}) => void;
         };
