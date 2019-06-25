@@ -206,7 +206,7 @@ class ComponentVNode extends VNodeBase {
     }
 
     children() {
-        return this.child ? [this.child] : [];
+        return [this.child];
     }
 
     private createContext(context: VNodeContext) {
@@ -237,7 +237,7 @@ class ComponentVNode extends VNodeBase {
 
                 const prevChild = this.child;
                 this.child = createVNode(unboxed, this);
-                context.vdom.execute(this.child, prevChild || null);
+                context.vdom.execute(this.child, prevChild);
             },
             leave: () => context.vdom.LEAVE,
         };

@@ -60,7 +60,7 @@ export const pluginsSetAttribute = createPluginsStore<PluginSetAttributeProps>()
 export function syncAttrs(element: Element, attrs: NodeAttrs, prev: NodeAttrs) {
     const values = new Map<string, any>();
 
-    const newKeys = new Set(Object.keys(attrs || {}));
+    const newKeys = new Set(Object.keys(attrs));
     const oldKeys = prev ? Object.keys(prev) : [];
     oldKeys
         .filter((key) => !newKeys.has(key))

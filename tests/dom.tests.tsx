@@ -77,7 +77,7 @@ describe('DOM', () => {
         const result1 = render(target, (
             m('div', {class: 'c1'},
                 null,
-                m('span', {class: 's1'},
+                m('textarea', {readonly: true},
                     'Hello',
                 ),
                 ' ',
@@ -88,19 +88,20 @@ describe('DOM', () => {
         ));
 
         expect(result1.childNodes.length).toBe(3);
-        expect(result1.childNodes.item(0)).toBeInstanceOf(HTMLSpanElement);
+        expect(result1.childNodes.item(0)).toBeInstanceOf(HTMLTextAreaElement);
+        expect((result1.childNodes.item(0) as HTMLTextAreaElement).readOnly).toBe(true);
         expect(result1.childNodes.item(1)).toBeInstanceOf(Text);
         expect(result1.childNodes.item(2)).toBeInstanceOf(HTMLSpanElement);
 
-        const span1 = result1.childNodes.item(0);
-        const text1 = span1.childNodes.item(0);
+        const area = result1.childNodes.item(0);
+        const text = area.childNodes.item(0);
         const space = result1.childNodes.item(1);
-        const span2 = result1.childNodes.item(2);
+        const span = result1.childNodes.item(2);
 
         const result2 = render(target, (
             m('div', {class: 'c2'},
                 m('br', null),
-                m('span', null,
+                m('textarea', null,
                     'Aloha',
                 ),
                 ' ',
@@ -114,16 +115,19 @@ describe('DOM', () => {
         expect(result2.className).toBe('c2');
         expect(result2.childNodes.length).toBe(4);
         expect(result2.childNodes.item(0)).toBeInstanceOf(HTMLBRElement);
-        expect(result2.childNodes.item(1)).toBeInstanceOf(HTMLSpanElement);
-        expect(result2.childNodes.item(1)).toBe(span1);
-        expect(result2.childNodes.item(1).firstChild).toBe(text1);
+        expect(result2.childNodes.item(1)).toBeInstanceOf(HTMLTextAreaElement);
+        expect((result1.childNodes.item(1) as HTMLTextAreaElement).className).toBe('');
+        expect((result1.childNodes.item(1) as HTMLTextAreaElement).readOnly).toBe(false);
+        expect(result2.childNodes.item(1)).toBe(area);
+        expect(result2.childNodes.item(1)).toBe(area);
+        expect(result2.childNodes.item(1).firstChild).toBe(text);
         expect(result2.childNodes.item(1).textContent).toBe('Aloha');
         expect(result2.childNodes.item(2)).toBeInstanceOf(Text);
         expect(result2.childNodes.item(2).textContent).toBe(' ');
         expect(result2.childNodes.item(2)).toBe(space);
         expect(result2.childNodes.item(3)).toBeInstanceOf(HTMLDivElement);
         expect(result2.childNodes.item(3).textContent).toBe('World!');
-        expect(span2.parentElement).toBe(null);
+        expect(span.parentElement).toBe(null);
 
         cleanup();
 
@@ -272,6 +276,10 @@ describe('DOM', () => {
                 spec,
                 prev,
             } = getContext();
+            expect(parent).toBe(target);
+            expect(spec.type).toBe(Component);
+            expect(spec.props).toEqual(props);
+            expect(spec.children).toEqual(children);
             const {count = 0} = store;
 
             return m(Array, null,
@@ -985,6 +993,14 @@ describe('DOM', () => {
                     }
                     return true;
                 }
+                return null;
+            });
+            plugins.setAttribute.add(Component, ({element, attr, value}) => {
+                if (attr === 'bg') {
+                    (element as HTMLElement).style.background = value;
+                    return true;
+                }
+                return null;
             });
             return Component;
         };
@@ -998,7 +1014,7 @@ describe('DOM', () => {
                 m(Colored, {color: [0, 0, 0]},
                     m('span', {color: null}),
                     m(Colored, {color: [128, 128, 128]},
-                        m('span', {color: [0, 0, 0]}),
+                        m('span', {color: [0, 0, 0], bg: 'black'}),
                     ),
                     m('span', {color: [255, 128, 0]}),
                 ),
@@ -1017,7 +1033,7 @@ describe('DOM', () => {
         expect(target.children[0].children[1].hasAttribute('color')).toBe(false);
         expect(target.children[0].children[1].getAttribute('style')).toBe('color: rgb(128, 128, 128);');
         expect(target.children[0].children[1].children[0].hasAttribute('color')).toBe(false);
-        expect(target.children[0].children[1].children[0].getAttribute('style')).toBe('color: rgb(0, 0, 0);');
+        expect(target.children[0].children[1].children[0].getAttribute('style')).toBe('color: rgb(0, 0, 0); background: black;');
         expect(target.children[0].children[2].hasAttribute('color')).toBe(false);
         expect(target.children[0].children[2].getAttribute('style')).toBe('color: rgb(255, 128, 0);');
         expect(target.children[1].getAttribute('color')).toBe('0,128,255');

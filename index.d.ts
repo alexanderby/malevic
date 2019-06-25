@@ -127,7 +127,7 @@ declare namespace Malevic {
 
     namespace State {
 
-        function useState<S>(initialState: S): {
+        function useState<S extends {[prop: string]: any}>(initialState: S): {
             state: S;
             setState: (newState: Partial<S>) => void;
         }
