@@ -10,6 +10,9 @@ import {
     Interpolator,
 } from './interpolate';
 
+// TODO: Use `style.setPropertyValue`.
+// TODO: Ignore rare use cases.
+
 export function withAnimation<T extends Component>(type: T): T {
     domPlugins && domPlugins.setAttribute
         .add(type, ({element, attr, value, prev}) => {
@@ -148,12 +151,12 @@ function scheduleAnimation(element: Element, from: any, attr: string, props: Ani
         clearAnimation(element, attr);
     });
     scheduledAnimations.add(animated[attr]);
-    if (!frameId) {
-        currentFrameTime = performance.now();
-        requestFrame();
-    }
+    currentFrameTime = performance.now();
     animated[attr].start(currentFrameTime);
     setAttr(element, attr, animated[attr].tick(currentFrameTime));
+    if (!frameId) {
+        requestFrame();
+    }
 }
 
 function scheduleStyleAnimation(element: Element, items: {from: any; prop: string; props?: AnimationDeclaration;}[]) {
