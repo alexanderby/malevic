@@ -1,67 +1,51 @@
-import {sync, getDOMNode, Component, Child, NodeDeclaration} from 'malevic';
+import {Component} from 'malevic';
+import {getContext} from 'malevic/dom';
+import {isObject} from '../utils/misc';
 
-interface ComponentData {
-    component: Component;
-    node: Node;
-    props: any;
-    state: any;
-    children: Child[];
+interface StateWrapper<T> {
+    state: T;
+    setState(newState: Partial<T>): void;
 }
 
-const nodesData = new WeakMap<Node, ComponentData>();
-let current: ComponentData = null;
-let isComponentUnboxing = false;
+type UseStateFn<T> = (initialState: T) => StateWrapper<T>;
 
-export function useState<S>(initialState: S) {
-    if (!isComponentUnboxing) {
-        throw new Error('Component does not support state, wrap it into `withState');
-    }
-    const info = current;
-    info.state = info.state || initialState;
-    const state = info.state;
-    const setState = (newState: Partial<S>) => {
-        if (isComponentUnboxing) {
-            throw new Error('Calling `setState` inside a component leads to infinite loop');
-        }
-        const {component, node, props, children, state} = info;
-        info.state = Object.assign({}, state, newState);
-        sync(node as Element, {
-            type: component,
-            attrs: props,
-            children,
-        });
-    };
-    return {state, setState};
+let currentUseStateFn: UseStateFn<any> = null;
+
+export function useState<T extends {[prop: string]: any}>(
+    initialState: T,
+): StateWrapper<T> {
+    return currentUseStateFn(initialState);
 }
 
-export default function withState<P = any, S = any>(component: Component): Component {
-    function StateComponent<P>(props: P, ...children: Child[]) {
-        isComponentUnboxing = true;
-        const node = getDOMNode();
-        const prev = current;
-        const info = node && nodesData.has(node) ?
-            nodesData.get(node) :
-            ({component: StateComponent} as ComponentData);
-        Object.assign(info, {
-            props,
-            children,
-        });
-        current = info;
-        const d = component(props, ...children);
-        current = prev;
-        isComponentUnboxing = false;
-        if (typeof d.type !== 'string') {
-            throw new Error('A component with state should not contain another component');
-        }
-        (d as NodeDeclaration).attrs = d.attrs || {};
-        let prevDidMount = (d as NodeDeclaration).attrs.didmount;
-        (d as NodeDeclaration).attrs.didmount = (el) => {
-            info.node = el;
-            nodesData.set(el, info);
-            prevDidMount && prevDidMount(el);
+export function withState<T extends Component>(type: T): T {
+    const Stateful: any = (props: any, ...children: any) => {
+        const {store, refresh} = getContext();
+
+        const setState = (newState: any) => {
+            if (lock) {
+                throw new Error(
+                    'Setting state during unboxing causes infinite loop',
+                );
+            }
+            store.state = {...store.state, ...newState};
+            refresh();
         };
-        return d;
-    }
+        const useState: UseStateFn<T> = (initial: T) => {
+            store.state = store.state || initial;
+            return {
+                state: store.state,
+                setState,
+            };
+        };
 
-    return StateComponent;
+        let lock = true;
+        const prevUseStateFn = currentUseStateFn;
+        currentUseStateFn = useState;
+        const result = type(props, ...children);
+        currentUseStateFn = prevUseStateFn;
+        lock = false;
+
+        return result;
+    };
+    return Stateful;
 }

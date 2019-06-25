@@ -1,26 +1,21 @@
-import {
-    getAttrs,
-    escapeHtml,
-    plugins,
-    styles,
-} from 'malevic';
+import {Component} from 'malevic';
+import {plugins as domPlugins} from 'malevic/dom';
+import {plugins as stringPlugins, escapeHTML} from 'malevic/string';
+import {styles} from '../utils/attrs';
+import {isObject} from '../utils/misc';
+import {easing, createEasingFunction} from './easing';
 import {
     interpolateNumbers,
     interpolateNumbersInString,
     Interpolator,
 } from './interpolate';
-import {easing, createEasingFunction} from './easing';
 
-let registered = false;
+// TODO: Use `style.setPropertyValue`.
+// TODO: Ignore rare use cases.
 
-export default function withAnimation() {
-    if (registered) {
-        return;
-    }
-    registered = true;
-
-    plugins.render.setAttribute
-        .add(({element, attr, value}) => {
+export function withAnimation<T extends Component>(type: T): T {
+    domPlugins.setAttribute
+        .add(type, ({element, attr, value, prev}) => {
             if (!(value instanceof AnimationDeclaration)) {
                 clearAnimation(element, attr);
                 return null;
@@ -29,14 +24,25 @@ export default function withAnimation() {
             if (animated && animated[attr]) {
                 const prev = animated[attr];
                 clearAnimation(element, attr);
-                scheduleAnimation(element, (prev as Animation).lastValue, attr, value);
+                scheduleAnimation(
+                    element,
+                    (prev as Animation).lastValue,
+                    attr,
+                    value,
+                );
                 return true;
             }
             let prevValue = null;
-            const prevDeclaration = getAttrs(element)[attr];
-            if (prevDeclaration != null && !(prevDeclaration instanceof AnimationDeclaration)) {
+            const prevDeclaration = prev;
+            if (
+                prevDeclaration != null &&
+                !(prevDeclaration instanceof AnimationDeclaration)
+            ) {
                 prevValue = prevDeclaration;
-            } else if (prevDeclaration instanceof AnimationDeclaration && prevDeclaration._to != null) {
+            } else if (
+                prevDeclaration instanceof AnimationDeclaration &&
+                prevDeclaration._to != null
+            ) {
                 prevValue = prevDeclaration._to;
             } else if (value._from != null) {
                 prevValue = value._from;
@@ -44,7 +50,7 @@ export default function withAnimation() {
             scheduleAnimation(element, prevValue, attr, value);
             return true;
         })
-        .add(({element, attr, value}) => {
+        .add(type, ({element, attr, value, prev}) => {
             if (!isAnimatedStyleObj(attr, value)) {
                 return null;
             }
@@ -54,10 +60,16 @@ export default function withAnimation() {
                 clearAnimation(element, 'style');
             }
 
-            const declarations: {from: any; prop: string; props?: AnimationDeclaration;}[] = [];
-            const prevAnimation = animated && animated['style'] instanceof StyleAnimation ? animated['style'] as StyleAnimation : null;
-            const prevAttrs = getAttrs(element);
-            const prevStyleDeclaration = prevAttrs && isObject(prevAttrs['style']) ? prevAttrs['style'] : null;
+            const declarations: {
+                from: any;
+                prop: string;
+                props?: AnimationDeclaration;
+            }[] = [];
+            const prevAnimation =
+                animated && animated['style'] instanceof StyleAnimation
+                    ? (animated['style'] as StyleAnimation)
+                    : null;
+            const prevStyleDeclaration = isObject(prev) ? prev : null;
             Object.keys(value).forEach((prop) => {
                 const v = value[prop];
                 if (!(v instanceof AnimationDeclaration)) {
@@ -67,15 +79,25 @@ export default function withAnimation() {
                 let prevValue = null;
                 if (prevAnimation && prevAnimation.animations[prop] != null) {
                     if (prevAnimation.animations[prop] instanceof Animation) {
-                        prevValue = (prevAnimation.animations[prop] as Animation).lastValue;
+                        prevValue = (prevAnimation.animations[
+                            prop
+                        ] as Animation).lastValue;
                     } else {
                         prevValue = prevAnimation.animations[prop] as string;
                     }
                 } else {
-                    const prevDeclaration = prevStyleDeclaration ? prevStyleDeclaration[prop] : null;
-                    if (prevDeclaration != null && !(prevDeclaration instanceof AnimationDeclaration)) {
+                    const prevDeclaration = prevStyleDeclaration
+                        ? prevStyleDeclaration[prop]
+                        : null;
+                    if (
+                        prevDeclaration != null &&
+                        !(prevDeclaration instanceof AnimationDeclaration)
+                    ) {
                         prevValue = prevDeclaration;
-                    } else if (prevDeclaration instanceof AnimationDeclaration && prevDeclaration._to != null) {
+                    } else if (
+                        prevDeclaration instanceof AnimationDeclaration &&
+                        prevDeclaration._to != null
+                    ) {
                         prevValue = prevDeclaration._to;
                     } else if (v._from != null) {
                         prevValue = v._from;
@@ -90,19 +112,23 @@ export default function withAnimation() {
             return true;
         });
 
-    plugins.static.stringifyAttr
-        .add(({value}) => {
+    if (!stringPlugins) {
+        return type;
+    }
+
+    stringPlugins.stringifyAttribute
+        .add(type, ({value}) => {
             if (value instanceof AnimationDeclaration) {
                 if (value._from != null) {
-                    return escapeHtml(value._from);
+                    return escapeHTML(String(value._from));
                 }
                 if (value._to != null) {
-                    return escapeHtml(value._to);
+                    return escapeHTML(String(value._to));
                 }
             }
             return null;
         })
-        .add(({attr, value}) => {
+        .add(type, ({attr, value}) => {
             if (isAnimatedStyleObj(attr, value)) {
                 const style = {};
                 Object.keys(value).forEach((prop) => {
@@ -117,21 +143,21 @@ export default function withAnimation() {
                         style[prop] = v;
                     }
                 });
-                return escapeHtml(styles(style));
+                return escapeHTML(styles(style));
             }
             return null;
         });
-}
 
-function isObject(value) {
-    return typeof value === 'object' && value != null;
+    return type;
 }
 
 function isAnimatedStyleObj(attr, value) {
     return (
         attr === 'style' &&
         isObject(value) &&
-        Object.keys(value).filter((p) => value[p] instanceof AnimationDeclaration).length > 0
+        Object.keys(value).filter(
+            (p) => value[p] instanceof AnimationDeclaration,
+        ).length > 0
     );
 }
 
@@ -139,13 +165,21 @@ export function animate(to: any) {
     return new AnimationDeclaration(null, to);
 }
 
-const elementsAnimations = new WeakMap<Element, {[attr: string]: Animation | StyleAnimation}>();
+const elementsAnimations = new WeakMap<
+    Element,
+    {[attr: string]: Animation | StyleAnimation}
+>();
 const scheduledAnimations = new Set<Animation | StyleAnimation>();
 
 let frameId: number = null;
 let currentFrameTime: number = null;
 
-function scheduleAnimation(element: Element, from: any, attr: string, props: AnimationDeclaration) {
+function scheduleAnimation(
+    element: Element,
+    from: any,
+    attr: string,
+    props: AnimationDeclaration,
+) {
     let animated = elementsAnimations.get(element);
     if (!animated) {
         animated = {};
@@ -159,15 +193,18 @@ function scheduleAnimation(element: Element, from: any, attr: string, props: Ani
         clearAnimation(element, attr);
     });
     scheduledAnimations.add(animated[attr]);
-    if (!frameId) {
-        currentFrameTime = performance.now();
-        requestFrame();
-    }
+    currentFrameTime = performance.now();
     animated[attr].start(currentFrameTime);
     setAttr(element, attr, animated[attr].tick(currentFrameTime));
+    if (!frameId) {
+        requestFrame();
+    }
 }
 
-function scheduleStyleAnimation(element: Element, items: {from: any; prop: string; props?: AnimationDeclaration;}[]) {
+function scheduleStyleAnimation(
+    element: Element,
+    items: {from: any; prop: string; props?: AnimationDeclaration}[],
+) {
     let animated = elementsAnimations.get(element);
     if (!animated) {
         animated = {};
@@ -186,7 +223,11 @@ function scheduleStyleAnimation(element: Element, items: {from: any; prop: strin
         styleAnimations[prop] = new Animation(element, from, prop, props, null);
     });
 
-    if (Object.keys(styleAnimations).filter((s) => styleAnimations[s] instanceof Animation).length === 0) {
+    if (
+        Object.keys(styleAnimations).filter(
+            (s) => styleAnimations[s] instanceof Animation,
+        ).length === 0
+    ) {
         setAttr(element, 'style', styles(styleAnimations as any));
         return;
     }
@@ -208,7 +249,7 @@ function requestFrame() {
     frameId = requestAnimationFrame(() => {
         frameId = null;
         const now = performance.now();
-        const values: (Animation | StyleAnimation)[] = []
+        const values: (Animation | StyleAnimation)[] = [];
         scheduledAnimations.forEach((value) => values.push(value));
         if (values.length > 0) {
             values.forEach((animation) => {
@@ -284,7 +325,13 @@ class Animation {
     easing: string | number[];
     ease: (t: number) => number;
     finished: () => void;
-    constructor(element: Element, from: any, attr: string, props: AnimationDeclaration, finished: () => void) {
+    constructor(
+        element: Element,
+        from: any,
+        attr: string,
+        props: AnimationDeclaration,
+        finished: () => void,
+    ) {
         this.element = element;
         this.attr = attr;
         this.duration = props._duration;
@@ -303,14 +350,22 @@ class Animation {
                     this.interpolate = interpolateNumbers(this.from, this.to);
                     break;
                 case 'string':
-                    this.interpolate = interpolateNumbersInString(this.from, this.to);
+                    this.interpolate = interpolateNumbersInString(
+                        this.from,
+                        this.to,
+                    );
                     break;
                 default:
                     throw new Error('Unable to animate value');
             }
         }
         if (Array.isArray(this.easing)) {
-            this.ease = createEasingFunction([0, this.easing[0], this.easing[1], 1]);
+            this.ease = createEasingFunction([
+                0,
+                this.easing[0],
+                this.easing[1],
+                1,
+            ]);
         } else {
             this.ease = easing[this.easing];
         }
@@ -338,7 +393,11 @@ class StyleAnimation {
     attr: string;
     finished: () => void;
     animations: StyleAnimations;
-    constructor(element: Element, animations: StyleAnimations, finished: () => void) {
+    constructor(
+        element: Element,
+        animations: StyleAnimations,
+        finished: () => void,
+    ) {
         this.element = element;
         this.attr = 'style';
         this.animations = animations;
@@ -366,15 +425,14 @@ class StyleAnimation {
     }
     tick(now: number) {
         const style = {};
-        Object.keys(this.animations)
-            .forEach((prop) => {
-                const value = this.animations[prop]
-                if (value instanceof Animation) {
-                    style[prop] = value.tick(now);
-                } else {
-                    style[prop] = value;
-                }
-            });
+        Object.keys(this.animations).forEach((prop) => {
+            const value = this.animations[prop];
+            if (value instanceof Animation) {
+                style[prop] = value.tick(now);
+            } else {
+                style[prop] = value;
+            }
+        });
         return styles(style);
     }
 }

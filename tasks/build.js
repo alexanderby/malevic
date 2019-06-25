@@ -4,7 +4,12 @@ const rollupPluginUglify = require('rollup-plugin-uglify');
 const typescript = require('typescript');
 const package = require('../package');
 
-const date = (new Date()).toLocaleDateString('en-us', {month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC'});
+const date = new Date().toLocaleDateString('en-us', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+});
 const banner = `/* ${package.name}@${package.version} - ${date} */`;
 
 async function buildJS({
@@ -22,13 +27,20 @@ async function buildJS({
         input: src,
         external: dependencies ? Object.keys(dependencies) : null,
         plugins: [
-            rollupPluginTypescript(Object.assign({
-                typescript,
-                removeComments: true
-            }, ts)),
-            minify ? rollupPluginUglify.uglify({
-                output: {preamble: banner}
-            }) : null
+            rollupPluginTypescript(
+                Object.assign(
+                    {
+                        typescript,
+                        removeComments: true,
+                    },
+                    ts,
+                ),
+            ),
+            minify
+                ? rollupPluginUglify.uglify({
+                      output: {preamble: banner},
+                  })
+                : null,
         ].filter((p) => p),
     });
 
@@ -44,32 +56,31 @@ async function buildJS({
     });
 }
 
-async function buildPackage({es2015, umd, min, global, plugin}) {
-    const dependencies = plugin ? {'malevic': 'Malevic'} : null;
+async function buildPackage({src, esm, umd, min, global, dependencies = {}}) {
     await Promise.all([
         buildJS({
-            src: es2015[0],
-            dest: es2015[1],
+            src,
+            dest: esm,
             dependencies,
             moduleFormat: 'es',
-            ts: {target: 'es2015'}
+            ts: {target: 'es2015'},
         }),
         buildJS({
-            src: umd[0],
-            dest: umd[1],
+            src,
+            dest: umd,
             dependencies,
             globalName: global,
             moduleFormat: 'umd',
-            ts: {target: 'es5'}
+            ts: {target: 'es5'},
         }),
         buildJS({
-            src: min[0],
-            dest: min[1],
+            src,
+            dest: min,
             minify: true,
             dependencies,
             globalName: global,
             moduleFormat: 'umd',
-            ts: {target: 'es5'}
+            ts: {target: 'es5'},
         }),
     ]);
 }
@@ -78,84 +89,72 @@ async function release() {
     await Promise.all([
         buildPackage({
             global: 'Malevic',
-            es2015: [
-                './entries/index.ts',
-                './index.js'
-            ],
-            umd: [
-                './entries/index.ts',
-                './umd/index.js'
-            ],
-            min: [
-                './entries/index.ts',
-                './umd/index.min.js'
-            ]
+            src: './src/index.ts',
+            esm: './index.mjs',
+            umd: './umd/index.js',
+            min: './umd/index.min.js',
         }),
         buildPackage({
-            plugin: true,
             global: 'Malevic.Animation',
-            es2015: [
-                './entries/animation.ts',
-                './animation.js'
-            ],
-            umd: [
-                './entries/animation-umd.ts',
-                './umd/animation.js'
-            ],
-            min: [
-                './entries/animation-umd.ts',
-                './umd/animation.min.js'
-            ]
+            src: './src/animation/index.ts',
+            dependencies: {
+                'malevic/dom': 'Malevic.DOM',
+                'malevic/string': 'Malevic.String',
+            },
+            esm: './animation.mjs',
+            umd: './umd/animation.js',
+            min: './umd/animation.min.js',
         }),
         buildPackage({
-            plugin: true,
+            global: 'Malevic.DOM',
+            src: './src/dom/index.ts',
+            esm: './dom.mjs',
+            umd: './umd/dom.js',
+            min: './umd/dom.min.js',
+        }),
+        buildPackage({
             global: 'Malevic.Forms',
-            es2015: [
-                './entries/forms.ts',
-                './forms.js'
-            ],
-            umd: [
-                './entries/forms.ts',
-                './umd/forms.js'
-            ],
-            min: [
-                './entries/forms.ts',
-                './umd/forms.min.js'
-            ]
+            src: './src/forms/index.ts',
+            dependencies: {
+                'malevic/dom': 'Malevic.DOM',
+            },
+            esm: './forms.mjs',
+            umd: './umd/forms.js',
+            min: './umd/forms.min.js',
         }),
         buildPackage({
-            plugin: true,
             global: 'Malevic.State',
-            es2015: [
-                './entries/state.ts',
-                './state.js'
-            ],
-            umd: [
-                './entries/state-umd.ts',
-                './umd/state.js'
-            ],
-            min: [
-                './entries/state-umd.ts',
-                './umd/state.min.js'
-            ]
+            src: './src/state/index.ts',
+            dependencies: {
+                'malevic/dom': 'Malevic.DOM',
+            },
+            esm: './state.mjs',
+            umd: './umd/state.js',
+            min: './umd/state.min.js',
+        }),
+        buildPackage({
+            global: 'Malevic.String',
+            src: './src/string/index.ts',
+            esm: './string.mjs',
+            umd: './umd/string.js',
+            min: './umd/string.min.js',
         }),
     ]);
 }
 
 async function examples() {
-    await buildJS(
-        {
-            src: './examples/index.tsx',
-            dest: './examples/index.js',
-            moduleFormat: 'iife',
-            moduleExports: 'none',
-            sourceMaps: 'inline',
-            ts: {
-                target: 'es5',
-                jsx: 'react',
-                jsxFactory: 'm'
-            },
-        });
+    await buildJS({
+        src: './examples/index.tsx',
+        dest: './examples/index.js',
+        moduleFormat: 'iife',
+        moduleExports: 'none',
+        sourceMaps: 'inline',
+        ts: {
+            target: 'es5',
+            jsx: 'react',
+            jsxFactory: 'm',
+        },
+    });
 }
 
 async function run() {

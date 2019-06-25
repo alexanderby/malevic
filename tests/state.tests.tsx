@@ -1,5 +1,6 @@
-import {m, render, sync} from 'malevic';
-import withState, {useState} from 'malevic/state';
+import {m} from 'malevic';
+import {render} from 'malevic/dom';
+import {withState, useState} from 'malevic/state';
 import {dispatchClick} from './utils';
 
 let container: Element = null;
@@ -22,7 +23,7 @@ describe('state', () => {
                 <div class={{'empty': state.count === 0}}>
                     <button onclick={() => setState({count: state.count + 1})}>
                         {text}
-                    </button> {state.count}
+                    </button> {String(state.count)}
                     {children.length > 0 ? (
                         <span>
                             {children}
@@ -32,7 +33,9 @@ describe('state', () => {
             );
         });
 
-        const element = render(container, (
+        const main = container.appendChild(document.createElement('main'));
+
+        const element = render(main, (
             <main>
                 <Component text="Apples" key="a" />
             </main>
@@ -46,7 +49,7 @@ describe('state', () => {
             '<div><button>Apples</button> 1</div>',
         ].join(''));
 
-        render(container, (
+        render(main, (
             <main>
                 <Component text="Oranges" key="o" />
                 <Component text="Apples" key="a" />
@@ -64,7 +67,7 @@ describe('state', () => {
             '<div><button>Apples</button> 2</div>',
         ].join(''));
 
-        render(container, (
+        render(main, (
             <main>
                 <Component text="Oranges" key="o" />
             </main>
@@ -73,7 +76,7 @@ describe('state', () => {
             '<div><button>Oranges</button> 1</div>',
         ].join(''));
 
-        render(container, (
+        render(main, (
             <main>
                 <Component text="Apples" key="a" />
                 <Component text="Oranges" key="o" />
@@ -90,7 +93,7 @@ describe('state', () => {
             '<div><button>Oranges</button> 1</div>',
         ].join(''));
 
-        render(container, (
+        render(main, (
             <main>
                 <Component text="Apples" key="a">
                     <Component text="Oranges" key="o" />
@@ -126,8 +129,7 @@ describe('state', () => {
 
     test('multiple state props', () => {
         const Component = withState(({x}) => {
-            const {state, setState} = useState({y: 20, z: 30});
-            const {y, z} = state;
+            const {state: {y, z}, setState} = useState({y: 20, z: 30});
             return (
                 <div>
                     <button class="y" onclick={() => setState({y: y + 1})}></button>
@@ -160,25 +162,6 @@ describe('state', () => {
         expect(() => render(container, <RecursiveComponent />)).toThrow(/infinite loop/);
     });
 
-    test('state component does not support returning another component', () => {
-        const Nested = ({text}) => <label>{text}</label>;
-        const Root = withState(() => {
-            const {state} = useState({text: 'Hello'});
-            return <Nested text={state.text} />;
-        });
-
-        expect(() => render(container, <Root />)).toThrow(/should not contain another component/);
-    });
-
-    test('state component should be wrapped into `withState` function', () => {
-        const Component = () => {
-            const {state} = useState({text: 'Hello'});
-            return <h1>{state.text}</h1>;
-        };
-
-        expect(() => render(container, <Component />)).toThrow(/does not support state/);
-    });
-
     test('call state after component update', () => {
         const Child = withState(({onChange}, text) => {
             const {state, setState} = useState({count: 0});
@@ -198,7 +181,7 @@ describe('state', () => {
             const {state, setState} = useState({count: 0});
             return (
                 <div>
-                    {state.count}
+                    {String(state.count)}
                     <Child onChange={(count) => {
                         setState({count});
                     }}>
@@ -218,17 +201,5 @@ describe('state', () => {
             '</button>',
             '</div>',
         ].join(''));
-    });
-
-    test('sync', () => {
-        const Component = withState(() => {
-            const {state, setState} = useState({isActive: false});
-            return <button style={state.isActive ? {'color': 'red'} : {}} onclick={() => setState({isActive: true})} />;
-        });
-        const element = render(container, <button />);
-        sync(element, <Component />);
-        expect(element.outerHTML).toEqual('<button></button>');
-        dispatchClick(element);
-        expect(element.outerHTML).toEqual('<button style="color: red;"></button>');
     });
 });

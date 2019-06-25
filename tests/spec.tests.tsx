@@ -1,6 +1,6 @@
 import {m} from 'malevic';
 
-function Component({isHidden = false} = {}, ...children) {
+function Component({isHidden = false}, ...children) {
     const style = isHidden ? {'display': 'none'} : null;
     return (
         <div class="component" style={style}>
@@ -9,7 +9,7 @@ function Component({isHidden = false} = {}, ...children) {
     );
 }
 
-test('declaration', () => {
+test('spec', () => {
     expect(
         <main>
             <Component isHidden>
@@ -19,18 +19,18 @@ test('declaration', () => {
         </main>
     ).toEqual({
         type: 'main',
-        attrs: null,
+        props: {},
         children: [
             {
                 type: Component,
-                attrs: {
+                props: {
                     isHidden: true,
                 },
                 children: [
                     'Hello ',
                     {
                         type: 'strong',
-                        attrs: null,
+                        props: {},
                         children: [
                             'World'
                         ]
@@ -39,12 +39,33 @@ test('declaration', () => {
             },
             {
                 type: Component,
-                attrs: null,
+                props: {},
                 children: []
             }
         ]
     });
 
+    expect(
+        <Array>
+            <header />
+            {...([1, 2, 3].map((n) => <div>{String(n)}</div>))}
+            <footer />
+        </Array>
+    ).toEqual({
+        type: Array,
+        props: {},
+        children: [
+            {type: 'header', props: {}, children: []},
+            // hmmm, why it was wrapped into an array?
+            [
+                {type: 'div', props: {}, children: ['1']},
+                {type: 'div', props: {}, children: ['2']},
+                {type: 'div', props: {}, children: ['3']},
+            ],
+            {type: 'footer', props: {}, children: []},
+        ]
+    });
+
     const C = {} as any;
-    expect(() => <C />).toThrow(/Unsupported declaration type/);
+    expect(() => <C />).toThrow(/Unsupported spec type/);
 });
