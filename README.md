@@ -89,7 +89,7 @@ a corresponding event listener is added to a DOM element
 <button onclick={(e) => alert(e.target)} />
 ```
 
- ## Getting DOM node before rendering	
+## Getting DOM node before rendering	
 
  It is possible to get parent DOM node and target DOM node (if it was already rendered) before updating DOM tree.
  For doing so `getContext` function is used.	
@@ -161,7 +161,6 @@ function Many({items}) {
 function Heading() {
     return (
         <h4
-            native
             attached={(domNode) => {
                 domNode.classList.add('rendered');
                 domNode.textContent = 'Hello';
@@ -254,7 +253,7 @@ render(document.body, (
 ```
 
 Other possible spec child types are:
-- Object where `type` is a string (will create DOM element).
+- Object where `type` is a string (will create a DOM element).
 - Object where `type` is a function (will invoke a component).
 - Array or object with `type` equal to Array constructor.
 - String (will create a text node).
@@ -274,7 +273,7 @@ import App from './app';
 createServer((request, response) => response.end(`<!DOCTYPE html>
 <html>
 <head></head>
-${renderToString(
+${stringify(
     <body>
         <App state={{}} />
     </body>
