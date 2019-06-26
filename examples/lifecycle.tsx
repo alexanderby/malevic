@@ -9,7 +9,8 @@ const Tooltip = withAnimation(({text, cx, cy}) => {
             document.createElementNS(parent.namespaceURI, 'text'),
         ),
         <text font-size={16}>{text}</text>,
-    ); const box = (temp as SVGTextElement).getBBox();
+    );
+    const box = (temp as SVGTextElement).getBBox();
     parent.removeChild(temp);
     return (
         <g>

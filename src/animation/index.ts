@@ -1,6 +1,6 @@
 import {Component} from 'malevic';
 import {plugins as domPlugins} from 'malevic/dom';
-import {plugins as stringPlugins, escapeHTML} from 'malevic/string';
+import * as malevicString from 'malevic/string';
 import {styles} from '../utils/attrs';
 import {isObject} from '../utils/misc';
 import {easing, createEasingFunction} from './easing';
@@ -112,10 +112,11 @@ export function withAnimation<T extends Component>(type: T): T {
             return true;
         });
 
-    if (!stringPlugins) {
+    if (!malevicString) {
         return type;
     }
 
+    const {plugins: stringPlugins, escapeHTML} = malevicString;
     stringPlugins.stringifyAttribute
         .add(type, ({value}) => {
             if (value instanceof AnimationDeclaration) {
