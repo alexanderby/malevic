@@ -123,7 +123,7 @@ class ElementVNode extends VNodeBase {
         if (nodeMatchesSpec(existing, this.spec)) {
             element = existing;
         } else if (
-            !isElementRefined(element, context.vdom) &&
+            !isElementRefined(parent, context.vdom) &&
             context.vdom.isDOMNodeCaptured(parent)
         ) {
             const sibling = context.sibling;

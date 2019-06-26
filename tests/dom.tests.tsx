@@ -87,6 +87,28 @@ describe('DOM', () => {
         expect(n1.childNodes.length).toBe(1);
         expect(n1.childNodes.item(0)).toBeInstanceOf(Text);
         expect(n1.childNodes.item(0).textContent).toBe('Hello');
+
+        cleanup();
+
+        render(target, [
+            m('span', null),
+            'Text',
+        ]);
+
+        expect(target.childNodes.length).toBe(2);
+        expect(target.firstChild).toBeInstanceOf(HTMLSpanElement);
+        expect(target.childNodes.item(1)).toBeInstanceOf(Text);
+
+        cleanup();
+
+        render(target, [
+            'Text',
+            m('span', null),
+        ]);
+
+        expect(target.childNodes.length).toBe(2);
+        expect(target.firstChild).toBeInstanceOf(Text);
+        expect(target.childNodes.item(1)).toBeInstanceOf(HTMLSpanElement);
     });
 
     test('update', () => {
@@ -170,7 +192,10 @@ describe('DOM', () => {
             <div class="c">
                 <span />
                 <a />
-                <a />
+                <a>
+                    <span />
+                    Text
+                </a>
             </div>
         ));
         expect(div.childNodes.length).toBe(3);
@@ -180,15 +205,24 @@ describe('DOM', () => {
 
         sync(div, (
             <div class="c">
-                <div />
-                <span />
-                <a />
+                <div>
+                    <span />
+                    {document.createElement('span')}
+                </div>
+                Text
+                <a>
+                    Text
+                    <img />
+                    Text
+                </a>
+                {document.createElement('span')}
             </div>
         ));
-        expect(div.childNodes.length).toBe(3);
+        expect(div.childNodes.length).toBe(4);
         expect(span.parentElement).toBe(null);
-        expect(div.childNodes.item(1)).toBeInstanceOf(HTMLSpanElement);
+        expect(div.childNodes.item(1)).toBeInstanceOf(Text);
         expect(div.childNodes.item(2)).toBe(a);
+        expect(div.childNodes.item(3)).toBeInstanceOf(HTMLSpanElement);
 
         cleanup();
 
