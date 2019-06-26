@@ -16,12 +16,12 @@ afterEach(() => {
 
 describe('forms', () => {
     test('input value', () => {
-        const Form = withForms(({text}) => (<div>
+        const Form = withForms(({text}) => (<Array>
             <input value={text} />
             <textarea readonly>
                 {text}
             </textarea>
-        </div>));
+        </Array>));
 
         render(container, <Form text="x" />);
         expect(container.firstElementChild).toBeInstanceOf(HTMLInputElement);

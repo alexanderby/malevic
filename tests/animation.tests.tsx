@@ -27,9 +27,9 @@ describe('animation', () => {
                     .easing('linear')}
             />));
 
-            render(target, (<div>
+            render(target, (
                 <Box x={40} />
-            </div>));
+            ));
             const box = target.firstElementChild as HTMLSpanElement;
             expect(box).toBeInstanceOf(HTMLSpanElement);
             expect(box.style.left).toBe('0px');
@@ -65,10 +65,10 @@ describe('animation', () => {
                 }}
             />));
 
-            render(target, (<div>
+            render(target, (<Array>
                 <Box x={40} />
                 <Text x={40} />
-            </div>));
+            </Array>));
             const box = target.firstElementChild as HTMLSpanElement;
             const text = target.lastElementChild as HTMLSpanElement;
             expect(box).toBeInstanceOf(HTMLSpanElement);
@@ -95,20 +95,20 @@ describe('animation', () => {
             const Box = withAnimation(({x}) => (
                 <rect x={animate(x).duration(250)} />));
 
-            render(target, (<div>
+            render(target, (
                 <svg>
                     <Box x={0} />
                 </svg>
-            </div>));
+            ));
             const box = target.firstElementChild.firstElementChild as SVGRectElement;
             expect(box).toBeInstanceOf(SVGElement);
             expect(box.getAttribute('x')).toBe('0');
 
-            render(target, (<div>
+            render(target, (
                 <svg>
                     <Box x={40} />
                 </svg>
-            </div>));
+            ));
 
             setTimeout(() => {
                 expect(parseFloat(box.getAttribute('x'))).toBeGreaterThan(0);
@@ -137,9 +137,9 @@ describe('animation', () => {
                 }}
             />));
 
-            render(target, (<div>
+            render(target, (
                 <Box x={40} color={[255, 255, 255]} />
-            </div>));
+            ));
             const box = target.firstElementChild as HTMLSpanElement;
             expect(box).toBeInstanceOf(HTMLSpanElement);
             expect(box.style.left).toBe('0px');
@@ -150,9 +150,9 @@ describe('animation', () => {
                 expect(parseFloat(box.style.left)).toBeLessThan(40);
                 expect(parseFloat(box.style.top)).toBe(40);
 
-                render(target, (<div>
+                render(target, (
                     <Box x={120} color={[0, 0, 0]} />
-                </div>));
+                ));
 
                 setTimeout(() => {
                     expect(parseFloat(box.style.left)).toBeGreaterThan(40);
@@ -180,25 +180,25 @@ describe('animation', () => {
                     .easing('linear')}
             />));
 
-            render(target, (<div>
+            render(target, (
                 <Box x={20} isStatic />
-            </div>));
+            ));
             const box = target.firstElementChild as HTMLSpanElement;
             expect(box).toBeInstanceOf(HTMLSpanElement);
             expect(box.style.left).toBe('20px');
 
-            render(target, (<div>
+            render(target, (
                 <Box x={40} />
-            </div>));
+            ));
             expect(box.style.left).toBe('20px');
 
             setTimeout(() => {
                 expect(parseFloat(box.style.left)).toBeGreaterThan(20);
                 expect(parseFloat(box.style.left)).toBeLessThan(40);
 
-                render(target, (<div>
+                render(target, (
                     <Box x={80} isStatic />
-                </div>));
+                ));
                 expect(box.style.left).toBe('80px');
                 resolve();
             }, 125);
@@ -216,17 +216,17 @@ describe('animation', () => {
                 }}
             />));
 
-            render(target, (<div>
+            render(target, (
                 <Box x={20} isStatic />
-            </div>));
+            ));
             const box = target.firstElementChild as HTMLSpanElement;
             expect(box).toBeInstanceOf(HTMLSpanElement);
             expect(box.style.left).toBe('20px');
             expect(box.style.right).toBe('30px');
 
-            render(target, (<div>
+            render(target, (
                 <Box x={40} />
-            </div>));
+            ));
             expect(box.style.left).toBe('20px');
             expect(box.style.right).toBe('30px');
 
@@ -234,9 +234,9 @@ describe('animation', () => {
                 expect(parseFloat(box.style.left)).toBeGreaterThan(20);
                 expect(parseFloat(box.style.left)).toBeLessThan(40);
 
-                render(target, (<div>
+                render(target, (
                     <Box x={80} isStatic />
-                </div>));
+                ));
                 expect(box.style.left).toBe('80px');
                 expect(box.style.right).toBe('30px');
                 resolve();
@@ -254,9 +254,9 @@ describe('animation', () => {
                     .easing([0, 0.2, 0.8, 1])}
             />));
 
-            render(target, (<div>
+            render(target, (
                 <Box x={40} />
-            </div>));
+            ));
             const box = target.firstElementChild as HTMLSpanElement;
             expect(box).toBeInstanceOf(HTMLSpanElement);
             expect(box.style.left).toBe('0px');
@@ -351,11 +351,11 @@ describe('animation', () => {
                 }
             });
 
-            render(target, <div><Misc mode={0} x={40} /></div>);
+            render(target, <Misc mode={0} x={40} />);
             setTimeout(() => {
-                render(target, <div><Misc mode={1} x={40} /></div>);
+                render(target, <Misc mode={1} x={40} />);
                 setTimeout(() => {
-                    render(target, <div><Misc mode={0} x={40} /></div>);
+                    render(target, <Misc mode={0} x={40} />);
                     setTimeout(() => {
                         expect((target.children[0] as HTMLElement).style.left).toBe(40);
                         expect((target.children[1] as HTMLElement).style.left).toBe(40);

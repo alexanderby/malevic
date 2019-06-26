@@ -17,17 +17,54 @@ Suitable for building framework-independent dynamic widgets as well as small web
 ## Basic example
 
 - `m()` function creates a DOM node specification that looks like `{type, props, children}`.
-- `render()` function synchronizes a DOM node with specification.
-If differences are found,
-then necessary children or attributes are replaced.
+- `render()` function renders nodes inside a DOM element.
+If differences with existing DOM nodes are found,
+necessary nodes or attributes are replaced.
 
 ```javascript
 import {m} from 'malevic';
 import {render} from 'malevic/dom';
 
-const h3 = render(document.createElement('h3'), (
+render(document.body, (
     m('h3', {class: 'heading'},
         'Hello, World!'
+    )
+));
+```
+
+When DOM node already exists, a `sync()` function can be used:
+
+```javascript
+import {m} from 'malevic';
+import {sync} from 'malevic/dom';
+
+const body = sync(document.body, (
+    m('body', {class: 'app'},
+        m('h1', null,
+            'Hello, World!'
+        )
+    )
+));
+```
+
+Functions can be used as components like this:
+
+```javascript
+import {m} from 'malevic';
+import {sync} from 'malevic/dom';
+
+function Button({handler}, ...children) {
+    return m('button', {onclick: handler},
+        ...children
+    );
+}
+
+const body = sync(document.body, (
+    m('body', {class: 'app'},
+        m('h1', null, 'App'),
+        m(Button, {handler: (e)=> alert(e.target)},
+            'Click me'
+        )
     )
 ));
 ```
@@ -58,18 +95,19 @@ const h3 = render(document.createElement('h3'), (
 Component written in JSX will look like:
 ```jsx
 import {m} from 'malevic';
-import {render} from 'malevic/dom';
+import {sync} from 'malevic/dom';
 
 function Button({handler}, ...children) {
     return (
-        <button class="x-button" onclick={handler}>
+        <button onclick={handler}>
             {...children}
         </button>
     );
 }
 
-render(document.body, (
-    <body>
+sync(document.body, (
+    <body class="app">
+        <h1>App</h1>
         <Button handler={(e) => alert(e.target)}>
             Click me
         </Button>
@@ -87,49 +125,6 @@ a corresponding event listener is added to a DOM element
 
 ```jsx
 <button onclick={(e) => alert(e.target)} />
-```
-
-## Getting DOM node before rendering	
-
- It is possible to get parent DOM node and target DOM node (if it was already rendered) before updating DOM tree.
- For doing so `getContext` function is used.	
-
- ```jsx	
-import {m} from 'malevic';
-import {render, getContext} from 'malevic/dom';
-
-function App() {
-    const context = getContext();
-    const {parent, node} = context;
-    const rect = parent.getBoundingClientRect();
-    return (<body>
-        <header></header>
-        <main>
-            <h3>Size</h3>
-            <p>{`Width: ${rect.width}`}</p>
-            <p>{`Height: ${rect.height}`}</p>
-        </main>
-        <footer></footer>
-    </body>);
-}
-
-render(document.body, <App/>);	
-```
-
-If component creates multiple DOM nodes, `context.nodes` property will return all of them
-(when compoent will be rendered the next time):
-
-```jsx
-function Many({items}) {
-    const {nodes} = getContext(); // [header, span, span, footer]
-    return (
-        <Array>
-            <header/>
-            {...items.map((item) => <span>{item}</span>)}
-            <footer/>
-        </Array>
-    );
-}
 ```
 
 ## Manipulating class list and styles
@@ -168,7 +163,8 @@ function Heading() {
         ></h4>
     );
 }
-render(document.body, <body><Heading /></body>);
+
+render(document.body, <Heading/>);
 ```
 
 It is possible to assign lifecycle handlers for components as well:
@@ -179,7 +175,7 @@ function Component() {
 
     context.attached((domNode) => domNode.classList.add('init'));
     context.detached((domNode) => domNode.parentNode == null);
-    context.updated((domNode) => domNode === context.node;
+    context.updated((domNode) => domNode === context.node);
 
     return <div>Hello</div>;
 }
@@ -231,6 +227,50 @@ render(target, (
 
 Any value can be used for a `key`, matching is done by strict `===` comparison.
 
+## Getting DOM node before rendering	
+
+ It is possible to get a parent DOM node before updating the DOM tree.	
+
+ ```jsx	
+import {m} from 'malevic';
+import {render, getContext} from 'malevic/dom';
+
+function App() {
+    const {parent} = getContext();
+    const rect = parent.getBoundingClientRect();
+    return (<Array>
+        <header></header>
+        <main>
+            <h3>Size</h3>
+            <p>{`Width: ${rect.width}`}</p>
+            <p>{`Height: ${rect.height}`}</p>
+        </main>
+        <footer></footer>
+    </Array>);
+}
+
+render(document.body, <App/>);	
+```
+
+After component is rendered,
+`context.node` property will return an attached DOM node.
+If component creates multiple DOM nodes, `context.nodes` property will return all of them:
+
+```jsx
+function Many({items}) {
+    const {node, nodes} = getContext();
+    node; // header
+    nodes; // [header, ..., footer]
+    return (
+        <Array>
+            <header/>
+            {...items.map((item) => <span>{item}</span>)}
+            <footer/>
+        </Array>
+    );
+}
+```
+
 ## Using DOM node as a child
 
 Yes. You can just create a DOM node and it will be later injected into the DOM tree:
@@ -245,7 +285,7 @@ function Component({class: className}) {
     return node;
 }
 
-render(document.body, (
+sync(document.body, (
     <body>
         <Component class="native" />
     </body>
@@ -331,9 +371,7 @@ const Chart = withAnimation(({width, height}) => (
 ));
 
 render(document.body, (
-    <body>
-        <Chart width={200} height={150} />
-    </body>
+    <Chart width={200} height={150} />
 ));
 
 
@@ -483,7 +521,7 @@ Extendable plug-ins:
 **To prevent XSS attacks always use `escapeHTML` function**.
 
 ```javascript
-import {plugins} from 'malevic/dom';
+import {plugins, sync} from 'malevic/dom';
 
 const Component = () => <div/>;
 
@@ -498,7 +536,7 @@ plugins.setAttribute
         return null;
     });
 
-const div = render(
+const div = sync(
     document.createElement('div'),
     <Component data={5} />
 );
@@ -509,7 +547,6 @@ map.get(div) === 5;
 ## Breaking changes since version 0.12
 
 Everything was broken up:
-- `render` function now works as a `sync`.
 - Built-in ability to read previous props and store state.
 - Parent and target DOM nodes can be retrieved using `getContext()` function.
 - Lifecycle methods were renamed from `didmount`, `didupdate` and `willunmount` to `attached`, `updated` and `detached` (called after DOM node removal).

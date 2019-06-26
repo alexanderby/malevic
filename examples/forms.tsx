@@ -43,16 +43,14 @@ function setState(newState) {
     state = Object.assign({}, state, newState);
     render(
         document.getElementById('forms'),
-        <div>
-            <Form
-                text={state.text}
-                checked={state.checked}
-                num={state.num}
-                onCheckChange={(checked) => setState({checked})}
-                onTextChange={(text) => setState({text})}
-                onNumChange={(num) => setState({num})}
-            />
-        </div>,
+        <Form
+            text={state.text}
+            checked={state.checked}
+            num={state.num}
+            onCheckChange={(checked) => setState({checked})}
+            onTextChange={(text) => setState({text})}
+            onNumChange={(num) => setState({num})}
+        />,
     );
 }
 

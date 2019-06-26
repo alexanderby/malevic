@@ -1,5 +1,5 @@
 import {m} from 'malevic';
-import {render, teardown, getContext, plugins} from 'malevic/dom';
+import {render, sync, teardown, getContext, plugins} from 'malevic/dom';
 import {dispatchClick} from './utils';
 
 let target: Element = null;
@@ -47,9 +47,8 @@ describe('DOM', () => {
                 },
             ],
         };
-        const result = render(target, spec);
+        const result = render(target, spec).firstElementChild;
 
-        expect(result).toBe(target);
         expect(result.className).toBe('c');
         expect(result.childNodes.length).toBe(5);
         expect(result.childNodes.item(0)).toBeInstanceOf(HTMLSpanElement);
@@ -67,10 +66,27 @@ describe('DOM', () => {
 
         const text = document.createTextNode('x');
         target.appendChild(text);
-        const textResult = render(text, m(() => 'y', null));
+        const textResult = render(target, m(() => 'y', null)).firstChild;
 
         expect(textResult).toBe(text);
         expect(text.textContent).toBe('y');
+
+        cleanup();
+
+        const n0 = document.createElement('span');
+        const n1 = document.createElement('span');
+        const n2 = document.createElement('span');
+        target.append(n0, n1, n2);
+
+        render(n1, 'Hello');
+
+        expect(target.childNodes.length).toBe(3);
+        expect(target.childNodes.item(0)).toBe(n0);
+        expect(target.childNodes.item(1)).toBe(n1);
+        expect(target.childNodes.item(2)).toBe(n2);
+        expect(n1.childNodes.length).toBe(1);
+        expect(n1.childNodes.item(0)).toBeInstanceOf(Text);
+        expect(n1.childNodes.item(0).textContent).toBe('Hello');
     });
 
     test('update', () => {
@@ -85,7 +101,7 @@ describe('DOM', () => {
                     'World!',
                 ),
             )
-        ));
+        )).firstElementChild;
 
         expect(result1.childNodes.length).toBe(3);
         expect(result1.childNodes.item(0)).toBeInstanceOf(HTMLTextAreaElement);
@@ -109,7 +125,7 @@ describe('DOM', () => {
                     'World!',
                 ),
             )
-        ));
+        )).firstElementChild;
 
         expect(result1).toBe(result2);
         expect(result2.className).toBe('c2');
@@ -128,6 +144,51 @@ describe('DOM', () => {
         expect(result2.childNodes.item(3)).toBeInstanceOf(HTMLDivElement);
         expect(result2.childNodes.item(3).textContent).toBe('World!');
         expect(span.parentElement).toBe(null);
+    });
+
+    test('synchronize node', () => {
+        const div = document.createElement('div');
+        div.id = 'id';
+        const result = sync(div, (
+            <div class="c">
+                <span />
+                {null}
+                <a />
+            </div>
+        ));
+
+        expect(result).toBe(div);
+        expect(div.id).toBe('id');
+        expect(div.className).toBe('c');
+        expect(div.childNodes.length).toBe(2);
+        const span = div.firstChild;
+        const a = div.lastChild;
+        expect(span).toBeInstanceOf(HTMLSpanElement);
+        expect(a).toBeInstanceOf(HTMLAnchorElement);
+
+        sync(div, (
+            <div class="c">
+                <span />
+                <a />
+                <a />
+            </div>
+        ));
+        expect(div.childNodes.length).toBe(3);
+        expect(div.childNodes.item(0)).toBe(span);
+        expect(div.childNodes.item(1)).toBeInstanceOf(HTMLAnchorElement);
+        expect(div.childNodes.item(2)).toBe(a);
+
+        sync(div, (
+            <div class="c">
+                <div />
+                <span />
+                <a />
+            </div>
+        ));
+        expect(div.childNodes.length).toBe(3);
+        expect(span.parentElement).toBe(null);
+        expect(div.childNodes.item(1)).toBeInstanceOf(HTMLSpanElement);
+        expect(div.childNodes.item(2)).toBe(a);
 
         cleanup();
 
@@ -136,7 +197,7 @@ describe('DOM', () => {
         const n2 = document.createElement('span');
         target.append(n0, n1, n2);
 
-        const r = render(n1, (
+        const r = sync(n1, (
             m('span', {class: 'target'})
         ));
 
@@ -146,6 +207,25 @@ describe('DOM', () => {
         expect(target.childNodes.item(1)).toBe(n1);
         expect(target.childNodes.item(2)).toBe(n2);
         expect(r.className).toBe('target');
+
+        expect(() => sync(document.createElement('div'), <span />)).toThrow(/Spec does not match the node/);
+        expect(() => sync(document.createElement('div'), <Array><div /><div /></Array>)).toThrow(/Spec does not match the node/);
+
+        const existing = document.createElement('div');
+        let found: Node;
+        const Component = () => {
+            const {node} = getContext();
+            found = node;
+            return node;
+        };
+        const res = sync(existing, m(Component, null));
+        expect(found).toBe(existing);
+        expect(res).toBe(existing);
+
+        const text = document.createTextNode('x');
+        const textResult = sync(text, 'y');
+        expect(textResult).toBe(text);
+        expect(text.textContent).toBe('y');
     });
 
     test('events', () => {
@@ -161,7 +241,7 @@ describe('DOM', () => {
                 },
                 'Click me',
             )
-        ));
+        )).firstElementChild;
         dispatchClick(button);
         expect(count).toBe(1);
 
@@ -216,9 +296,8 @@ describe('DOM', () => {
                     'World!'
                 ),
             )
-        ));
+        )).firstElementChild;
 
-        expect(result).toBe(target);
         expect(result).toBeInstanceOf(HTMLDivElement);
         expect(result.className).toBe('wrapper');
         expect(result.childNodes.length).toBe(1);
@@ -259,7 +338,7 @@ describe('DOM', () => {
                     m('span', null, '7'),
                 ],
             )
-        ));
+        )).firstElementChild;
 
         expect(result.textContent).toBe('01234567');
         expect(result.childNodes.length).toBe(8);
@@ -308,9 +387,7 @@ describe('DOM', () => {
         };
 
         const result = render(target, (
-            m('div', null,
-                m(Component, {char: 'x'}, 'A', 'B'),
-            )
+            m(Component, {char: 'x'}, 'A', 'B')
         ));
 
         expect(result.childNodes.length).toBe(2);
@@ -348,9 +425,7 @@ describe('DOM', () => {
         ].join('; '));
 
         render(target, (
-            m('div', null,
-                m(Component, {char: 'y'}, 'C', 'D'),
-            )
+            m(Component, {char: 'y'}, 'C', 'D')
         ));
         expect(result.childNodes.length).toBe(2);
         expect(result.childNodes.item(0)).toBe(button);
@@ -386,9 +461,7 @@ describe('DOM', () => {
         ].join('; '));
 
         render(target, (
-            m('div', null,
-                m(Component, {char: 'y'}, 'C', 'D'),
-            )
+            m(Component, {char: 'y'}, 'C', 'D')
         ));
         expect(result.childNodes.length).toBe(3);
         expect(result.childNodes.item(0)).toBe(button);
@@ -442,12 +515,11 @@ describe('DOM', () => {
             m(A, {x: 5},
                 m(B, {x: 3, extra: false}),
             )
-        )) as HTMLElement;
+        )).firstElementChild as HTMLElement;
         const b1 = a.querySelector('.b1');
         const b2 = a.querySelector('.b2');
         const p = a.parentElement;
 
-        expect(a).toBe(target);
         expect(a.className).toBe('a');
         expect(a.dataset.count).toBe('5');
         expect(a.childNodes.length).toBe(2);
@@ -485,7 +557,7 @@ describe('DOM', () => {
             m(A, {x: 0},
                 m(B, {x: 0, extra: true}),
             )
-        ));
+        )).firstElementChild;
 
         expect(a2).toBe(a);
         expect(a.className).toBe('a');
@@ -535,13 +607,12 @@ describe('DOM', () => {
 
     test('DOM node as a child', () => {
         const A = ({}, ...children) => {
-            let domNode: HTMLElement;
-            const existing = getContext().node;
-            if (existing) {
+            let domNode = getContext().node as HTMLElement;
+            if (domNode) {
                 domNode.classList.add('b');
             } else {
                 domNode = document.createElement('span');
-                render(domNode, (
+                sync(domNode, (
                     m('span',
                         {class: 'a'},
                         ...children
@@ -551,21 +622,27 @@ describe('DOM', () => {
             return domNode;
         };
 
-        render(target, (
-            m('div', null,
-                m('span', null),
-                m(A, null),
-            )
-        ));
+        render(target, [
+            m('span', null),
+            m(A, null)
+        ]);
 
         expect(target.childNodes.length).toBe(2);
         expect((target.childNodes.item(0) as HTMLElement).className).toBe('');
         expect((target.childNodes.item(1) as HTMLElement).className).toBe('a');
+
+        render(target, [
+            m('span', null),
+            m(A, null)
+        ]);
+        expect(target.childNodes.length).toBe(2);
+        expect((target.childNodes.item(0) as HTMLElement).className).toBe('');
+        expect((target.childNodes.item(1) as HTMLElement).className).toBe('a b');
     });
 
     test('match by key', () => {
         const keys = [{}, 3, 's', true];
-        render(target, m('div', null,
+        render(target, [
             m('span', {key: keys[0]}),
             m('span', {key: keys[1]}),
             m('b', null),
@@ -573,17 +650,17 @@ describe('DOM', () => {
             m('span', {key: keys[2]}),
             m('span', {key: keys[3]}),
             m('a', null),
-        ));
+        ]);
         const nodes = Array.from(target.childNodes);
 
-        render(target, m('div', null,
+        render(target, [
             m('span', {key: keys[1]}),
             m('span', {key: keys[3]}),
             m('a', null),
             m('i', null),
             m('b', null),
             m('span', {key: keys[2]}),
-        ));
+        ]);
 
         expect(target.childNodes.item(0)).toBe(nodes[1]);
         expect(target.childNodes.item(1)).toBe(nodes[5]);
@@ -601,31 +678,31 @@ describe('DOM', () => {
             return m('li', null, label);
         };
 
-        render(target, m('div', null,
-            List({
+        render(target, m(
+            List, {
                 items: [
                     'A',
                     'B',
                     'C',
                     'D',
                 ]
-            }),
-        ));
+            })
+        );
 
         expect(target.firstChild.childNodes.length).toBe(4);
 
         const [a, b, c, d] = Array.from(target.firstChild.childNodes);
 
-        render(target, m('div', null,
-            List({
+        render(target, m(
+            List, {
                 items: [
                     'D',
                     'C',
                     'A',
                     'B',
                 ]
-            }),
-        ));
+            })
+        );
 
         expect(target.firstChild.childNodes.item(0)).toBe(d);
         expect(target.firstChild.childNodes.item(1)).toBe(c);
@@ -635,24 +712,20 @@ describe('DOM', () => {
         const A = () => m('span', null);
         const B = () => m('span', null);
 
-        render(target, (
-            m('div', null,
-                m('span', {key: 0}),
-                m('span', {key: 1}),
-                m(A, {key: 2}),
-                m(A, {key: 3}),
-            )
-        ));
+        render(target, [
+            m('span', {key: 0}),
+            m('span', {key: 1}),
+            m(A, {key: 2}),
+            m(A, {key: 3}),
+        ]);
         const s = Array.from(target.childNodes);
 
-        render(target, (
-            m('div', null,
-                m('a', {key: 0}),
-                m('span', {key: 1}),
-                m(B, {key: 2}),
-                m(A, {key: 3}),
-            )
-        ));
+        render(target, [
+            m('a', {key: 0}),
+            m('span', {key: 1}),
+            m(B, {key: 2}),
+            m(A, {key: 3})
+        ]);
 
         expect(s.includes(target.childNodes.item(0))).toBe(false);
         expect(target.childNodes.item(1)).toBe(s[1]);
@@ -660,7 +733,7 @@ describe('DOM', () => {
         expect(target.childNodes.item(3)).toBe(s[3]);
 
         expect(
-            () => render(target, m('div', null, m('span', {key: 0}), m('span', {key: 0})))
+            () => render(target, [m('span', {key: 0}), m('span', {key: 0})])
         ).toThrow('Duplicate key');
     });
 
@@ -690,59 +763,49 @@ describe('DOM', () => {
             }
         };
 
-        render(target, (
-            m('div', null,
-                m(Component, {x: -1}),
-                m(Component, {x: -1}),
-                m(Component, {x: -1}),
-            )
-        ));
+        render(target, [
+            m(Component, {x: -1}),
+            m(Component, {x: -1}),
+            m(Component, {x: -1}),
+        ]);
         expect(target.childNodes.length).toBe(0);
 
-        render(target, (
-            m('div', null,
-                m(Component, {x: -1}),
-                m(Component, {x: 0}),
-                m(Component, {x: 0}),
-            )
-        ));
+        render(target, [
+            m(Component, {x: -1}),
+            m(Component, {x: 0}),
+            m(Component, {x: 0}),
+        ]);
         expect(target.childNodes.length).toBe(2);
         expect(target.childNodes.item(0)).toBeInstanceOf(HTMLDivElement);
         expect(target.childNodes.item(1)).toBeInstanceOf(HTMLDivElement);
 
         const n1 = target.childNodes.item(0);
         const n2 = target.childNodes.item(1);
-        render(target, (
-            m('div', null,
-                m(Component, {x: 0}),
-                m(Component, {x: 0}),
-                m(Component, {x: 0}),
-            )
-        ));
+        render(target, [
+            m(Component, {x: 0}),
+            m(Component, {x: 0}),
+            m(Component, {x: 0}),
+        ]);
         expect(target.childNodes.item(0)).toBeInstanceOf(HTMLDivElement);
         expect(target.childNodes.item(1)).toBeInstanceOf(HTMLDivElement);
         expect(target.childNodes.item(2)).toBeInstanceOf(HTMLDivElement);
         expect(target.childNodes.item(1)).toBe(n1);
         expect(target.childNodes.item(2)).toBe(n2);
 
-        render(target, (
-            m('div', null,
-                m(Component, {x: 0}),
-                m(Component, {x: 1}),
-                m(Component, {x: 1}),
-            )
-        ));
+        render(target, [
+            m(Component, {x: 0}),
+            m(Component, {x: 1}),
+            m(Component, {x: 1}),
+        ]);
         expect(target.childNodes.item(0)).toBeInstanceOf(HTMLDivElement);
         expect(target.childNodes.item(1)).toBeInstanceOf(HTMLSpanElement);
         expect(target.childNodes.item(2)).toBeInstanceOf(HTMLSpanElement);
 
-        render(target, (
-            m('div', null,
-                m(Component, {x: 0}),
-                m(Component, {x: 1}),
-                m(Component, {x: 2}),
-            )
-        ));
+        render(target, [
+            m(Component, {x: 0}),
+            m(Component, {x: 1}),
+            m(Component, {x: 2}),
+        ]);
         expect(target.childNodes.item(0)).toBeInstanceOf(HTMLDivElement);
         expect(target.childNodes.item(1)).toBeInstanceOf(HTMLSpanElement);
         expect(target.childNodes.item(2)).toBeInstanceOf(HTMLAnchorElement);
@@ -776,18 +839,18 @@ describe('DOM', () => {
             });
         };
 
-        render(target, <div><Dummy /></div>);
+        render(target, <Dummy />);
         expect(target.firstChild).toBe(null);
         expect(attached).toBe(null);
 
-        render(target, <div><Dummy /></div>);
+        render(target, <Dummy />);
         expect(target.firstChild).toBeInstanceOf(HTMLButtonElement);
         expect(updated).toBe(target.firstChild);
 
         dispatchClick(target.firstElementChild);
         expect(target.firstElementChild.className).toBe('init awaiting');
 
-        render(target, <div><Dummy /></div>);
+        render(target, <Dummy />);
         expect(target.firstElementChild.className).toBe('init');
     });
 
@@ -918,7 +981,7 @@ describe('DOM', () => {
         detachedNodes.splice(0);
         updatedNodes.splice(0);
 
-        render(target, (
+        const result = render(target, (
             m(Component, {class: 'c0'},
                 null,
                 m(Wrapper, {name: 'W2', shouldUpdate: true},
@@ -931,19 +994,19 @@ describe('DOM', () => {
                     ),
                 ),
             )
-        ));
+        )).firstElementChild;
 
         expect(attachedNodes.join(' ')).toBe('c7 C7(c7) c6 C6(c6)');
         expect(detachedNodes.join(' ')).toBe('');
         expect(updatedNodes.join(' ')).toBe('c4 C4(c4) c3 C3(c3) W5(c6) W2(c3, c6) c0 C0(c0)');
 
-        expect(target.className).toBe('c0');
-        expect(target.childNodes.length).toBe(2);
-        expect((target.childNodes.item(0) as Element).className).toBe('c3');
-        expect(target.childNodes.item(0).childNodes.length).toBe(2);
-        expect((target.childNodes.item(0).childNodes.item(0) as Element).className).toBe('c7');
-        expect((target.childNodes.item(0).childNodes.item(1) as Element).className).toBe('c4');
-        expect((target.childNodes.item(1) as Element).className).toBe('c6');
+        expect(result.className).toBe('c0');
+        expect(result.childNodes.length).toBe(2);
+        expect((result.childNodes.item(0) as Element).className).toBe('c3');
+        expect(result.childNodes.item(0).childNodes.length).toBe(2);
+        expect((result.childNodes.item(0).childNodes.item(0) as Element).className).toBe('c7');
+        expect((result.childNodes.item(0).childNodes.item(1) as Element).className).toBe('c4');
+        expect((result.childNodes.item(1) as Element).className).toBe('c6');
     });
 
     test('special attributes', () => {
@@ -952,7 +1015,7 @@ describe('DOM', () => {
                 class: 'c',
                 style: 'background-color: red;',
             })
-        )) as HTMLElement;
+        )).firstElementChild as HTMLElement;
         expect(element.className).toBe('c');
         expect(element.style.backgroundColor).toBe('red');
         expect(element.style.getPropertyPriority('background-color')).toBe('');
@@ -1018,7 +1081,7 @@ describe('DOM', () => {
             return m('span', {color, class: 'colored'}, ...children);
         });
 
-        render(target, (
+        const result = render(target, (
             m('div', {color: [0, 0, 0]},
                 m(Colored, {color: [0, 0, 0]},
                     m('span', {color: null}),
@@ -1029,24 +1092,24 @@ describe('DOM', () => {
                 ),
                 m('span', {color: [0, 128, 255]}),
             )
-        ));
+        )).firstElementChild;
 
-        expect(target.getAttribute('color')).toBe('0,0,0');
-        expect(target.hasAttribute('style')).toBe(false);
-        expect(target.children[0].className).toBe('colored');
-        expect(target.children[0].hasAttribute('color')).toBe(false);
-        expect(target.children[0].getAttribute('style')).toBe('color: rgb(0, 0, 0);');
-        expect(target.children[0].children[0].hasAttribute('color')).toBe(false);
-        expect(target.children[0].children[0].hasAttribute('style')).toBe(false);
-        expect(target.children[0].children[1].className).toBe('colored');
-        expect(target.children[0].children[1].hasAttribute('color')).toBe(false);
-        expect(target.children[0].children[1].getAttribute('style')).toBe('color: rgb(128, 128, 128);');
-        expect(target.children[0].children[1].children[0].hasAttribute('color')).toBe(false);
-        expect(target.children[0].children[1].children[0].getAttribute('style')).toBe('color: rgb(0, 0, 0); background: black;');
-        expect(target.children[0].children[2].hasAttribute('color')).toBe(false);
-        expect(target.children[0].children[2].getAttribute('style')).toBe('color: rgb(255, 128, 0);');
-        expect(target.children[1].getAttribute('color')).toBe('0,128,255');
-        expect(target.children[1].hasAttribute('style')).toBe(false);
+        expect(result.getAttribute('color')).toBe('0,0,0');
+        expect(result.hasAttribute('style')).toBe(false);
+        expect(result.children[0].className).toBe('colored');
+        expect(result.children[0].hasAttribute('color')).toBe(false);
+        expect(result.children[0].getAttribute('style')).toBe('color: rgb(0, 0, 0);');
+        expect(result.children[0].children[0].hasAttribute('color')).toBe(false);
+        expect(result.children[0].children[0].hasAttribute('style')).toBe(false);
+        expect(result.children[0].children[1].className).toBe('colored');
+        expect(result.children[0].children[1].hasAttribute('color')).toBe(false);
+        expect(result.children[0].children[1].getAttribute('style')).toBe('color: rgb(128, 128, 128);');
+        expect(result.children[0].children[1].children[0].hasAttribute('color')).toBe(false);
+        expect(result.children[0].children[1].children[0].getAttribute('style')).toBe('color: rgb(0, 0, 0); background: black;');
+        expect(result.children[0].children[2].hasAttribute('color')).toBe(false);
+        expect(result.children[0].children[2].getAttribute('style')).toBe('color: rgb(255, 128, 0);');
+        expect(result.children[1].getAttribute('color')).toBe('0,128,255');
+        expect(result.children[1].hasAttribute('style')).toBe(false);
 
         render(target, (
             m('div', {color: [0, 0, 0]},
@@ -1055,14 +1118,14 @@ describe('DOM', () => {
             )
         ));
 
-        expect(target.getAttribute('color')).toBe('0,0,0');
-        expect(target.hasAttribute('style')).toBe(false);
-        expect(target.children[0].className).toBe('colored');
-        expect(target.children[0].hasAttribute('color')).toBe(false);
-        expect(target.children[0].getAttribute('style')).toBe('color: rgb(255, 255, 255);');
-        expect(target.children[0].getAttribute('data-prev-r-g-b')).toBe('0 0 0');
-        expect(target.children[1].getAttribute('color')).toBe('0,128,255');
-        expect(target.children[1].hasAttribute('style')).toBe(false);
+        expect(result.getAttribute('color')).toBe('0,0,0');
+        expect(result.hasAttribute('style')).toBe(false);
+        expect(result.children[0].className).toBe('colored');
+        expect(result.children[0].hasAttribute('color')).toBe(false);
+        expect(result.children[0].getAttribute('style')).toBe('color: rgb(255, 255, 255);');
+        expect(result.children[0].getAttribute('data-prev-r-g-b')).toBe('0 0 0');
+        expect(result.children[1].getAttribute('color')).toBe('0,128,255');
+        expect(result.children[1].hasAttribute('style')).toBe(false);
 
         cleanup();
 
@@ -1091,9 +1154,9 @@ describe('DOM', () => {
             )
         ));
 
-        expect(target.namespaceURI).toBe(XHTML_NS);
-        expect(target.children[0].namespaceURI).toBe(SVG_NS);
-        expect(target.children[1].namespaceURI).toBe(XHTML_NS);
+        expect(target.firstElementChild.namespaceURI).toBe(XHTML_NS);
+        expect(target.firstElementChild.children[0].namespaceURI).toBe(SVG_NS);
+        expect(target.firstElementChild.children[1].namespaceURI).toBe(XHTML_NS);
     });
 
     test('render to existing DOM', () => {
@@ -1147,6 +1210,14 @@ describe('DOM', () => {
         const App = () => {
             const context = getContext();
             context.attached((node) => attachedNode = node);
+            let button: HTMLButtonElement;
+            if (context.store.button) {
+                button = context.store.button;
+            } else {
+                button = document.createElement('button');
+                button.classList.add('sb');
+                context.store.button = button;
+            }
             return (
                 m('div',
                     {
@@ -1158,7 +1229,7 @@ describe('DOM', () => {
                     m('h1', null,
                         'Heading',
                     ),
-                    context.node == null ? null : (() => {const b = document.createElement('button'); b.classList.add('sb'); return b;})(),
+                    button,
                     m(Article, {text: 'Line 1\nLine 2'}),
                     m(Numbers, {values: [3, 2, 1, 0, -1]}),
                 )
@@ -1186,11 +1257,11 @@ describe('DOM', () => {
             ));
         };
 
-        render(target.firstElementChild, m(App, null));
+        render(target, m(App, null));
 
         expect(target.firstElementChild).toBe(div);
         expect(attachedNode).toBe(div);
-        expect(div.className).toBe('app rendered');
+        expect(div.className).toBe('app');
         expect(div.childNodes.length).toBe(8);
         expect(div.childNodes.item(0)).toBe(heading);
         expect(heading.textContent).toBe('Heading');
@@ -1216,14 +1287,73 @@ describe('DOM', () => {
         expect((div.childNodes.item(7) as HTMLInputElement).value).toBe('-1');
     });
 
+    test('sync with existing HTML', () => {
+        target.innerHTML = [
+            '<div class="app">',
+            '  <span class="first"></span>',
+            '  <span class="second"></span>',
+            // '  <!---->', // BUG: Comment node shifts to right
+            '  <span class="third"></span>',
+            '  <span class="last"></span>',
+            '</div>',
+        ].join('\n');
+
+        const div = target.firstElementChild;
+        const first = div.firstElementChild;
+        const second = first.nextElementSibling;
+        // const comment = second.nextSibling.nextSibling;
+        const last = div.lastElementChild;
+
+        expect(div).toBeInstanceOf(HTMLDivElement);
+        expect(div.className).toBe('app');
+        expect(first.className).toBe('first');
+        expect(second.className).toBe('second');
+        expect(last.className).toBe('last');
+        // expect(comment).toBeInstanceOf(Comment);
+
+        const App = () => {
+            const {node} = getContext();
+            return m('div',
+                {
+                    class: {
+                        'app': true,
+                        'rendered': node != null,
+                    },
+                },
+                [
+                    m('span', {class: 'first'}),
+                    m('span', {class: 'second'}),
+                ],
+                node == null ? null : m('span', {class: 'third'}),
+                m('span', {class: 'fourth'}),
+                m('span', {class: 'last'}),
+            );
+        };
+
+        sync(target.firstElementChild, <App />);
+        expect(target.firstElementChild).toBe(div);
+        expect(div.className).toBe('app rendered');
+        expect(div.childNodes.length).toBe(5);
+        expect(div.childNodes[0]).toBe(first);
+        expect(div.childNodes[1]).toBe(second);
+        expect(div.childNodes[2]).toBeInstanceOf(HTMLSpanElement);
+        expect((div.childNodes[2] as HTMLElement).className).toBe('third');
+        // expect(comment.parentNode).toBe(null);
+        expect(Array.from(div.childNodes).indexOf(last)).toBe(3);
+        expect(div.childNodes[3]).toBe(last);
+        expect((div.childNodes[3] as HTMLElement).className).toBe('fourth');
+        expect(div.childNodes[4]).toBeInstanceOf(HTMLSpanElement);
+        expect((div.childNodes[4] as HTMLElement).className).toBe('last');
+    });
+
     test('namespaces', () => {
-        render(target, <div><svg><g /></svg></div>);
+        render(target, <svg><g /></svg>);
         expect(target.firstElementChild).toBeInstanceOf(SVGSVGElement);
         expect(target.firstElementChild.firstChild.namespaceURI).toBe(target.firstElementChild.namespaceURI);
 
         const FAKE_NAMESPACE = 'http://fake.org/v1';
         const el = document.createElementNS(FAKE_NAMESPACE, 'fake');
-        render(el, <fake><proove /></fake>);
+        sync(el, <fake><proove /></fake>);
         expect(el.firstElementChild.tagName).toBe('proove');
         expect(el.firstElementChild.namespaceURI).toBe(FAKE_NAMESPACE);
     });

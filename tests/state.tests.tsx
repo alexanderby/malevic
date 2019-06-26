@@ -33,13 +33,11 @@ describe('state', () => {
             );
         });
 
-        const main = container.appendChild(document.createElement('main'));
-
-        const element = render(main, (
+        const element = render(container, (
             <main>
                 <Component text="Apples" key="a" />
             </main>
-        ));
+        )).firstElementChild;
         expect(element.innerHTML).toEqual([
             '<div class="empty"><button>Apples</button> 0</div>',
         ].join(''));
@@ -49,7 +47,7 @@ describe('state', () => {
             '<div><button>Apples</button> 1</div>',
         ].join(''));
 
-        render(main, (
+        render(container, (
             <main>
                 <Component text="Oranges" key="o" />
                 <Component text="Apples" key="a" />
@@ -67,7 +65,7 @@ describe('state', () => {
             '<div><button>Apples</button> 2</div>',
         ].join(''));
 
-        render(main, (
+        render(container, (
             <main>
                 <Component text="Oranges" key="o" />
             </main>
@@ -76,7 +74,7 @@ describe('state', () => {
             '<div><button>Oranges</button> 1</div>',
         ].join(''));
 
-        render(main, (
+        render(container, (
             <main>
                 <Component text="Apples" key="a" />
                 <Component text="Oranges" key="o" />
@@ -93,7 +91,7 @@ describe('state', () => {
             '<div><button>Oranges</button> 1</div>',
         ].join(''));
 
-        render(main, (
+        render(container, (
             <main>
                 <Component text="Apples" key="a">
                     <Component text="Oranges" key="o" />
@@ -190,7 +188,7 @@ describe('state', () => {
                 </div>
             );
         });
-        const element = render(container, <Root />);
+        const element = render(container, <Root />).firstElementChild;
         dispatchClick(element.querySelector('button'));
         dispatchClick(element.querySelector('button'));
         expect(element.outerHTML).toEqual([

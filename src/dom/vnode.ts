@@ -15,7 +15,7 @@ import {
     pluginsSetAttribute,
     PLUGINS_SET_ATTRIBUTE,
 } from './sync-attrs';
-import {VNodeContext} from './vdom';
+import {VNodeContext, VDOM} from './vdom';
 
 export interface VNode {
     matches(other: VNode): boolean;
@@ -71,11 +71,26 @@ abstract class VNodeBase implements VNode {
     updated(context: VNodeContext) {}
 }
 
-function nodeMatchesSpec(node: Node, spec: NodeSpec): node is Element {
+function nodeMatchesSpec(node: Node, spec: NodeSpec): boolean {
     return node instanceof Element && spec.type === node.tagName.toLowerCase();
 }
 
-const refinedElements = new WeakSet<Node>();
+const refinedElements = new WeakMap<VDOM, WeakSet<Node>>();
+
+function markElementAsRefined(element: Element, vdom: VDOM) {
+    let refined: WeakSet<Node>;
+    if (refinedElements.has(vdom)) {
+        refined = refinedElements.get(vdom);
+    } else {
+        refined = new WeakSet();
+        refinedElements.set(vdom, refined);
+    }
+    refined.add(element);
+}
+
+function isElementRefined(element: Element, vdom: VDOM) {
+    return refinedElements.has(vdom) && refinedElements.get(vdom).has(element);
+}
 
 class ElementVNode extends VNodeBase {
     private spec: NodeSpec;
@@ -108,21 +123,20 @@ class ElementVNode extends VNodeBase {
         if (nodeMatchesSpec(existing, this.spec)) {
             element = existing;
         } else if (
-            !refinedElements.has(parent) &&
+            !isElementRefined(element, context.vdom) &&
             context.vdom.isDOMNodeCaptured(parent)
         ) {
             const sibling = context.sibling;
             const guess = sibling
                 ? (sibling as Element).nextElementSibling
                 : parent.firstElementChild;
-            if (
-                guess &&
-                !context.vdom.isDOMNodeCaptured(guess) &&
-                nodeMatchesSpec(guess, this.spec)
-            ) {
-                element = guess;
-            } else if (guess && !context.vdom.isDOMNodeCaptured(guess)) {
-                parent.removeChild(guess);
+
+            if (guess && !context.vdom.isDOMNodeCaptured(guess)) {
+                if (nodeMatchesSpec(guess, this.spec)) {
+                    element = guess;
+                } else {
+                    parent.removeChild(guess);
+                }
             }
         }
 
@@ -136,18 +150,18 @@ class ElementVNode extends VNodeBase {
             element = existing;
         } else {
             element = createElement(this.spec, context.parentNode as Element);
-            refinedElements.add(element);
+            markElementAsRefined(element, context.vdom);
         }
 
         syncAttrs(element, this.spec.props, null);
-        this.child = new DOMVNode(element, this.spec.children, this);
+        this.child = createDOMVNode(element, this.spec.children, this);
     }
 
     update(prev: ElementVNode, context: VNodeContext) {
         const prevContext = context.vdom.getVNodeContext(prev);
         const element = prevContext.node as Element;
         syncAttrs(element, this.spec.props, prev.spec.props);
-        this.child = new DOMVNode(element, this.spec.children, this);
+        this.child = createDOMVNode(element, this.spec.children, this);
     }
 
     attached(context: VNodeContext) {
@@ -364,12 +378,12 @@ class TextVNode extends VNodeBase {
     }
 
     private getExistingNode(context: VNodeContext) {
-        const parent = context.parentNode;
+        const parent = context.parentNode as Element;
         let node: Node;
         if (context.node instanceof Text) {
             node = context.node;
         } else if (
-            !refinedElements.has(parent) &&
+            !isElementRefined(parent, context.vdom) &&
             context.vdom.isDOMNodeCaptured(parent)
         ) {
             const sibling = context.sibling;
@@ -453,9 +467,8 @@ class DOMVNode extends VNodeBase {
     }
 
     detach(context: VNodeContext) {
-        if (this.node.isConnected) {
-            context.parentNode.removeChild(this.node);
-        }
+        // TODO: Do not remove every node in subtree.
+        context.parentNode.removeChild(this.node);
     }
 
     update(prev: DOMVNode, context: VNodeContext) {
@@ -474,14 +487,14 @@ class DOMVNode extends VNodeBase {
                 current = prev;
             }
         }
-        refinedElements.add(element);
+        markElementAsRefined(element, context.vdom);
     }
 
     attached(context: VNodeContext) {
         const {node} = this;
         if (
             node instanceof Element &&
-            !refinedElements.has(node) &&
+            !isElementRefined(node, context.vdom) &&
             context.vdom.isDOMNodeCaptured(node)
         ) {
             this.refine(context);
@@ -495,6 +508,14 @@ class DOMVNode extends VNodeBase {
 
 export function isDOMVNode(v: any): v is DOMVNode {
     return v instanceof DOMVNode;
+}
+
+export function createDOMVNode(
+    node: Node,
+    childSpecs: RecursiveArray<Child>,
+    parent: VNode,
+) {
+    return new DOMVNode(node, childSpecs, parent);
 }
 
 class ArrayVNode extends VNodeBase {
@@ -557,7 +578,7 @@ export function createVNode(
     }
 
     if (spec instanceof Node) {
-        return new DOMVNode(spec, [], parent);
+        return createDOMVNode(spec, [], parent);
     }
 
     if (Array.isArray(spec)) {

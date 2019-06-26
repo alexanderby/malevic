@@ -45,7 +45,7 @@ items.add(container.querySelector('#static-color'));
 
 setTimeout(() => {
     render(
-        container.firstElementChild,
+        container,
         <View
             color="blue"
             child={<code id="static-replacement">Replacement</code>}

@@ -19,9 +19,4 @@ function View() {
     );
 }
 
-render(
-    document.getElementById('text'),
-    <div>
-        <View />
-    </div>,
-);
+render(document.getElementById('text'), <View />);

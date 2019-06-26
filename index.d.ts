@@ -90,8 +90,13 @@ declare namespace Malevic {
     }
 
     namespace DOM {
-        function render(node: Element, spec: Spec): Element;
-        function render(node: Text, spec: Spec | string): Text;
+        function render<T extends Element>(
+            element: T,
+            spec: Child | Child[],
+        ): T;
+
+        function sync<T extends Element>(node: T, spec: Spec): T;
+        function sync(node: Text, spec: Spec | string): Text;
 
         function teardown(node: Element | Text): void;
 

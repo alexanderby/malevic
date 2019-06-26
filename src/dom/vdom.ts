@@ -78,7 +78,7 @@ export function createVDOM(rootNode: Node): VDOM {
         });
     }
 
-    function setRootVNode(vnode: VNode) {
+    function createRootVNodeLinks(vnode: VNode) {
         const parentNode =
             rootNode.parentElement || document.createDocumentFragment();
         const node = rootNode;
@@ -92,17 +92,10 @@ export function createVDOM(rootNode: Node): VDOM {
             node: parentNode,
             links,
         });
-
-        creatVNodeContext(vnode);
     }
 
-    function addVNode(vnode: VNode) {
+    function createVNodeLinks(vnode: VNode) {
         const parent = vnode.parent();
-
-        if (parent == null) {
-            setRootVNode(vnode);
-            return;
-        }
 
         const isBranch = linkedParents.has(parent);
         const parentNode = isDOMVNode(parent)
@@ -134,7 +127,9 @@ export function createVDOM(rootNode: Node): VDOM {
                 : passingLinks.get(parent);
             links.forEach((link) => vnodeLinks.push(link));
         }
+    }
 
+    function connectDOMVNode(vnode: VNode) {
         if (isDOMVNode(vnode)) {
             const {node} = vnode;
             hubs.set(node, {
@@ -144,10 +139,20 @@ export function createVDOM(rootNode: Node): VDOM {
                     node: null,
                 }),
             });
+            passingLinks.get(vnode).forEach((link) => (link.node = node));
+        }
+    }
 
-            vnodeLinks.forEach((link) => (link.node = node));
+    function addVNode(vnode: VNode) {
+        const parent = vnode.parent();
+
+        if (parent == null) {
+            createRootVNodeLinks(vnode);
+        } else {
+            createVNodeLinks(vnode);
         }
 
+        connectDOMVNode(vnode);
         creatVNodeContext(vnode);
     }
 
@@ -171,7 +176,7 @@ export function createVDOM(rootNode: Node): VDOM {
 
     function replaceVNode(old: VNode, vnode: VNode) {
         if (vnode.parent() == null) {
-            setRootVNode(vnode);
+            addVNode(vnode);
             return;
         }
 

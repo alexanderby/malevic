@@ -5,7 +5,7 @@ import {
 } from './create-element';
 import {PLUGINS_SET_ATTRIBUTE, PluginSetAttributeProps} from './sync-attrs';
 
-export {render, teardown} from './render';
+export {render, sync, teardown} from './render';
 
 export {getComponentContext as getContext} from './vnode';
 
