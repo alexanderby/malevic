@@ -22,18 +22,47 @@ function setClassObject(
     }
 }
 
+function mergeValues<T extends {[prop: string]: any}>(obj: T, old: T) {
+    const values = new Map<string, any>();
+
+    const newProps = new Set(Object.keys(obj));
+    const oldProps = Object.keys(old);
+    oldProps
+        .filter((prop) => !newProps.has(prop))
+        .forEach((prop) => values.set(prop, null));
+    newProps.forEach((prop) => values.set(prop, obj[prop]));
+
+    return values;
+}
+
 interface StyleObject {
     [prop: string]: string;
 }
 
-function setStyleObject(element: Element, styleObj: StyleObject) {
-    // TODO: Use `style.setProperty` and `style.removeProperty`.
-    const style = styles(styleObj);
-    if (style) {
-        element.setAttribute('style', style);
+const valueImportant = /^(.*?)\s*!?((?<=!)important)?$/;
+
+function setStyleObject(
+    element: HTMLElement,
+    styleObj: StyleObject,
+    prev: StyleObject | string | null,
+) {
+    let prevObj: StyleObject;
+    if (isObject(prev)) {
+        prevObj = prev;
     } else {
+        prevObj = {};
         element.removeAttribute('style');
     }
+
+    const declarations = mergeValues(styleObj, prevObj);
+    declarations.forEach(($value, prop) => {
+        if ($value) {
+            const [value, important] = String($value).match(valueImportant);
+            element.style.setProperty(prop, value, important);
+        } else {
+            element.style.removeProperty(prop);
+        }
+    });
 }
 
 function setEventListener(
@@ -63,16 +92,12 @@ export const pluginsSetAttribute = createPluginsStore<
     PluginSetAttributeProps
 >();
 
+function getPropertyValue(obj: any, prop: string) {
+    return obj && obj.hasOwnProperty(prop) ? obj[prop] : null;
+}
+
 export function syncAttrs(element: Element, attrs: NodeAttrs, prev: NodeAttrs) {
-    const values = new Map<string, any>();
-
-    const newKeys = new Set(Object.keys(attrs));
-    const oldKeys = prev ? Object.keys(prev) : [];
-    oldKeys
-        .filter((key) => !newKeys.has(key))
-        .forEach((key) => values.set(key, null));
-    newKeys.forEach((key) => values.set(key, attrs[key]));
-
+    const values = mergeValues(attrs, prev || {});
     values.forEach((value, attr) => {
         if (!pluginsSetAttribute.empty()) {
             const result = pluginsSetAttribute.apply({
@@ -80,9 +105,7 @@ export function syncAttrs(element: Element, attrs: NodeAttrs, prev: NodeAttrs) {
                 attr,
                 value,
                 get prev() {
-                    return prev && prev.hasOwnProperty(attr)
-                        ? prev[attr]
-                        : null;
+                    return getPropertyValue(prev, attr);
                 },
             });
             if (result != null) {
@@ -93,7 +116,8 @@ export function syncAttrs(element: Element, attrs: NodeAttrs, prev: NodeAttrs) {
         if (attr === 'class' && isObject(value)) {
             setClassObject(element, value);
         } else if (attr === 'style' && isObject(value)) {
-            setStyleObject(element, value);
+            const prevValue = getPropertyValue(prev, attr);
+            setStyleObject(element as HTMLElement, value, prevValue);
         } else if (attr.startsWith('on')) {
             const event = attr.substring(2);
             setEventListener(element, event, value);
