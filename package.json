@@ -1,13 +1,15 @@
 {
   "name": "malevic",
-  "version": "0.14.1",
+  "version": "0.15.0",
   "description": "Malevič.js - minimalistic reactive UI library",
   "keywords": [
     "ui",
     "dom",
     "svg",
-    "reactive",
-    "animation"
+    "animation",
+    "tween",
+    "react",
+    "d3"
   ],
   "author": "Alexander Shutov <shutovby@gmail.com> (http://shutov.by/)",
   "license": "MIT",

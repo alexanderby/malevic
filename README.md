@@ -8,6 +8,7 @@ Extendable.
 ![Malevič.js logo](https://rawgit.com/alexanderby/malevic/master/logo-256x256.svg)
 
 Suitable for building framework-independent dynamic widgets as well as small web apps.
+Create, manage state, animate!
 
 ## Samples
 
@@ -299,54 +300,10 @@ Other possible spec child types are:
 - String (will create a text node).
 - `null` (will leave a placeholder for future nodes).
 
-## Server-side rendering
-
-Malevič.js can simply render inside existing HTML
-without unnecessary DOM tree modifications.
-
-```jsx
-import {m} from 'malevic';
-import {stringify} from 'malevic/string';
-import {createServer} from 'http';
-import App from './app';
-
-createServer((request, response) => response.end(`<!DOCTYPE html>
-<html>
-<head></head>
-${stringify(
-    <body>
-        <App state={{}} />
-    </body>
-, {indent: '  '})}
-</html>`));
-```
-
-Sometimes a component is tied to DOM and cannot be converted to string properly. `isStringifying` function comes for rescue:
-
-```jsx
-import {m} from 'malevic';
-import {getContext} from 'malevic/dom';
-import {isStringifying} from 'malevic/string';
-
-function Component() {
-    if (isStringifying()) {
-        return <div class="target" />;
-    }
-
-    const {parent} = getContext();
-    const rect = parent.getBoundingClientRect();
-    return <div
-        class="target"
-        style={{width: `${rect.width}px`}}
-    />
-}
-```
-
 ## Animation plug-in
 
 There is a built-in animation plug-in,
 which makes it possible to schedule attribute animations.
-
 ```jsx
 import {m} from 'malevic';
 import {render} from 'malevic/dom';
@@ -357,8 +314,8 @@ const Chart = withAnimation(({width, height}) => (
         <circle
             r={5}
             fill="red"
-            cx={animate(90).initial(10).duration(1000)}
-            cy={animate(10).initial(90).duration(1000)}
+            cx={animate(90, {duration: 1000})}
+            cy={animate(10 {duration: 1000})}
         />
         <path
             fill="none"
@@ -373,8 +330,6 @@ const Chart = withAnimation(({width, height}) => (
 render(document.body, (
     <Chart width={200} height={150} />
 ));
-
-
 ```
 
 It is possible to animate separate style properties:
@@ -397,9 +352,8 @@ Built-in interpolator can interpolate between numbers and strings containing num
 For other cases (e.g. colors) please use custom interpolators:
 ```jsx
 <rect
-    fill={animate([255, 255, 0])
+    fill={animate([255, 255, 0], {duration: 2000})
         .initial([255, 0, 0])
-        .duration(2000)
         .interpolate((a, b) => (t) => {
             const mix = (x, y) => Math.round(x * (1 - t) + y * t);
             const channels = [
@@ -411,6 +365,24 @@ For other cases (e.g. colors) please use custom interpolators:
         })}
 />
 ```
+
+`initial()` method set's an initial value to a newly attached element,
+from which it will start animating.
+
+It is possible to add multiple keyframes:
+```jsx
+<polyline
+    points={animate()
+        .from([[0, 0], [10, 10]])
+        .to([[20, 20], [40, 40]], {duration: 100, easing: 'linear'})
+        .to([[50, 50], [40, 40]], {delay: 100, duration: 100})
+        .to([[10, 10], [10, 10]], {easing: (t) => t * t})
+        .output((points) => points.map(([x, y]) => `${x}, ${y}`).join(' '))}
+/>
+```
+
+Sometimes it is easier to manipulate raw values rather than strings.
+`output()` method could be used to convert data into attribute or CSS value.
 
 ## State plug-in	
 
@@ -505,6 +477,50 @@ const Form = withForms(({checked, text, num, onCheckChange, onTextChange, onNumC
 });
 ```
 
+## Server-side rendering
+
+Malevič.js can simply render inside existing HTML
+without unnecessary DOM tree modifications.
+
+```jsx
+import {m} from 'malevic';
+import {stringify} from 'malevic/string';
+import {createServer} from 'http';
+import App from './app';
+
+createServer((request, response) => response.end(`<!DOCTYPE html>
+<html>
+<head></head>
+${stringify(
+    <body>
+        <App state={{}} />
+    </body>
+, {indent: '  '})}
+</html>`));
+```
+
+Sometimes a component is tied to DOM and cannot be converted to string properly.
+`isStringifying` function comes for rescue:
+
+```jsx
+import {m} from 'malevic';
+import {getContext} from 'malevic/dom';
+import {isStringifying} from 'malevic/string';
+
+function Component() {
+    if (isStringifying()) {
+        return <div class="target" />;
+    }
+
+    const {parent} = getContext();
+    const rect = parent.getBoundingClientRect();
+    return <div
+        class="target"
+        style={{width: `${rect.width}px`}}
+    />
+}
+```
+
 ## Custom plug-ins
 
 There is API for adding custom logic
@@ -549,8 +565,13 @@ map.get(div) === 5;
 Everything was broken up:
 - Built-in ability to read previous props and store state.
 - Parent and target DOM nodes can be retrieved using `getContext()` function.
-- Lifecycle methods were renamed from `didmount`, `didupdate` and `willunmount` to `attached`, `updated` and `detached` (called after DOM node removal).
+- Lifecycle methods were renamed from `didmount`, `didupdate` and `willunmount`
+to `attached`, `updated` and `detached` (called after DOM node removal).
 - Components can return arrays.
 - `native` attribute was removed, just use a DOM node as a child.
 - Added ability to leave a component without changes.
 - Limited plug-ins scope.
+- Animation `.duration()` and `.easing()` methods were deleted,
+values should be passed to `animate(value, {duration, easing, delay})` function
+or `.to(value, {duration, easing, delay})` method.
+- Multiple animation keyframes could be added.
