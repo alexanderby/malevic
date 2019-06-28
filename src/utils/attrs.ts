@@ -16,3 +16,18 @@ export function styles(declarations: {[cssProp: string]: string}) {
         .map((cssProp) => `${cssProp}: ${declarations[cssProp]};`)
         .join(' ');
 }
+
+const valueImportant = /^(.*?)\s*!?((?<=!)important)?$/;
+
+export function setInlineCSSPropertyValue(
+    element: HTMLElement,
+    prop: string,
+    $value: any,
+) {
+    if ($value) {
+        const [, value, important] = String($value).match(valueImportant);
+        element.style.setProperty(prop, value, important);
+    } else {
+        element.style.removeProperty(prop);
+    }
+}

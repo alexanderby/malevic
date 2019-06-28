@@ -1,6 +1,6 @@
 import {classes, styles} from '../src/utils/attrs';
 import {LinkedList} from '../src/utils/linked-list';
-import {isObject} from '../src/utils/misc';
+import {isObject, isPlainObject, last} from '../src/utils/misc';
 
 describe('utils', () => {
     test('attrs', () => {
@@ -24,6 +24,15 @@ describe('utils', () => {
         expect(isObject({})).toBe(true);
         expect(isObject([])).toBe(true);
         expect(isObject(() => null)).toBe(false);
+
+        expect(isPlainObject({})).toBe(true);
+        expect(isPlainObject([])).toBe(false);
+        expect(isPlainObject(Object.create({}))).toBe(false);
+        expect(isPlainObject(() => null)).toBe(false);
+
+        expect(last([0, 1, 2, 3])).toBe(3);
+        expect(last([0, 1, 2, 3], 2)).toBe(1);
+        expect(last([0, 1, 2, 3], 5)).toBe(undefined);
     });
 
     test('linked list', () => {

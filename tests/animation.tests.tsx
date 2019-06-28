@@ -251,7 +251,7 @@ describe('animation', () => {
                     .initial(0)
                     .interpolate((a, b) => (t) => `left: ${(a * (1 - t) + b * t).toFixed()}px;`)
                     .duration(250)
-                    .easing([0, 0.2, 0.8, 1])}
+                    .easing('linear')}
             />));
 
             render(target, (
@@ -322,7 +322,7 @@ describe('animation', () => {
     test('invalid value', () => {
         return new Promise((resolve) => {
             const C = withAnimation(() => <div class={animate({}).initial({}).duration(50)} />);
-            expect(() => render(target, <C />)).toThrow(/Unable to animate/);
+            expect(() => render(target, <C />)).toThrow(/No interpolator provided/);
 
             setTimeout(() => resolve(), 100);
         });

@@ -73,11 +73,15 @@ declare namespace Malevic {
     ): ComponentSpec<T>;
 
     namespace Animation {
-        interface AnimationDeclaration {
+        interface AnimationDeclaration<T = any, R = any> {
+            delay(delay: number): this;
             duration(duration: number): this;
-            easing(easing: string | number[]): this;
-            initial(from: any): this;
+            easing(easing: string | ((t: number) => number)): this;
+            from(from: T): this;
+            to(from: T): this;
+            initial(from: T): this;
             interpolate(interpolate: Interpolator<any>): this;
+            output(transformer: (value: T) => R): this;
         }
 
         interface Interpolator<T> {

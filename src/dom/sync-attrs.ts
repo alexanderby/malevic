@@ -1,6 +1,6 @@
 import {NodeAttrs, DOMEventListener} from '../defs';
 import {createPluginsStore} from '../plugins';
-import {classes, styles} from '../utils/attrs';
+import {classes, setInlineCSSPropertyValue} from '../utils/attrs';
 import {isObject} from '../utils/misc';
 import {addEventListener, removeEventListener} from './events';
 
@@ -39,8 +39,6 @@ interface StyleObject {
     [prop: string]: string;
 }
 
-const valueImportant = /^(.*?)\s*!?((?<=!)important)?$/;
-
 function setStyleObject(
     element: HTMLElement,
     styleObj: StyleObject,
@@ -55,14 +53,9 @@ function setStyleObject(
     }
 
     const declarations = mergeValues(styleObj, prevObj);
-    declarations.forEach(($value, prop) => {
-        if ($value) {
-            const [value, important] = String($value).match(valueImportant);
-            element.style.setProperty(prop, value, important);
-        } else {
-            element.style.removeProperty(prop);
-        }
-    });
+    declarations.forEach(($value, prop) =>
+        setInlineCSSPropertyValue(element, prop, $value),
+    );
 }
 
 function setEventListener(
