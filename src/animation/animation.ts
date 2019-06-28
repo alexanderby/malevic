@@ -1,3 +1,4 @@
+import {clamp} from '../utils/math';
 import {last} from '../utils/misc';
 import {AnimationSpec, TransitionSpec} from './defs';
 import {easings} from './easing';
@@ -10,10 +11,7 @@ interface Interval<T> {
     interpolate: (t: number) => T;
 }
 
-let counter = 0;
-
 export class Animation<T = any, R = any> {
-    id = ++counter;
     private timeline: Interval<T>[];
     private interpolate: (a: T, b: T) => (t: number) => T;
     private output: (value: T) => R;
@@ -50,13 +48,20 @@ export class Animation<T = any, R = any> {
 
         const duration = time - this.startTime;
         const {timeline} = this;
-        const interval = timeline.find(
-            ({standby, end}, i) =>
-                i === timeline.length - 1 ||
-                (duration >= standby && duration <= end),
-        );
+        let interval: Interval<T>;
+        for (let i = timeline.length - 1; i >= 0; i--) {
+            const {standby, end} = timeline[i];
+            if (duration >= end || (duration >= standby && duration <= end)) {
+                interval = timeline[i];
+                break;
+            }
+        }
 
         const {start, end, spec} = interval;
+        if (interval === last(timeline) && duration >= end) {
+            this.isComplete = true;
+        }
+
         if (!interval.interpolate) {
             interval.interpolate = this.interpolate(spec.from, spec.to);
         }
@@ -66,14 +71,16 @@ export class Animation<T = any, R = any> {
                 ? easings[spec.timing.easing]
                 : spec.timing.easing;
 
-        const t = Math.min(1, (duration - start) / (end - start));
+        const t =
+            duration < start
+                ? 0
+                : start === end
+                ? 1
+                : clamp((duration - start) / (end - start), 0, 1);
         const eased = ease(t);
         const value = interval.interpolate.call(null, eased);
 
         this.lastValue = value;
-        if (interval === last(timeline) && duration >= end) {
-            this.isComplete = true;
-        }
 
         const output = this.output.call(null, value);
         this.callback.call(null, output);

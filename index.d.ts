@@ -88,7 +88,7 @@ declare namespace Malevic {
             (from: T, to: T): (t: number) => T;
         }
 
-        function animate(to: any): AnimationDeclaration;
+        function animate(to?: any): AnimationDeclaration;
 
         function withAnimation<T extends Component>(type: T): T;
     }

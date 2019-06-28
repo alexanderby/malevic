@@ -17,6 +17,7 @@ export class AnimationDeclaration<T = any, R = any> {
 
     constructor() {
         this.$spec = {
+            initial: null,
             timeline: [],
             interpolate: null,
             output: identity,
@@ -29,17 +30,13 @@ export class AnimationDeclaration<T = any, R = any> {
     }
 
     initial(value: T) {
-        if (!this.$spec.timeline[0].from) {
-            this.$spec.timeline[0].from = value;
-        }
+        this.$spec.initial = value;
         return this;
     }
 
     from(from: T) {
-        if (this.last() && this.last().to == null) {
-            throw new Error(
-                'New keyframe declared before previous declaration was finished',
-            );
+        if (this.$spec.timeline.length > 0) {
+            throw new Error('Starting keyframe was already declared');
         }
 
         this.$spec.timeline.push({

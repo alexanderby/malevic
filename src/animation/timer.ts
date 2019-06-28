@@ -6,23 +6,21 @@ export function createTimer() {
 
     function work(time: number) {
         currentTime = time;
-        callbacks.forEach((cb) => cb(currentTime));
-        if (!isRunning) {
+        callbacks.forEach((cb) => cb(time));
+        if (isRunning) {
             frameId = requestAnimationFrame(work);
         }
     }
 
     function run() {
-        if (!isRunning) {
-            work(performance.now());
-        }
+        isRunning = true;
+        currentTime = performance.now();
+        frameId = requestAnimationFrame(work);
     }
 
     function stop() {
-        if (frameId != null) {
-            cancelAnimationFrame(frameId);
-            frameId = null;
-        }
+        cancelAnimationFrame(frameId);
+        frameId = null;
         currentTime = null;
         isRunning = false;
     }

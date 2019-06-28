@@ -2,21 +2,25 @@ import {escapeHTML, PluginStringifyAttributeProps} from 'malevic/string';
 import {styles} from '../utils/attrs';
 import {last} from '../utils/misc';
 import {AnimationDeclaration} from './declaration';
+import {AnimationSpec} from './defs';
 import {isAnimatedStyleObj} from './utils';
+
+function getStartOutput(spec: AnimationSpec) {
+    return spec.output(
+        spec.timeline[0].from != null
+            ? spec.timeline[0].from
+            : spec.initial != null
+            ? spec.initial
+            : last(spec.timeline).to,
+    );
+}
 
 export const stringifyAttributePlugin = ({
     value,
 }: PluginStringifyAttributeProps) => {
     if (value instanceof AnimationDeclaration) {
         const spec = value.spec();
-
-        const {from} = spec.timeline[0];
-        if (from != null) {
-            return escapeHTML(String(spec.output(from)));
-        }
-
-        const {to} = last(spec.timeline);
-        return to == null ? '' : escapeHTML(String(spec.output(to)));
+        return escapeHTML(String(getStartOutput(spec)));
     }
 
     return null;
@@ -29,13 +33,7 @@ export const stringifyStyleAttrPlugin = ({attr, value}) => {
             const v = value[prop];
             if (v instanceof AnimationDeclaration) {
                 const spec = v.spec();
-                const {from} = spec.timeline[0];
-                if (from != null) {
-                    style[prop] = spec.output(from);
-                } else {
-                    const {to} = last(spec.timeline);
-                    style[prop] = spec.output(to);
-                }
+                style[prop] = getStartOutput(spec);
             } else {
                 style[prop] = v;
             }

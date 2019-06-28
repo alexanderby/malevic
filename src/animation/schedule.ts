@@ -4,13 +4,17 @@ import {createTimer} from './timer';
 
 const timer = createTimer();
 timer.tick((time) =>
-    Array.from(scheduledAnimations.values()).forEach((animation) => {
-        animation.tick(time);
-        if (animation.complete()) {
-            cancelAnimation(animation);
-        }
-    }),
+    Array.from(scheduledAnimations.values()).forEach((animation) =>
+        animationTick(animation, time),
+    ),
 );
+
+function animationTick(animation: Animation, time: number) {
+    animation.tick(time);
+    if (animation.complete()) {
+        cancelAnimation(animation);
+    }
+}
 
 const animationsByDeclaration = new WeakMap<AnimationDeclaration, Animation>();
 const scheduledAnimations = new Set<Animation>();
@@ -23,9 +27,8 @@ export function scheduleAnimation(
     scheduledAnimations.add(animation);
     animationsByDeclaration.set(declaration, animation);
 
-    if (!timer.running()) {
-        timer.run();
-    }
+    !timer.running() && timer.run();
+    animationTick(animation, timer.time());
 }
 
 export function cancelAnimation(animation: Animation) {

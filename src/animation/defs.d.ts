@@ -11,6 +11,7 @@ export interface TransitionSpec<T = any> {
 }
 
 export interface AnimationSpec<T = any, R = any> {
+    initial: T;
     timeline: TransitionSpec[];
     interpolate: (a: T, b: T) => (t: number) => T;
     output: (value: T) => R;

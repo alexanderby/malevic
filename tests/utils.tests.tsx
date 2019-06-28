@@ -1,5 +1,6 @@
 import {classes, styles} from '../src/utils/attrs';
 import {LinkedList} from '../src/utils/linked-list';
+import {clamp} from '../src/utils/math';
 import {isObject, isPlainObject, last} from '../src/utils/misc';
 
 describe('utils', () => {
@@ -12,6 +13,12 @@ describe('utils', () => {
         expect(styles({'color': null})).toBe('');
         expect(styles({'background-color': 'red !important', 'color': 'blue'}))
             .toBe('background-color: red !important; color: blue;');
+    });
+
+    test('math', () => {
+        expect(clamp(10, 0, 20)).toBe(10);
+        expect(clamp(0, 10, 20)).toBe(10);
+        expect(clamp(20, 0, 10)).toBe(10);
     });
 
     test('miscellaneous', () => {

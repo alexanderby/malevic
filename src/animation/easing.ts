@@ -1,21 +1,15 @@
-function cubicBezier(t: number, p: [number, number, number, number]) {
-    const q = 1 - t;
-    return (
-        p[0] * q ** 3 +
-        3 * p[1] * q ** 2 * t +
-        3 * p[2] * q * t ** 2 +
-        p[3] * t ** 3
-    );
-}
-
-export function createEasingFunction(p: [number, number, number, number]) {
-    return (t: number) => cubicBezier(t, p);
-}
-
 export const easings = {
     linear: (t: number) => t,
-    ease: createEasingFunction([0, 1 / 8, 1, 1]),
-    'ease-in': createEasingFunction([0, 0, 1 / 2, 1]),
-    'ease-out': createEasingFunction([0, 1 / 2, 1, 1]),
-    'ease-in-out': createEasingFunction([0, 1 / 2, 1, 1]),
+    ease: (t: number) => {
+        const t0 = (1 - Math.cos(t * Math.PI)) / 2;
+        const t1 = Math.sqrt(1 - Math.pow(t - 1, 2));
+        const t2 = Math.sin((t * Math.PI) / 2);
+        return t0 * (1 - t2) + t1 * t2;
+    },
+    'ease-in': (t: number) => {
+        const r = 1 - Math.cos((t * Math.PI) / 2);
+        return r > 1 - 1e-15 ? 1 : r;
+    },
+    'ease-out': (t: number) => Math.sin((t * Math.PI) / 2),
+    'ease-in-out': (t: number) => (1 - Math.cos(t * Math.PI)) / 2,
 };

@@ -15,7 +15,9 @@ function handleAnimationDeclaration(
     callback: (output: any) => void,
 ) {
     const spec = value.spec();
+    const specStartValue = spec.timeline[0].from;
     const specEndValue = last(spec.timeline).to;
+
     let prevEndValue: any;
     if (prev instanceof AnimationDeclaration) {
         const prevAnimation = getScheduledAnimation(prev);
@@ -35,15 +37,20 @@ function handleAnimationDeclaration(
         prevEndValue = prev;
     }
 
-    if (prevEndValue != null) {
-        spec.timeline[0].from = prevEndValue;
+    let startFrom: any;
+    if (specStartValue != null) {
+        startFrom = specStartValue;
+    } else if (prevEndValue != null) {
+        startFrom = prevEndValue;
+    } else if (spec.initial != null) {
+        startFrom = spec.initial;
     }
 
-    const specStartValue = spec.timeline[0].from;
-    if (specStartValue == null) {
+    if (startFrom == null) {
         const endValue = spec.output(specEndValue);
         callback(endValue);
     } else {
+        spec.timeline[0].from = startFrom;
         scheduleAnimation(value, callback);
     }
 }
@@ -57,14 +64,6 @@ function tryCancelAnimation(value: any) {
     }
 }
 
-function setAttribute(element: Element, attr: any, value: any) {
-    if (value == null) {
-        element.removeAttribute(attr);
-    } else {
-        element.setAttribute(attr, value);
-    }
-}
-
 export const setAttributePlugin = ({
     element,
     attr,
@@ -73,7 +72,7 @@ export const setAttributePlugin = ({
 }: PluginSetAttributeProps) => {
     if (value instanceof AnimationDeclaration) {
         handleAnimationDeclaration(value, prev, (output) =>
-            setAttribute(element, attr, output),
+            element.setAttribute(attr, output),
         );
         return true;
     } else if (isAnimatedStyleObj(prev)) {
