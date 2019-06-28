@@ -74,11 +74,8 @@ declare namespace Malevic {
 
     namespace Animation {
         interface AnimationDeclaration<T = any, R = any> {
-            delay(delay: number): this;
-            duration(duration: number): this;
-            easing(easing: string | ((t: number) => number)): this;
             from(from: T): this;
-            to(from: T): this;
+            to(from: T, timing?: Partial<TimingSpec>): this;
             initial(from: T): this;
             interpolate(interpolate: Interpolator<any>): this;
             output(transformer: (value: T) => R): this;
@@ -88,7 +85,22 @@ declare namespace Malevic {
             (from: T, to: T): (t: number) => T;
         }
 
-        function animate(to?: any): AnimationDeclaration;
+        interface TimingSpec {
+            delay: number;
+            duration: number;
+            easing:
+                | 'linear'
+                | 'ease'
+                | 'ease-in'
+                | 'ease-out'
+                | 'ease-in-out'
+                | ((t: number) => number);
+        }
+
+        function animate(
+            to?: any,
+            timing?: Partial<TimingSpec>,
+        ): AnimationDeclaration;
 
         function withAnimation<T extends Component>(type: T): T;
     }

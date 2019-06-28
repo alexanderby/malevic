@@ -8,12 +8,8 @@ const DURATION = 2000;
 const Circle = withAnimation(({x, y, x0, y0}) => {
     return (
         <circle
-            cx={animate(x)
-                .initial(x0)
-                .duration(DURATION)}
-            cy={animate(y)
-                .initial(y0)
-                .duration(DURATION)}
+            cx={animate(x, {duration: DURATION}).initial(x0)}
+            cy={animate(y, {duration: DURATION}).initial(y0)}
             r={5}
         />
     );
@@ -33,20 +29,18 @@ const Snake = withAnimation(({points, color}) => {
         <svg width={100} height={100}>
             <g
                 style={{
-                    fill: animate(color)
+                    fill: animate(color, {duration: DURATION})
                         .initial(color1)
-                        .interpolate(interpolateHexColor)
-                        .duration(DURATION),
-                    stroke: animate(color)
+                        .interpolate(interpolateHexColor),
+                    stroke: animate(color, {duration: DURATION})
                         .initial(color1)
-                        .interpolate(interpolateHexColor)
-                        .duration(DURATION),
+                        .interpolate(interpolateHexColor),
                 }}
             >
                 <path
-                    d={animate(getCurve(points))
-                        .initial(getCurve(curve1))
-                        .duration(DURATION)}
+                    d={animate(getCurve(points), {duration: DURATION}).initial(
+                        getCurve(curve1),
+                    )}
                     fill="none"
                     stroke-width={4}
                 />

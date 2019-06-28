@@ -24,10 +24,8 @@ afterEach(() => {
 describe('animation', () => {
     test('animate attributes', () => {
         const Box = withAnimation(({x}) => (<span
-            style={animate(`left: ${x}px;`)
-                .initial('left: 0px;')
-                .duration(250)
-                .easing('linear')}
+            style={animate(`left: ${x}px;`, {duration: 250, easing: 'linear'})
+                .initial('left: 0px;')}
         />));
 
         render(target, (
@@ -44,21 +42,58 @@ describe('animation', () => {
         expect(box.style.left).toBe('40px');
     });
 
+    test('defaults', () => {
+        const Box = withAnimation(({x}) => <span style={animate(`left: ${x}px;`)} />);
+
+        render(target, (
+            <Box x={40} />
+        ));
+        const box = target.firstElementChild as HTMLSpanElement;
+        expect(box.style.left).toBe('40px');
+
+        render(target, (
+            <Box x={80} />
+        ));
+        expect(box.style.left).toBe('40px');
+
+        semaphore.tick(125);
+        expect(parseFloat(box.style.left)).toBeGreaterThan(60);
+        expect(parseFloat(box.style.left)).toBeLessThan(80);
+
+        render(target, (
+            <Box x={100} />
+        ));
+
+        semaphore.tick(250);
+        expect(parseFloat(box.style.left)).toBeGreaterThan(80);
+        expect(parseFloat(box.style.left)).toBeLessThan(100);
+
+        semaphore.tick(375);
+        expect(box.style.left).toBe('100px');
+
+        semaphore.tick(500);
+        expect(box.style.left).toBe('100px');
+
+        debugger;
+        const Label = withAnimation(() => <label style={{opacity: animate().from(0).to(1)}} />);
+        const label = render(target, <Label />).firstElementChild as HTMLElement;
+        expect(label.style.opacity).toBe('0');
+
+        semaphore.tick(750);
+        expect(label.style.opacity).toBe('1');
+    });
+
     test('animate styles', () => {
         const Box = withAnimation(({x}) => (<span
             style={{
-                left: animate(`${x}px`)
-                    .initial('0px')
-                    .duration(250)
-                    .easing('linear'),
+                left: animate(`${x}px`, {duration: 250, easing: 'linear'})
+                    .initial('0px'),
             }}
         />));
 
         const Text = withAnimation(({x}) => (<span
             style={{
-                left: animate(`${x}px`)
-                    .duration(250)
-                    .easing('linear'),
+                left: animate(`${x}px`, {duration: 250, easing: 'linear'}),
             }}
         />));
 
@@ -84,7 +119,7 @@ describe('animation', () => {
 
     test('numeric values', () => {
         const Box = withAnimation(({x}) => (
-            <rect x={animate(x).duration(250).easing('linear')} />));
+            <rect x={animate(x, {duration: 250, easing: 'linear'})} />));
 
         render(target, (
             <svg>
@@ -110,16 +145,12 @@ describe('animation', () => {
 
     test('interrupt animation', () => {
         const Box = withAnimation(({x, color}) => (<span
-            color={animate(`rgb(${color})`)
-                .initial('rgb(0,0,0)')
-                .duration(250)
-                .easing('linear')}
+            color={animate(`rgb(${color})`, {duration: 250, easing: 'linear'})
+                .initial('rgb(0,0,0)')}
             style={{
-                top: x === 0 ? `0px` : animate(`${x}px`).duration(250).easing('linear'),
-                left: animate(`${x}px`)
-                    .initial('0px')
-                    .duration(250)
-                    .easing('linear'),
+                top: x === 0 ? `0px` : animate(`${x}px`, {duration: 250, easing: 'linear'}),
+                left: animate(`${x}px`, {duration: 250, easing: 'linear'})
+                    .initial('0px'),
             }}
         />));
 
@@ -151,10 +182,8 @@ describe('animation', () => {
 
     test('schedule and cancel attribute animation', () => {
         const Box = withAnimation(({x, isStatic}) => (<span
-            style={isStatic ? `left: ${x}px;` : animate(`left: ${x}px;`)
-                .initial('left: 0px;')
-                .duration(250)
-                .easing('linear')}
+            style={isStatic ? `left: ${x}px;` : animate(`left: ${x}px;`, {duration: 250, easing: 'linear'})
+                .initial('left: 0px;')}
         />));
 
         render(target, (
@@ -185,9 +214,7 @@ describe('animation', () => {
         const Box = withAnimation(({x, isStatic}) => (<span
             style={{
                 right: '30px',
-                left: isStatic ? `${x}px` : animate(`${x}px`)
-                    .duration(250)
-                    .easing('linear'),
+                left: isStatic ? `${x}px` : animate(`${x}px`, {duration: 250, easing: 'linear'}),
             }}
         />));
 
@@ -224,17 +251,13 @@ describe('animation', () => {
             style={{
                 ...(left == null ? {} :
                     {
-                        left: animate(`${left}px`)
+                        left: animate(`${left}px`, {duration: 250, easing: 'linear'})
                             .initial(`0px`)
-                            .duration(250)
-                            .easing('linear')
                     }),
                 ...(right == null ? {} :
                     {
-                        right: animate(`${right}px`)
+                        right: animate(`${right}px`, {duration: 250, easing: 'linear'})
                             .initial(`0px`)
-                            .duration(250)
-                            .easing('linear')
                     }),
             }}
         />));
@@ -263,12 +286,10 @@ describe('animation', () => {
 
     test('custom interpolators', () => {
         const Box = withAnimation(({x}) => (<span
-            style={animate(x)
+            style={animate(x, {duration: 250, easing: (t) => t * t})
                 .initial(0)
                 .interpolate((a, b) => (t) => a * (1 - t) + b * t)
-                .output((value) => `left: ${value}px;`)
-                .duration(250)
-                .easing((t) => t * t)}
+                .output((value) => `left: ${value}px;`)}
         />));
 
         render(target, (
@@ -287,12 +308,10 @@ describe('animation', () => {
 
     test('easings', () => {
         const Box = withAnimation(({x, easing}) => (<span
-            style={animate(x)
+            style={animate(x, {duration: 250, easing})
                 .initial(0)
                 .interpolate((a, b) => (t) => a * (1 - t) + b * t)
-                .output((value) => `left: ${value}px;`)
-                .duration(250)
-                .easing(easing)}
+                .output((value) => `left: ${value}px;`)}
         />));
 
         render(target, (<Array>
@@ -336,17 +355,10 @@ describe('animation', () => {
         const Circle = withAnimation(() => (<circle
             cx={animate()
                 .from(0)
-                .to(40)
-                .delay(100)
-                .duration(100)
-                .easing('linear')
-                .to(60)
-                .duration(0)
-                .to(80)
-                .duration(200)
-                .easing('linear')
-                .to(100)
-                .duration(0)}
+                .to(40, {delay: 100, duration: 100, easing: 'linear'})
+                .to(60, {duration: 0})
+                .to(80, {duration: 200, easing: 'linear'})
+                .to(100, {duration: 0})}
         />));
 
         render(target, <svg><Circle /></svg>);
@@ -385,35 +397,27 @@ describe('animation', () => {
                 <div
                     class="first"
                     style={{
-                        top: animate(`${x}px`)
-                            .duration(250)
-                            .easing('linear'),
+                        top: animate(`${x}px`, {duration: 250, easing: 'linear'}),
                     }}
                 />
                 <a
                     class="second"
-                    style={animate(`bottom: ${x}px;`)
-                        .duration(250)
-                        .easing('linear')}
+                    style={animate(`bottom: ${x}px;`)}
                 />
                 <p
                     class="third"
                     style={{
                         right: 'initial',
-                        top: animate(`${x}px`)
-                            .initial(`0px`)
-                            .duration(250)
-                            .easing('linear'),
+                        top: animate(`${x}px`, {duration: 250, easing: 'linear'})
+                            .initial(`0px`),
                     }}
                 />
                 <span
                     class="last"
                     style={animate()
                         .from('left: 0px;')
-                        .to(`left: ${x / 2}px;`)
-                        .duration(250)
-                        .easing('linear')
-                        .to(`left: ${x}px;`)}
+                        .to(`left: ${x / 2}px;`, {duration: 125, easing: 'linear'})
+                        .to(`left: ${x}px;`, {duration: 125, easing: 'linear'})}
                 />
             </Array>
         ));
@@ -428,7 +432,7 @@ describe('animation', () => {
     });
 
     test('invalid value', () => {
-        const C = withAnimation(() => <div class={animate({}).initial({}).duration(50)} />);
+        const C = withAnimation(() => <div class={animate({}, {duration: 50}).initial({})} />);
         expect(() => render(target, <C />)).toThrow(/No interpolator provided/);
     });
 
@@ -439,15 +443,15 @@ describe('animation', () => {
                     return <Array>
                         <div style={`left: ${x}px;`} />
                         <div style={{left: `${x}px`}} />
-                        <div style={animate(`left: ${x}px;`).initial('left: 0px;').duration(250).easing('linear')} />
-                        <div style={{left: animate(`${x}px`).initial('0px').duration(250).easing('linear')}} />
+                        <div style={animate(`left: ${x}px;`, {duration: 250, easing: 'linear'}).initial('left: 0px;')} />
+                        <div style={{left: animate(`${x}px`, {duration: 250, easing: 'linear'}).initial('0px')}} />
                     </Array>;
                 default:
                     return <Array>
-                        <div style={{left: animate(`${x}px`).initial('0px').duration(250).easing('linear')}} />
-                        <div style={{left: animate(`${x}px`).initial('0px').duration(250).easing('linear')}} />
-                        <div style={{left: animate(`${x}px`).initial('0px').duration(250).easing('linear')}} />
-                        <div style={{left: animate(`${x}px`).initial('0px').duration(250).easing('linear')}} />
+                        <div style={{left: animate(`${x}px`, {duration: 250, easing: 'linear'}).initial('0px')}} />
+                        <div style={{left: animate(`${x}px`, {duration: 250, easing: 'linear'}).initial('0px')}} />
+                        <div style={{left: animate(`${x}px`, {duration: 250, easing: 'linear'}).initial('0px')}} />
+                        <div style={{left: animate(`${x}px`, {duration: 250, easing: 'linear'}).initial('0px')}} />
                     </Array>;
             }
         });

@@ -2,16 +2,17 @@ import {Component} from 'malevic';
 import {plugins as domPlugins} from 'malevic/dom';
 import {plugins as stringPlugins} from 'malevic/string';
 import {AnimationDeclaration} from './declaration';
+import {TimingSpec} from './defs';
 import {setAttributePlugin, setStyleAttributePlugin} from './set-attr-plugins';
 import {
     stringifyAttributePlugin,
     stringifyStyleAttrPlugin,
 } from './stringify-plugins';
 
-export function animate<T = any>(to?: T) {
+export function animate<T = any>(to?: T, timing?: Partial<TimingSpec>) {
     const declaration = new AnimationDeclaration<T>();
     if (to != null) {
-        declaration.to(to);
+        declaration.to(to, timing);
     }
     return declaration;
 }

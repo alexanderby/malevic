@@ -8,7 +8,7 @@ function identity<T = any>(x: T): any {
 
 const defaultTiming: TimingSpec = {
     delay: 0,
-    duration: 750,
+    duration: 250,
     easing: 'ease',
 };
 
@@ -48,7 +48,7 @@ export class AnimationDeclaration<T = any, R = any> {
         return this;
     }
 
-    to(to: T) {
+    to(to: T, timing?: Partial<TimingSpec>) {
         if (!this.$spec.interpolate) {
             if (typeof to === 'number') {
                 this.$spec.interpolate = interpolateNumbers;
@@ -60,29 +60,17 @@ export class AnimationDeclaration<T = any, R = any> {
         const last = this.last();
         if (last && last.to == null) {
             last.to = to;
+            if (timing) {
+                last.timing = {...last.timing, ...timing};
+            }
         } else {
             this.$spec.timeline.push({
                 from: last ? last.to : null,
                 to,
-                timing: {...defaultTiming},
+                timing: {...defaultTiming, ...(timing ? timing : {})},
             });
         }
 
-        return this;
-    }
-
-    delay(delay: number) {
-        this.last().timing.delay = delay;
-        return this;
-    }
-
-    duration(duration: number) {
-        this.last().timing.duration = duration;
-        return this;
-    }
-
-    easing(easing: string | ((t: number) => number)) {
-        this.last().timing.easing = easing;
         return this;
     }
 

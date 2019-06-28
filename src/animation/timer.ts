@@ -4,9 +4,9 @@ export function createTimer() {
     let isRunning = false;
     const callbacks: ((time: number) => void)[] = [];
 
-    function work(time: number) {
-        currentTime = time;
-        callbacks.forEach((cb) => cb(time));
+    function work() {
+        currentTime = performance.now();
+        callbacks.forEach((cb) => cb(currentTime));
         if (isRunning) {
             frameId = requestAnimationFrame(work);
         }

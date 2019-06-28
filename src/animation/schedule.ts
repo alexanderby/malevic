@@ -19,6 +19,7 @@ function animationTick(animation: Animation, time: number) {
 const animationsByDeclaration = new WeakMap<AnimationDeclaration, Animation>();
 const scheduledAnimations = new Set<Animation>();
 
+// TODO: Cancel animation when element was removed.
 export function scheduleAnimation(
     declaration: AnimationDeclaration,
     tick: (output: any) => void,

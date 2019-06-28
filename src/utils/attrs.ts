@@ -24,7 +24,7 @@ export function setInlineCSSPropertyValue(
     prop: string,
     $value: any,
 ) {
-    if ($value) {
+    if ($value != null && $value !== '') {
         const [, value, important] = String($value).match(valueImportant);
         element.style.setProperty(prop, value, important);
     } else {

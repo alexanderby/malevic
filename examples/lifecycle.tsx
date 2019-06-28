@@ -15,9 +15,8 @@ const Tooltip = withAnimation(({text, cx, cy}) => {
     return (
         <g>
             <rect
-                fill={animate([255, 255, 0])
+                fill={animate([255, 255, 0], {duration: 2000})
                     .initial([255, 0, 0])
-                    .duration(2000)
                     .interpolate((a, b) => (t) => {
                         const mix = (x, y) => Math.round(x * (1 - t) + y * t);
                         const channels = [
