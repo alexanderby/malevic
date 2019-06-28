@@ -7,6 +7,7 @@
     "dom",
     "svg",
     "animation",
+    "render",
     "tween",
     "react",
     "d3"
