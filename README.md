@@ -135,15 +135,15 @@ a corresponding event listener is added to a DOM element
 ```jsx
 <div
     class="view active"
-    class={['view', null, 'active']}
+    class={['view', props.isActive ? 'active' : null]}
     class={{'view': true, 'active': props.isActive}}
 />
 ```
 - Possible **style** attribute values:
 ```jsx
 <div
-    style="background: red !important; left: 0;"
-    style={{'background': 'red !important', 'left': 0}}
+    style="background: red !important; opacity: 0;"
+    style={{'background': 'red !important', 'opacity': 0}}
 />
 ```
 
@@ -315,7 +315,7 @@ const Chart = withAnimation(({width, height}) => (
             r={5}
             fill="red"
             cx={animate(90, {duration: 1000})}
-            cy={animate(10 {duration: 1000})}
+            cy={animate(10, {duration: 1000})}
         />
         <path
             fill="none"
@@ -366,8 +366,11 @@ For other cases (e.g. colors) please use custom interpolators:
 />
 ```
 
-`initial()` method set's an initial value to a newly attached element,
+`initial()` method set's the initial value to a newly attached element,
 from which it will start animating.
+If the initial value was not provided,
+animation will start from the last value
+or final value will be used statically.
 
 It is possible to add multiple keyframes:
 ```jsx

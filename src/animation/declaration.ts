@@ -1,4 +1,4 @@
-import {last} from '../utils/misc';
+import {last as lastItem} from '../utils/misc';
 import {AnimationSpec, TimingSpec} from './defs';
 import {interpolateNumbers, interpolateNumbersInString} from './interpolate';
 
@@ -22,11 +22,6 @@ export class AnimationDeclaration<T = any, R = any> {
             interpolate: null,
             output: identity,
         };
-    }
-
-    private last() {
-        const {timeline} = this.$spec;
-        return last(timeline);
     }
 
     initial(value: T) {
@@ -57,7 +52,7 @@ export class AnimationDeclaration<T = any, R = any> {
             }
         }
 
-        const last = this.last();
+        const last = lastItem(this.$spec.timeline);
         if (last && last.to == null) {
             last.to = to;
             if (timing) {
