@@ -36,7 +36,7 @@ export function render<T extends Element>(
 }
 
 export function sync(node: Text, spec: Spec | string): Text;
-export function sync<T extends Element>(node: T, spec: Spec): T;
+export function sync<T extends Element>(element: T, spec: Spec): T;
 export function sync<T extends Node>(node: T, spec: Spec | string): T {
     const vnode = createVNode(spec, null);
     const context = realize(node, vnode);
