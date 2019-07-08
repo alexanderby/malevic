@@ -1,4 +1,4 @@
-import {Spec, Child, NodeSpec} from '../defs';
+import {Spec, Child} from '../defs';
 import {createVDOM, VDOM, VNodeContext} from './vdom';
 import {createVNode, createDOMVNode, VNode} from './vnode';
 

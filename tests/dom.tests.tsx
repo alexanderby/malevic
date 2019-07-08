@@ -1043,6 +1043,49 @@ describe('DOM', () => {
         expect((result.childNodes.item(1) as Element).className).toBe('c6');
     });
 
+    test('inline functions', () => {
+        const result = render(target, ({node}) => node || document.createElement('span')).firstElementChild;
+        expect(result).toBeInstanceOf(HTMLSpanElement);
+
+        teardown(target);
+
+        let renderedParent: Element;
+        let renderedNodes: Node[];
+
+        const Component = ({items}) => (<div>
+            <span>First</span>
+            {({parent, nodes}) => {
+                renderedParent = parent;
+                renderedNodes = nodes;
+                return items.map((item) => <span>{item}</span>);
+            }}
+            <span>Last</span>
+        </div>);
+
+        const container = render(target, <Component items={['Second', 'Third']} />).firstElementChild;
+        const first = container.firstChild;
+        const last = container.lastChild;
+        expect(container.childNodes.length).toBe(4);
+        expect(container.childNodes[0].textContent).toBe('First');
+        expect(container.childNodes[1].textContent).toBe('Second');
+        expect(container.childNodes[2].textContent).toBe('Third');
+        expect(container.childNodes[3].textContent).toBe('Last');
+        expect(renderedParent).toBe(container);
+        expect(renderedNodes.length).toBe(0);
+
+        render(target, <Component items={['Middle']} />).firstElementChild;
+        expect(container.childNodes.length).toBe(3);
+        expect(container.firstChild).toBe(first);
+        expect(container.lastChild).toBe(last);
+        expect(renderedNodes.length).toBe(2);
+        expect(first.textContent).toBe('First');
+        expect(renderedNodes[0].textContent).toBe('Middle');
+        expect(last.textContent).toBe('Last');
+        expect(renderedNodes[0]).toBe(container.childNodes[1]);
+        expect(renderedNodes[1].parentNode).toBe(null);
+        expect(renderedParent).toBe(container);
+    });
+
     test('special attributes', () => {
         const element = render(target, (
             m('div', {
@@ -1396,6 +1439,5 @@ describe('DOM', () => {
         expect(() => render(target, m('div', null, true as any))).toThrow(/Unable to create virtual node for spec/);
         expect(() => render(target, m('div', null, {} as any))).toThrow(/Unable to create virtual node for spec/);
         expect(() => render(target, m('div', null, 0 as any))).toThrow(/Unable to create virtual node for spec/);
-        expect(() => render(target, m('div', null, (() => null) as any))).toThrow(/Unable to create virtual node for spec/);
     });
 });

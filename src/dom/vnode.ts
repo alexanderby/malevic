@@ -1,4 +1,11 @@
-import {Spec, NodeSpec, ComponentSpec, Child, RecursiveArray} from '../defs';
+import {
+    Spec,
+    NodeSpec,
+    ComponentSpec,
+    InlineFunction,
+    Child,
+    RecursiveArray,
+} from '../defs';
 import {
     addComponentPlugins,
     deleteComponentPlugins,
@@ -116,7 +123,7 @@ class ElementVNode extends VNodeBase {
     }
 
     private getExistingElement(context: VNodeContext) {
-        const parent = context.parentNode as Element;
+        const parent = context.parent;
         const existing = context.node as Element;
 
         let element: Element;
@@ -149,7 +156,7 @@ class ElementVNode extends VNodeBase {
         if (existing) {
             element = existing;
         } else {
-            element = createElement(this.spec, context.parentNode as Element);
+            element = createElement(this.spec, context.parent);
             markElementAsRefined(element, context.vdom);
         }
 
@@ -242,7 +249,7 @@ class ComponentVNode extends VNodeBase {
     }
 
     private createContext(context: VNodeContext) {
-        const {parentNode} = context;
+        const {parent} = context;
         const {spec, prev, store} = this;
 
         return {
@@ -255,7 +262,7 @@ class ComponentVNode extends VNodeBase {
             get nodes() {
                 return context.nodes;
             },
-            parent: parentNode as Element,
+            parent,
             attached: (fn) => (store[symbols.ATTACHED] = fn),
             detached: (fn) => (store[symbols.DETACHED] = fn),
             updated: (fn) => (store[symbols.UPDATED] = fn),
@@ -378,7 +385,7 @@ class TextVNode extends VNodeBase {
     }
 
     private getExistingNode(context: VNodeContext) {
-        const parent = context.parentNode as Element;
+        const {parent} = context;
         let node: Node;
         if (context.node instanceof Text) {
             node = context.node;
@@ -422,6 +429,48 @@ class TextVNode extends VNodeBase {
     }
 }
 
+class InlineFunctionVNode extends VNodeBase {
+    private fn: InlineFunction;
+    private child: VNode;
+
+    constructor(fn: InlineFunction, parent: VNode) {
+        super(parent);
+        this.fn = fn;
+    }
+
+    matches(other: VNodeBase) {
+        return other instanceof VNodeBase;
+    }
+
+    children() {
+        return [this.child];
+    }
+
+    private call(context: VNodeContext) {
+        const fn = this.fn;
+        const inlineFnContext = {
+            parent: context.parent,
+            get node() {
+                return context.node;
+            },
+            get nodes() {
+                return context.nodes;
+            },
+        };
+        const result = fn(inlineFnContext);
+        this.child = createVNode(result, this);
+    }
+
+    attach(context: VNodeContext) {
+        this.call(context);
+    }
+
+    update(prev: VNode, context: VNodeContext) {
+        const prevContext = context.vdom.getVNodeContext(prev);
+        this.call(prevContext);
+    }
+}
+
 class NullVNode extends VNodeBase {
     matches(other: VNode) {
         return other instanceof NullVNode;
@@ -450,7 +499,7 @@ class DOMVNode extends VNodeBase {
     }
 
     private insertNode(context: VNodeContext) {
-        const {parentNode: parent, sibling} = context;
+        const {parent, sibling} = context;
         const shouldInsert = !(
             parent === this.node.parentElement &&
             sibling === this.node.previousSibling
@@ -468,7 +517,7 @@ class DOMVNode extends VNodeBase {
 
     detach(context: VNodeContext) {
         // TODO: Do not remove every node in subtree.
-        context.parentNode.removeChild(this.node);
+        context.parent.removeChild(this.node);
     }
 
     update(prev: DOMVNode, context: VNodeContext) {
@@ -575,6 +624,10 @@ export function createVNode(
 
     if (spec == null) {
         return new NullVNode(parent);
+    }
+
+    if (typeof spec === 'function') {
+        return new InlineFunctionVNode(spec, parent);
     }
 
     if (spec instanceof Node) {

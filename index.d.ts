@@ -49,9 +49,14 @@ declare namespace Malevic {
     ) => K | RecursiveArray<K> | any;
 
     /**
+     * A function that returns a spec.
+     */
+    type InlineFunction<T = any, R = any> = (context: T) => R;
+
+    /**
      * Possible specification child type.
      */
-    type Child = Spec | string | Node | null;
+    type Child = Spec | string | Node | InlineFunction | null;
 
     interface DOMEventListener {
         (this: Element, e: Event): void;
@@ -312,6 +317,21 @@ declare namespace Malevic {
              * updating the component subtree.
              */
             leave(): any;
+        }
+
+        interface InlineFunctionContext {
+            /**
+             * Parent DOM element.
+             */
+            parent: Element;
+            /**
+             * Returns a rendered DOM node.
+             */
+            node: Node;
+            /**
+             * Returns rendered DOM nodes.
+             */
+            nodes: Node[];
         }
 
         /**

@@ -272,6 +272,24 @@ function Many({items}) {
 }
 ```
 
+When there is a need of getting a descending DOM node before
+rendering it's child, then inline functions could be used:
+
+```jsx
+render(document.body, (
+    <h1>Body size</h1>
+    <div class="wrapper">
+        {({parent, node}) => {
+            const rect = getBoundingClientRect();
+            return <Array>
+                <p>Width: {rect.width}px</p>
+                <p>Height: {rect.height}px</p>
+            </Array>;
+        }}
+    </div>
+));
+```
+
 ## Using DOM node as a child
 
 Yes. You can just create a DOM node and it will be later injected into the DOM tree:
@@ -298,6 +316,7 @@ Other possible spec child types are:
 - Object where `type` is a function (will invoke a component).
 - Array or object with `type` equal to Array constructor.
 - String (will create a text node).
+- An inline function that returns a spec, like `({parent, node}) => <div />`;
 - `null` (will leave a placeholder for future nodes).
 
 ## Animation plug-in

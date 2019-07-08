@@ -13,7 +13,7 @@ export interface VDOM {
 }
 
 export interface VNodeContext {
-    parentNode: Node;
+    parent: Element;
     node: Node;
     nodes: Node[];
     sibling: Node;
@@ -33,7 +33,7 @@ interface VHub {
 export function createVDOM(rootNode: Node): VDOM {
     const contexts = new WeakMap<VNode, VNodeContext>();
     const hubs = new WeakMap<Node, VHub>();
-    const parentNodes = new WeakMap<VNode, Node>();
+    const parentNodes = new WeakMap<VNode, Element>();
     const passingLinks = new WeakMap<VNode, LinkedList<VLink>>();
     const linkedParents = new WeakSet<VNode>();
 
@@ -47,7 +47,7 @@ export function createVDOM(rootNode: Node): VDOM {
         const parentNode = parentNodes.get(vnode);
 
         contexts.set(vnode, {
-            parentNode,
+            parent: parentNode,
             get node() {
                 const linked = passingLinks
                     .get(vnode)
@@ -87,7 +87,7 @@ export function createVDOM(rootNode: Node): VDOM {
             node,
         });
         passingLinks.set(vnode, links.copy());
-        parentNodes.set(vnode, parentNode);
+        parentNodes.set(vnode, parentNode as Element);
         hubs.set(parentNode, {
             node: parentNode,
             links,
@@ -99,7 +99,7 @@ export function createVDOM(rootNode: Node): VDOM {
 
         const isBranch = linkedParents.has(parent);
         const parentNode = isDOMVNode(parent)
-            ? parent.node
+            ? (parent.node as Element)
             : parentNodes.get(parent);
         parentNodes.set(vnode, parentNode);
 
@@ -181,7 +181,7 @@ export function createVDOM(rootNode: Node): VDOM {
         }
 
         const oldContext = contexts.get(old);
-        const {parentNode} = oldContext;
+        const {parent: parentNode} = oldContext;
         parentNodes.set(vnode, parentNode);
         const oldLinks = passingLinks.get(old);
 
