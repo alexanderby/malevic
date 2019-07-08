@@ -16,23 +16,22 @@ afterEach(() => {
 
 test('canvas', () => {
     function Background({color}) {
-        const {canvas, renderingContext: context} = getContext<CanvasRenderingContext2D>();
+        const context = getContext();
         context.fillStyle = color;
-        const {width, height} = canvas;
+        const {width, height} = context.canvas;
         context.fillRect(0, 0, width, height);
     }
 
     function Rect({x, y, width, height, fill}) {
-        const context = getContext().renderingContext as CanvasRenderingContext2D;
+        const context = getContext();
         context.fillStyle = fill;
         context.fillRect(x, y, width, height);
     }
 
     function Transform({translate: {x, y}}, ...children) {
-        const {renderingContext: context, rendered} = getContext<CanvasRenderingContext2D>();
+        const context = getContext();
         context.translate(x, y);
-        rendered(() => context.resetTransform());
-        return children;
+        return [children, () => context.resetTransform()];
     }
 
     const width = 4;

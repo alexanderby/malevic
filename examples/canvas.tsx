@@ -3,24 +3,36 @@ import {draw, getContext} from 'malevic/canvas';
 import {render} from 'malevic/dom';
 
 function Background({color}) {
-    const {canvas, renderingContext: ctx} = getContext<CanvasRenderingContext2D>();
-    ctx.fillStyle = color;
+    const context = getContext();
+    context.fillStyle = color;
     const {width, height} = canvas;
-    ctx.fillRect(0, 0, width, height);
+    context.fillRect(0, 0, width, height);
 }
 
 function Rect({x, y, width, height, fill}) {
-    const {renderingContext: ctx} = getContext<CanvasRenderingContext2D>();
-    ctx.fillStyle = fill;
-    ctx.fillRect(x, y, width, height);
+    const context = getContext();
+    context.fillStyle = fill;
+    context.fillRect(x, y, width, height);
 }
 
 function Transform({translate: {x, y}}, ...children) {
-    const {renderingContext: ctx, rendered} = getContext<CanvasRenderingContext2D>();
-    const prevTransform = ctx.getTransform();
-    ctx.translate(x, y);
-    rendered(() => ctx.setTransform(prevTransform));
-    return children;
+    const context = getContext();
+    const prevTransform = context.getTransform();
+    context.translate(x, y);
+    return [children, () => context.setTransform(prevTransform)];
+}
+
+function Red({}, ...children) {
+    const context = getContext();
+    const prevFill = context.fillStyle;
+    context.fillStyle = 'red';
+    return [
+        children,
+        () => {
+            context.fill();
+            context.fillStyle = prevFill;
+        },
+    ];
 }
 
 const canvas = render(
@@ -37,5 +49,10 @@ draw(
             <Rect fill="#24a072" x={40} y={10} width={20} height={20} />
         </Transform>
         <Rect fill="#0042a4" x={70} y={10} width={20} height={20} />
+        <Red>
+            {(context: CanvasRenderingContext2D) =>
+                context.rect(20, 80, 100, 2)
+            }
+        </Red>
     </Array>,
 );

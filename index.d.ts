@@ -219,24 +219,8 @@ declare namespace Malevic {
          * Returns component context.
          */
         function getContext<
-            T extends RenderingContext
-        >(): ComponentContext<T>;
-
-        interface ComponentContext<T extends RenderingContext> {
-            /**
-             * Canvas where component is being rendered.
-             */
-            canvas: HTMLCanvasElement;
-            /**
-             * Canvas rendering context.
-             */
-            renderingContext: T;
-            /**
-             * Sets the callback executed after component
-             * and all descending components were rendered.
-             */
-            rendered: (callback: () => void) => void;
-        }
+            T extends RenderingContext = CanvasRenderingContext2D
+        >(): T;
 
         type RenderingContext =
             | CanvasRenderingContext2D

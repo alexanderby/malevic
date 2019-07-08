@@ -1,2 +1,1 @@
-export {getContext} from './context';
-export {draw} from './draw';
+export {draw, getContext} from './draw';
