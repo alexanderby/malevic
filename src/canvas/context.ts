@@ -1,22 +1,18 @@
-export class ComponentContext {
-    readonly renderingContext: any;
+type RenderingContext =
+    | CanvasRenderingContext2D
+    | ImageBitmapRenderingContext
+    | OffscreenCanvasRenderingContext2D
+    | WebGLRenderingContext;
 
-    constructor(renderingContext: any) {
+export class ComponentContext<T extends RenderingContext> {
+    readonly renderingContext: T;
+
+    constructor(renderingContext: T) {
         this.renderingContext = renderingContext;
     }
 
-    get canvas(): HTMLCanvasElement {
+    get canvas(): HTMLCanvasElement | OffscreenCanvas {
         return this.renderingContext.canvas;
-    }
-
-    get context2d() {
-        return this.renderingContext as
-            | CanvasRenderingContext2D
-            | OffscreenCanvasRenderingContext2D;
-    }
-
-    get webgl() {
-        return this.renderingContext as WebGLRenderingContext;
     }
 
     rendered(callback: () => void) {
@@ -31,6 +27,6 @@ export class ComponentContext {
     static callbacks = new WeakMap<any, () => void>();
 }
 
-export function getContext(): ComponentContext {
+export function getContext<T extends RenderingContext>(): ComponentContext<T> {
     return new ComponentContext(ComponentContext.renderingContext);
 }

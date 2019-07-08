@@ -210,47 +210,39 @@ declare namespace Malevic {
          * @param context Canvas rendering context.
          * @param spec Component spec to draw on canvas.
          */
-        function draw(
-            context:
-                | CanvasRenderingContext2D
-                | OffscreenCanvasRenderingContext2D
-                | WebGLRenderingContext,
+        function draw<T extends RenderingContext>(
+            context: T,
             spec: Child | RecursiveArray<Child>,
         ): void;
 
         /**
          * Returns component context.
          */
-        function getContext(): ComponentContext;
+        function getContext<
+            T extends RenderingContext
+        >(): ComponentContext<T>;
 
-        interface ComponentContext {
+        interface ComponentContext<T extends RenderingContext> {
             /**
              * Canvas where component is being rendered.
              */
             canvas: HTMLCanvasElement;
             /**
-             * Canvas 2D rendering context.
-             */
-            context2d:
-                | CanvasRenderingContext2D
-                | OffscreenCanvasRenderingContext2D;
-            /**
              * Canvas rendering context.
              */
-            renderingContext:
-                | CanvasRenderingContext2D
-                | OffscreenCanvasRenderingContext2D
-                | WebGLRenderingContext;
-            /**
-             * WebGL rendering context.
-             */
-            webgl: WebGLRenderingContext;
+            renderingContext: T;
             /**
              * Sets the callback executed after component
              * and all descending components were rendered.
              */
             rendered: (callback: () => void) => void;
         }
+
+        type RenderingContext =
+            | CanvasRenderingContext2D
+            | OffscreenCanvasRenderingContext2D
+            | ImageBitmapRenderingContext
+            | WebGLRenderingContext;
     }
 
     namespace DOM {

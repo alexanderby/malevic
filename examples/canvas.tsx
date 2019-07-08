@@ -3,23 +3,23 @@ import {draw, getContext} from 'malevic/canvas';
 import {render} from 'malevic/dom';
 
 function Background({color}) {
-    const {canvas, context2d: context} = getContext();
-    context.fillStyle = color;
+    const {canvas, renderingContext: ctx} = getContext<CanvasRenderingContext2D>();
+    ctx.fillStyle = color;
     const {width, height} = canvas;
-    context.fillRect(0, 0, width, height);
+    ctx.fillRect(0, 0, width, height);
 }
 
 function Rect({x, y, width, height, fill}) {
-    const context = getContext().context2d;
-    context.fillStyle = fill;
-    context.fillRect(x, y, width, height);
+    const {renderingContext: ctx} = getContext<CanvasRenderingContext2D>();
+    ctx.fillStyle = fill;
+    ctx.fillRect(x, y, width, height);
 }
 
 function Transform({translate: {x, y}}, ...children) {
-    const {context2d: context, rendered} = getContext();
-    const prevTransform = context.getTransform();
-    context.translate(x, y);
-    rendered(() => context.setTransform(prevTransform));
+    const {renderingContext: ctx, rendered} = getContext<CanvasRenderingContext2D>();
+    const prevTransform = ctx.getTransform();
+    ctx.translate(x, y);
+    rendered(() => ctx.setTransform(prevTransform));
     return children;
 }
 
