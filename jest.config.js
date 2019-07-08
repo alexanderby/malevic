@@ -11,6 +11,7 @@ module.exports = {
     ],
     moduleNameMapper: {
         'malevic/animation': '<rootDir>/src/animation',
+        'malevic/canvas': '<rootDir>/src/canvas',
         'malevic/dom': '<rootDir>/src/dom',
         'malevic/forms': '<rootDir>/src/forms',
         'malevic/state': '<rootDir>/src/state',

@@ -524,6 +524,55 @@ function Component() {
 }
 ```
 
+## Canvas API
+
+There is API for declaring hierarchical structures and drawing them on HTML Canvas.
+```jsx
+import {m} from 'malevic';
+import {draw, getContext} from 'malevic/canvas';
+import {render} from 'malevic/dom';
+
+function Rect({width, height, fill}) {
+    const context = getContext();
+    context.fillStyle = fill;
+    context.fillRect(0, 0, width, height);
+}
+
+function Transform({translate: {x, y}}, ...children) {
+    const context = getContext();
+
+    // Get previous transform value
+    const prevTransform = context.getTransform();
+
+    // Set new transform value
+    context.translate(x, y);
+
+    return [
+        // Return children to draw
+        children,
+
+        // Restore transform value
+        () => context.setTransform(prevTransform),
+    ];
+}
+
+const canvas = render(
+    document.body,
+    <canvas width={1024} height={768} />
+).firstElementChild;
+
+draw(
+    canvas.getContext('2d'),
+    <Transform translate={{x: 32, y: 32}}>
+        <Rect width={256} height={256} fill="black" />
+    </Transform>
+);
+```
+
+`getContext()` function returns current rendering context.
+Note that it is possible to use Components specifications,
+as well as arrays and `(context) => ...` functions as child nodes.
+
 ## Custom plug-ins
 
 There is API for adding custom logic
