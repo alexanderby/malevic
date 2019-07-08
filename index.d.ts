@@ -46,7 +46,7 @@ declare namespace Malevic {
     type Component<T = any, K = Child> = (
         props: T & {key?: any},
         ...children: RecursiveArray<Child>
-    ) => K | RecursiveArray<K>;
+    ) => K | RecursiveArray<K> | any;
 
     /**
      * Possible specification child type.
@@ -202,6 +202,55 @@ declare namespace Malevic {
          * @param type Component function.
          */
         function withAnimation<T extends Component>(type: T): T;
+    }
+
+    namespace Canvas {
+        /**
+         * Draws a spec on canvas.
+         * @param context Canvas rendering context.
+         * @param spec Component spec to draw on canvas.
+         */
+        function draw(
+            context:
+                | CanvasRenderingContext2D
+                | OffscreenCanvasRenderingContext2D
+                | WebGLRenderingContext,
+            spec: Child | RecursiveArray<Child>,
+        ): void;
+
+        /**
+         * Returns component context.
+         */
+        function getContext(): ComponentContext;
+
+        interface ComponentContext {
+            /**
+             * Canvas where component is being rendered.
+             */
+            canvas: HTMLCanvasElement;
+            /**
+             * Canvas 2D rendering context.
+             */
+            context2d:
+                | CanvasRenderingContext2D
+                | OffscreenCanvasRenderingContext2D;
+            /**
+             * Canvas rendering context.
+             */
+            renderingContext:
+                | CanvasRenderingContext2D
+                | OffscreenCanvasRenderingContext2D
+                | WebGLRenderingContext;
+            /**
+             * WebGL rendering context.
+             */
+            webgl: WebGLRenderingContext;
+            /**
+             * Sets the callback executed after component
+             * and all descending components were rendered.
+             */
+            rendered: (callback: () => void) => void;
+        }
     }
 
     namespace DOM {
@@ -508,5 +557,5 @@ declare namespace JSX {
         };
     }
 
-    type Element = Malevic.Spec;
+    type Element = any;
 }

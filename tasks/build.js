@@ -106,6 +106,13 @@ async function release() {
             min: './umd/animation.min.js',
         }),
         buildPackage({
+            global: 'Malevic.Canvas',
+            src: './src/canvas/index.ts',
+            esm: './canvas.mjs',
+            umd: './umd/canvas.js',
+            min: './umd/canvas.min.js',
+        }),
+        buildPackage({
             global: 'Malevic.DOM',
             src: './src/dom/index.ts',
             esm: './dom.mjs',
