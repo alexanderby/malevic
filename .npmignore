@@ -19,6 +19,8 @@
 !umd/string.js
 !umd/string.min.js
 
+!umd/malevic.min.js
+
 !index.d.ts
 
 !logo-256x256.svg

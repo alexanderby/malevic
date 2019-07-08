@@ -1,6 +1,5 @@
 import {Component} from 'malevic';
 import {getContext} from 'malevic/dom';
-import {isObject} from '../utils/misc';
 
 interface StateWrapper<T> {
     state: T;

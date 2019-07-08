@@ -24,6 +24,7 @@ module.exports = {
         'src/**/*.{ts,tsx}'
     ],
     coveragePathIgnorePatterns: [
-        '^.+\\.d\\.ts$'
+        '^.+\\.d\\.ts$',
+        'src/full\\.ts$'
     ]
 };

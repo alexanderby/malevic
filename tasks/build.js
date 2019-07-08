@@ -146,6 +146,15 @@ async function release() {
             umd: './umd/string.js',
             min: './umd/string.min.js',
         }),
+        buildJS({
+            src: './src/full.ts',
+            dest: './umd/malevic.min.js',
+            minify: true,
+            dependencies: {},
+            globalName: 'Malevic',
+            moduleFormat: 'umd',
+            ts: {target: 'es5'},
+        }),
     ]);
 }
 
