@@ -1,6 +1,7 @@
 import {m} from 'malevic';
-import {render} from 'malevic/dom';
+import {render, getContext} from 'malevic/dom';
 import {withState, useState} from 'malevic/state';
+import {stringify} from 'malevic/string';
 import {dispatchClick} from './utils';
 
 let container: Element = null;
@@ -157,7 +158,10 @@ describe('state', () => {
             return <span>{state.text}</span>;
         });
 
+        expect(() => useState({})).toThrow(/should be called inside a component/);
         expect(() => render(container, <RecursiveComponent />)).toThrow(/infinite loop/);
+        expect(getContext()).toBe(null);
+        expect(() => useState({})).toThrow(/should be called inside a component/);
     });
 
     test('call state after component update', () => {
@@ -199,5 +203,17 @@ describe('state', () => {
             '</button>',
             '</div>',
         ].join(''));
+    });
+
+    test('stringify state', () => {
+        expect(getContext()).toBe(null);
+        const Component = withState(({x}) => {
+
+            const {state} = useState({y: 5});
+            return <div style={{left: `${x}px`, top: `${state.y}px`}} />
+        });
+
+        const html = stringify(<Component x={4} />);
+        expect(html).toBe('<div style="left: 4px; top: 5px;"></div>');
     });
 });

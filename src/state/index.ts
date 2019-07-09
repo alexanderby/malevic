@@ -13,24 +13,35 @@ let currentUseStateFn: UseStateFn<any> = null;
 export function useState<T extends {[prop: string]: any}>(
     initialState: T,
 ): StateWrapper<T> {
+    if (!currentUseStateFn) {
+        throw new Error('`useState()` should be called inside a component');
+    }
+
     return currentUseStateFn(initialState);
 }
 
 export function withState<T extends Component>(type: T): T {
     const Stateful: any = (props: any, ...children: any) => {
-        const {store, refresh} = getContext();
+        const context = getContext();
 
-        const setState = (newState: any) => {
-            if (lock) {
-                throw new Error(
-                    'Setting state during unboxing causes infinite loop',
-                );
-            }
-            store.state = {...store.state, ...newState};
-            refresh();
-        };
         const useState: UseStateFn<T> = (initial: T) => {
+            if (!context) {
+                return {state: initial, setState: null};
+            }
+
+            const {store, refresh} = context;
             store.state = store.state || initial;
+
+            const setState = (newState: any) => {
+                if (lock) {
+                    throw new Error(
+                        'Setting state during unboxing causes infinite loop',
+                    );
+                }
+                store.state = {...store.state, ...newState};
+                refresh();
+            };
+
             return {
                 state: store.state,
                 setState,
@@ -40,9 +51,13 @@ export function withState<T extends Component>(type: T): T {
         let lock = true;
         const prevUseStateFn = currentUseStateFn;
         currentUseStateFn = useState;
-        const result = type(props, ...children);
-        currentUseStateFn = prevUseStateFn;
-        lock = false;
+        let result;
+        try {
+            result = type(props, ...children);
+        } finally {
+            currentUseStateFn = prevUseStateFn;
+            lock = false;
+        }
 
         return result;
     };

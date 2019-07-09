@@ -637,6 +637,7 @@ describe('DOM', () => {
             return null;
         };
         expect(() => render(target, m(Refresher, null))).toThrow(/infinite loop/);
+        expect(getContext()).toBe(null);
     });
 
     test('DOM node as a child', () => {

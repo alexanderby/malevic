@@ -298,10 +298,13 @@ class ComponentVNode extends VNodeBase {
         this.lock = true;
         const prevContext = ComponentVNode.context;
         ComponentVNode.context = this.createContext(context);
-        const unboxed = Component(props, ...children);
-        ComponentVNode.context = prevContext;
-        this.lock = false;
-
+        let unboxed = null;
+        try {
+            unboxed = Component(props, ...children);
+        } finally {
+            ComponentVNode.context = prevContext;
+            this.lock = false;
+        }
         return unboxed;
     }
 
