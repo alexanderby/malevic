@@ -280,7 +280,7 @@ render(document.body, (
     <h1>Body size</h1>
     <div class="wrapper">
         {({parent, node}) => {
-            const rect = getBoundingClientRect();
+            const rect = parent.getBoundingClientRect();
             return <Array>
                 <p>Width: {rect.width}px</p>
                 <p>Height: {rect.height}px</p>
@@ -316,7 +316,7 @@ Other possible spec child types are:
 - Object where `type` is a function (will invoke a component).
 - Array or object with `type` equal to Array constructor.
 - String (will create a text node).
-- An inline function that returns a spec, like `({parent, node}) => <div />`;
+- Inline function that returns a spec, like `({parent, node}) => <div />`.
 - `null` (will leave a placeholder for future nodes).
 
 ## Animation plug-in
@@ -545,7 +545,7 @@ function Component() {
 
 ## Canvas API
 
-There is API for declaring hierarchical structures and drawing them on HTML Canvas.
+There is API for declaring hierarchical structures and drawing them on HTML5 Canvas.
 ```jsx
 import {m} from 'malevic';
 import {draw, getContext} from 'malevic/canvas';
