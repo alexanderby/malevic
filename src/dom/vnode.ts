@@ -530,7 +530,7 @@ class DOMVNode extends VNodeBase {
 
     private refine(context: VNodeContext) {
         const element = this.node as Element;
-        for (let current: Node = element.lastChild; current != null;) {
+        for (let current: Node = element.lastChild; current != null; ) {
             if (context.vdom.isDOMNodeCaptured(current)) {
                 current = current.previousSibling;
             } else {
