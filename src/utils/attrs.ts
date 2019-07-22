@@ -17,15 +17,18 @@ export function styles(declarations: {[cssProp: string]: string}) {
         .join(' ');
 }
 
-const valueImportant = /^(.*?)\s*!?((?<=!)important)?$/;
-
 export function setInlineCSSPropertyValue(
     element: HTMLElement,
     prop: string,
     $value: any,
 ) {
     if ($value != null && $value !== '') {
-        const [, value, important] = String($value).match(valueImportant);
+        let value = String($value);
+        let important = '';
+        if (value.endsWith('!important')) {
+            value = value.substring(0, value.length - 10);
+            important = 'important';
+        }
         element.style.setProperty(prop, value, important);
     } else {
         element.style.removeProperty(prop);
