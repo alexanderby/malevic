@@ -36,11 +36,11 @@
     "canvas": "2.5.0",
     "jest": "24.8.0",
     "prettier": "1.18.2",
-    "rollup": "1.16.2",
+    "rollup": "1.17.0",
     "rollup-plugin-typescript": "1.0.1",
     "rollup-plugin-uglify": "6.0.2",
     "ts-jest": "24.0.2",
     "tslib": "1.10.0",
-    "typescript": "3.5.2"
+    "typescript": "3.5.3"
   }
 }
