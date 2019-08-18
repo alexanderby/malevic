@@ -1,6 +1,6 @@
 {
   "name": "malevic",
-  "version": "0.16.3",
+  "version": "0.16.4",
   "description": "Malevič.js - minimalistic reactive UI library",
   "keywords": [
     "ui",
@@ -18,6 +18,7 @@
     "build": "node tasks/build.js --release",
     "code-style": "prettier --single-quote --tab-width 4 --trailing-comma all --no-bracket-spacing --arrow-parens always --end-of-line lf --write src/**/*.* tasks/**/*.* tests/**/*.* !tests/coverage/**/*.* index.d.ts examples/**/*.*",
     "examples": "node tasks/build.js --examples",
+    "prepublishOnly": "npm test && npm run build",
     "test": "jest --coverage",
     "test:debug": "node --inspect-brk ./node_modules/jest/bin/jest --runInBand --no-cache --watch",
     "test:watch": "jest --watch"
