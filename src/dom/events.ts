@@ -24,6 +24,10 @@ export function addEventListener(
 }
 
 export function removeEventListener(element: Element, event: string) {
+    if (!eventListeners.has(element)) {
+        return;
+    }
+
     const listeners = eventListeners.get(element);
     element.removeEventListener(event, listeners.get(event));
     listeners.delete(event);

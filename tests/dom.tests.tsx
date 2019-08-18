@@ -304,6 +304,18 @@ describe('DOM', () => {
         render(target, m('button', {onclick}, 'Click me'));
         dispatchClick(button);
         expect(count).toBe(0);
+
+        cleanup();
+
+        let x = 0;
+        const button2 = render(
+            target,
+            m('button', {onclick: null}, 'Click me'),
+        ).firstElementChild;
+        render(target, m('button', {onclick: () => (x++)}, 'Click me'))
+        dispatchClick(button2);
+
+        expect(x).toEqual(1);
     });
 
     test('components', () => {
