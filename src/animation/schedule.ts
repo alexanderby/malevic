@@ -13,6 +13,7 @@ function animationTick(animation: Animation, time: number) {
     animation.tick(time);
     if (animation.complete()) {
         cancelAnimation(animation);
+        animation.finalize();
     }
 }
 

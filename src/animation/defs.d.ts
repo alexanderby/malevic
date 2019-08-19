@@ -21,4 +21,5 @@ export interface AnimationSpec<T = any, R = any> {
     timeline: TransitionSpec[];
     interpolate: (a: T, b: T) => (t: number) => T;
     output: (value: T) => R;
+    done: () => void;
 }

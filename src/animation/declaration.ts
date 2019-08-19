@@ -21,6 +21,7 @@ export class AnimationDeclaration<T = any, R = any> {
             timeline: [],
             interpolate: null,
             output: identity,
+            done: null,
         };
     }
 
@@ -76,6 +77,11 @@ export class AnimationDeclaration<T = any, R = any> {
 
     output(output: (value: T) => R) {
         this.$spec.output = output;
+        return this;
+    }
+
+    done(callback: () => void) {
+        this.$spec.done = callback;
         return this;
     }
 

@@ -484,4 +484,32 @@ describe('animation', () => {
         expect(child(2).style.left).toBe('120px');
         expect(child(3).style.left).toBe('120px');
     });
+
+    test('animation end callback', () => {
+        let counter = 0;
+
+        const Box = withAnimation(() => {
+            return <div
+                style={{
+                    left: animate()
+                        .from(0)
+                        .to(100, {duration: 250, easing: 'linear'})
+                        .output((v) => `${v}%`)
+                        .done(() => counter++),
+                }}
+            />;
+        });
+
+        const el = render(target, <Box />).firstElementChild as HTMLElement;
+        expect(el.style.left).toBe('0%');
+        expect(counter).toBe(0);
+
+        semaphore.tick(125);
+        expect(el.style.left).toBe('50%');
+        expect(counter).toBe(0);
+
+        semaphore.tick(250);
+        expect(el.style.left).toBe('100%');
+        expect(counter).toBe(1);
+    });
 });

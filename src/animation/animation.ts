@@ -19,6 +19,7 @@ export class Animation<T = any, R = any> {
     private startTime: number;
     private isComplete: boolean;
     private callback: (output: R) => void;
+    private doneCallback: () => void;
 
     constructor(spec: AnimationSpec<T, R>, callback: (output: R) => void) {
         if (!spec.interpolate) {
@@ -28,6 +29,7 @@ export class Animation<T = any, R = any> {
         this.interpolate = spec.interpolate;
         this.output = spec.output;
         this.callback = callback;
+        this.doneCallback = spec.done;
 
         let total = 0;
         this.timeline = spec.timeline.map((spec) => {
@@ -92,5 +94,11 @@ export class Animation<T = any, R = any> {
 
     complete() {
         return this.isComplete;
+    }
+
+    finalize() {
+        if (this.doneCallback) {
+            this.doneCallback.call(null);
+        }
     }
 }

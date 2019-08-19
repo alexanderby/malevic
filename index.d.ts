@@ -165,6 +165,11 @@ declare namespace Malevic {
              * @param transformer A transformer function.
              */
             output(transformer: (value: T) => R): this;
+            /**
+             * Sets a function to be called when animation ends.
+             * @param callback Callback function.
+             */
+            done(callback: () => void): this;
         }
 
         interface Interpolator<T> {
