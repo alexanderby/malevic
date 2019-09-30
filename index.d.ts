@@ -58,8 +58,8 @@ declare namespace Malevic {
      */
     type Child = Spec | string | Node | InlineFunction | null;
 
-    interface DOMEventListener {
-        (this: Element, e: Event): void;
+    interface DOMEventListener<Ev = Event, El = Element, T = Element> {
+        (this: El, e: Ev & {target: T; currentTarget: El}): void;
     }
 
     /**
@@ -75,32 +75,32 @@ declare namespace Malevic {
         /**
          * Is invoked when DOM node was inserted into DOM.
          */
-        attached?: (el: Element) => void;
+        attached?: (el: E) => void;
         /**
          * Is invoked when DOM node and all descendants was updated.
          */
-        updated?: (el: Element) => void;
+        updated?: (el: E) => void;
         /**
          * Is invoked when DOM node was removed.
          */
-        detached?: (el: Element) => void;
+        detached?: (el: E) => void;
         [attr: string]: any | DOMEventListener;
 
-        onclick?: (this: E, e: MouseEvent & {target: T}) => void;
-        ondblclick?: (this: E, e: MouseEvent & {target: T}) => void;
-        oncontextmenu?: (this: E, e: MouseEvent & {target: T}) => void;
-        onmousedown?: (this: E, e: MouseEvent & {target: T}) => void;
-        onmousemove?: (this: E, e: MouseEvent & {target: T}) => void;
-        onmouseenter?: (this: E, e: MouseEvent & {target: T}) => void;
-        onmouseleave?: (this: E, e: MouseEvent & {target: T}) => void;
-        onmouseup?: (this: E, e: MouseEvent & {target: T}) => void;
-        ontouchstart?: (this: E, e: TouchEvent & {target: T}) => void;
-        ontouchmove?: (this: E, e: TouchEvent & {target: T}) => void;
-        ontouchend?: (this: E, e: TouchEvent & {target: T}) => void;
-        onkeydown?: (this: E, e: KeyboardEvent & {target: T}) => void;
-        onkeyup?: (this: E, e: KeyboardEvent & {target: T}) => void;
-        onkeypress?: (this: E, e: KeyboardEvent & {target: T}) => void;
-        onscroll?: (this: E, e: Event & {target: T}) => void;
+        onclick?: DOMEventListener<MouseEvent, E, T>;
+        ondblclick?: DOMEventListener<MouseEvent, E, T>;
+        oncontextmenu?: DOMEventListener<MouseEvent, E, T>;
+        onmousedown?: DOMEventListener<MouseEvent, E, T>;
+        onmousemove?: DOMEventListener<MouseEvent, E, T>;
+        onmouseenter?: DOMEventListener<MouseEvent, E, T>;
+        onmouseleave?: DOMEventListener<MouseEvent, E, T>;
+        onmouseup?: DOMEventListener<MouseEvent, E, T>;
+        ontouchstart?: DOMEventListener<TouchEvent, E, T>;
+        ontouchmove?: DOMEventListener<TouchEvent, E, T>;
+        ontouchend?: DOMEventListener<TouchEvent, E, T>;
+        onkeydown?: DOMEventListener<KeyboardEvent, E, T>;
+        onkeyup?: DOMEventListener<KeyboardEvent, E, T>;
+        onkeypress?: DOMEventListener<KeyboardEvent, E, T>;
+        onscroll?: DOMEventListener<Event, E, T>;
     }
 
     type Plugin<P, R = any> = (props: P) => R;
@@ -528,33 +528,38 @@ declare namespace JSX {
         [tag: string]: Malevic.NodeAttrs;
         input: Malevic.NodeAttrs<HTMLInputElement, HTMLInputElement> & {
             value?: any;
-            onchange?: (
-                this: HTMLInputElement,
-                e: Event & {target: HTMLInputElement},
-            ) => void;
-            oninput?: (
-                this: HTMLInputElement,
-                e: Event & {target: HTMLInputElement},
-            ) => void;
+            onchange?: Malevic.DOMEventListener<
+                Event,
+                HTMLInputElement,
+                HTMLInputElement
+            >;
+            oninput?: Malevic.DOMEventListener<
+                Event,
+                HTMLInputElement,
+                HTMLInputElement
+            >;
         };
         textarea: Malevic.NodeAttrs<
             HTMLTextAreaElement,
             HTMLTextAreaElement
         > & {
-            onchange?: (
-                this: HTMLTextAreaElement,
-                e: Event & {target: HTMLTextAreaElement},
-            ) => void;
-            oninput?: (
-                this: HTMLTextAreaElement,
-                e: Event & {target: HTMLTextAreaElement},
-            ) => void;
+            onchange?: Malevic.DOMEventListener<
+                Event,
+                HTMLTextAreaElement,
+                HTMLTextAreaElement
+            >;
+            oninput?: Malevic.DOMEventListener<
+                Event,
+                HTMLTextAreaElement,
+                HTMLTextAreaElement
+            >;
         };
         form: Malevic.NodeAttrs<HTMLFormElement, HTMLFormElement> & {
-            onsubmit?: (
-                this: HTMLFormElement,
-                e: Event & {target: HTMLFormElement},
-            ) => void;
+            onsubmit?: Malevic.DOMEventListener<
+                Event,
+                HTMLFormElement,
+                HTMLFormElement
+            >;
         };
     }
 
