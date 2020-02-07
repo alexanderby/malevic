@@ -93,7 +93,7 @@ const body = sync(document.body, (
 }
 ```
 
-Component written in JSX will look like:
+A component written in JSX will look like:
 ```jsx
 import {m} from 'malevic';
 import {sync} from 'malevic/dom';
@@ -200,11 +200,12 @@ function Component(props) {
 }
 ```
 
-Here `context.prev` property returns the previous component specification.
+Here `context.prev` property returns a previous component specification.
 
 ## Virtual nodes matching
 
-By default virtual children are matched by component type or element tag name. The `key` property should be used to prevent detaching virtual nodes when children order changes:
+By default virtual children are matched by a component type or an element tag name.
+`key` property should be used to prevent detaching virtual nodes when children order changes:
 
 ```jsx
 render(target, (
@@ -228,7 +229,7 @@ render(target, (
 // Updated items: 1, 2
 ```
 
-Any value can be used for a `key`, matching is done by strict `===` comparison.
+Any value can be used for `key`, matching is done by a strict `===` comparison.
 
 ## Getting DOM node before rendering	
 
@@ -255,9 +256,9 @@ function App() {
 render(document.body, <App/>);	
 ```
 
-After component is rendered,
+After a component is rendered,
 `context.node` property will return an attached DOM node.
-If component creates multiple DOM nodes, `context.nodes` property will return all of them:
+If a component creates multiple DOM nodes, `context.nodes` property will return all of them:
 
 ```jsx
 function Many({items}) {
@@ -314,17 +315,17 @@ sync(document.body, (
 ```
 
 Other possible spec child types are:
-- Object where `type` is a string (will create a DOM element).
-- Object where `type` is a function (will invoke a component).
-- Array or object with `type` equal to Array constructor.
-- String (will create a text node).
-- Inline function that returns a spec, like `({parent, node}) => <div />`.
+- An object where `type` is a string (will create a DOM element).
+- An object where `type` is a function (will invoke a component).
+- An array or an object with `type` equal to Array constructor.
+- A string (will create a text node).
+- An inline function that returns a spec, like `({parent, node}) => <div />`.
 - `null` (will leave a placeholder for future nodes).
 
 ## Animation plug-in
 
 There is a built-in animation plug-in,
-which makes it possible to schedule attribute animations.
+which makes it possible to schedule attributes' animations.
 ```jsx
 import {m} from 'malevic';
 import {render} from 'malevic/dom';
@@ -369,7 +370,7 @@ const Tooltip = withAnimation(({text, color, isVisible, x, y}) => {
 });
 ```
 
-Built-in interpolator can interpolate between numbers and strings containing numbers with floating points.
+A built-in interpolator can interpolate between numbers and strings containing numbers with floating points.
 For other cases (e.g. colors) please use custom interpolators:
 ```jsx
 <rect
@@ -390,8 +391,8 @@ For other cases (e.g. colors) please use custom interpolators:
 `initial()` method set's the initial value to a newly attached element,
 from which it will start animating.
 If the initial value was not provided,
-animation will start from the last value
-or final value will be used statically.
+the animation will start from the last value
+or the final value will be used statically.
 
 It is possible to add multiple keyframes:
 ```jsx
@@ -406,11 +407,11 @@ It is possible to add multiple keyframes:
 ```
 
 Sometimes it is easier to manipulate raw values rather than strings.
-`output()` method could be used to convert data into attribute or CSS value.
+`output()` method could be used to convert data into an attribute or a CSS value.
 
 ## State plug-in	
 
-State plug-in lets re-render a subtree in response for interaction:	
+State plug-in lets re-render a subtree in response for an interaction:	
 ```jsx	
 import {m} from 'malevic';	
 import {withState, useState} from 'malevic/state';	
@@ -430,15 +431,17 @@ export const Stateful = withState(({items}) => {
 });
 ```
 
-Initial state should be passed to `useState` function.
+An initial state should be passed to `useState` function.
 `setState` should not be called inside a component,
 only in event handlers or async callbacks.
 
 State plug-in is a shorthand for manipulating `context.store` property and `context.refresh()` method.
 
-`context.store` is an object that is transferred between matched virtual nodes. Any values can be stored there and used when next component unboxing happens.
+`context.store` is an object that is transferred between matched virtual nodes.
+Any values can be stored there and used when the next component unboxing happens.
 
-`context.refresh()` function refreshes a part of the virtual DOM. It should not be called during the component unboxing.
+`context.refresh()` function refreshes a part of the virtual DOM.
+It should not be called during the component's unboxing.
 
 ```jsx
 import {m} from 'malevic';	
@@ -465,7 +468,7 @@ function Stateful(({items}) {
 
 ## Forms plug-in
 
-Forms plug-in makes form elements work in reactive manner:
+Forms plug-in makes form elements work in a reactive manner:
 ```jsx
 import {m} from 'malevic';
 import {withForms} from 'malevic/forms';
@@ -523,7 +526,7 @@ ${stringify(
 </html>`));
 ```
 
-Sometimes a component is tied to DOM and cannot be converted to string properly.
+Sometimes a component is tied to DOM and cannot be converted to a string properly.
 `isStringifying` function comes for rescue:
 
 ```jsx
@@ -590,8 +593,8 @@ draw(
 );
 ```
 
-`getContext()` function returns current rendering context.
-Note that it is possible to use Components specifications,
+`getContext()` function returns the current rendering context.
+Note that it is possible to use components' specifications,
 as well as arrays and `(context) => ...` functions as child nodes.
 
 ## Custom plug-ins
@@ -602,11 +605,11 @@ and making things more complex.
 - If plugin returns `null` or `undefined` the next plugin (added earlier) will be used.
 
 Extendable plug-ins:
-- `dom.createElement` creates DOM element.
-- `dom.setAttribute` sets DOM element's attribute.
-- `string.isVoidTag` determines if HTML tag is void (empty) and cannot have closing tag.
-- `string.skipAttribute` determines whether attribute should be skipped.
-- `string.stringifyAttribute` converts attribute value to string.
+- `dom.createElement` creates a DOM element.
+- `dom.setAttribute` sets a DOM element's attribute.
+- `string.isVoidTag` determines if HTML tag is void (empty) and cannot have a closing tag.
+- `string.skipAttribute` determines whether the attribute should be skipped.
+- `string.stringifyAttribute` converts the attribute value to a string.
 **To prevent XSS attacks always use `escapeHTML` function**.
 
 ```javascript
@@ -632,6 +635,13 @@ const div = sync(
 
 map.get(div) === 5;
 ```
+
+## Breaking changes since version 0.18
+
+- Element lifecycle methods were renamed to `oncreate`, `onupdate` and `onremove`.
+`onrender` method was added (called when element was created or updated).
+- Component lifecycle methods were renamed to `onCreate`, `onUpdate` and `onRemove`.
+`onRender` method was added (called when component was created or updated).
 
 ## Breaking changes since version 0.12
 
