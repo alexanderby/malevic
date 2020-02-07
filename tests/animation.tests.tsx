@@ -74,7 +74,6 @@ describe('animation', () => {
         semaphore.tick(500);
         expect(box.style.left).toBe('100px');
 
-        debugger;
         const Label = withAnimation(() => <label style={{opacity: animate().from(0).to(1)}} />);
         const label = render(target, <Label />).firstElementChild as HTMLElement;
         expect(label.style.opacity).toBe('0');
