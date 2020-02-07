@@ -33,15 +33,15 @@
   "main": "umd/index.js",
   "module": "index.mjs",
   "devDependencies": {
-    "@types/jest": "24.0.18",
-    "canvas": "2.6.0",
-    "jest": "24.9.0",
-    "prettier": "1.18.2",
-    "rollup": "1.22.0",
+    "@types/jest": "25.1.2",
+    "canvas": "2.6.1",
+    "jest": "25.1.0",
+    "prettier": "1.19.1",
+    "rollup": "1.31.0",
     "rollup-plugin-typescript": "1.0.1",
-    "rollup-plugin-uglify": "6.0.3",
-    "ts-jest": "24.1.0",
+    "rollup-plugin-uglify": "6.0.4",
+    "ts-jest": "25.2.0",
     "tslib": "1.10.0",
-    "typescript": "3.6.3"
+    "typescript": "3.7.5"
   }
 }
