@@ -73,17 +73,21 @@ declare namespace Malevic {
             | (string | {[cls: string]: any})[];
         style?: string | {[prop: string]: any};
         /**
-         * Is invoked when DOM node was inserted into DOM.
+         * Is invoked when DOM node was created or inserted into DOM.
          */
-        attached?: (el: E) => void;
+        oncreate?: (el: E) => void;
         /**
          * Is invoked when DOM node and all descendants was updated.
          */
-        updated?: (el: E) => void;
+        onupdate?: (el: E) => void;
+        /**
+         * Is invoked when DOM node was created or updated.
+         */
+        onrender?: (el: E) => void;
         /**
          * Is invoked when DOM node was removed.
          */
-        detached?: (el: E) => void;
+        onremove?: (el: E) => void;
         [attr: string]: any | DOMEventListener;
 
         onclick?: DOMEventListener<MouseEvent, E, T>;
@@ -297,22 +301,28 @@ declare namespace Malevic {
             parent: Element;
             /**
              * Sets a callback, that will be invoked when
-             * DOM node and all descendants will be attached.
+             * DOM node and all descendants will be created.
              * @param fn Event listener.
              */
-            attached(fn: (node: Node) => void): void;
-            /**
-             * Sets a callback, that will be invoked
-             * when DOM node will be removed.
-             * @param fn Event listener.
-             */
-            detached(fn: (node: Node) => void): void;
+            onCreate(fn: (node: Node) => void): void;
             /**
              * Sets a callback, that will be invoked when
              * DOM node and all descendants will be updated.
              * @param fn Event listener.
              */
-            updated(fn: (node: Node) => void): void;
+            onUpdate(fn: (node: Node) => void): void;
+            /**
+             * Sets a callback, that will be invoked when
+             * DOM node and all descendants will be created or updated.
+             * @param fn Event listener.
+             */
+            onRender(fn: (node: Node) => void): void;
+            /**
+             * Sets a callback, that will be invoked
+             * when DOM node will be removed.
+             * @param fn Event listener.
+             */
+            onRemove(fn: (node: Node) => void): void;
             /**
              * Refreshes the component subtree.
              */

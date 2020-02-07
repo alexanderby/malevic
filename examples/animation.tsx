@@ -79,8 +79,18 @@ function interpolateHexColor(from: string, to: string) {
     };
 }
 
-const curve1 = [{x: 10, y: 10}, {x: 30, y: 40}, {x: 70, y: 40}, {x: 90, y: 10}];
-const curve2 = [{x: 10, y: 90}, {x: 30, y: 60}, {x: 70, y: 60}, {x: 90, y: 90}];
+const curve1 = [
+    {x: 10, y: 10},
+    {x: 30, y: 40},
+    {x: 70, y: 40},
+    {x: 90, y: 10},
+];
+const curve2 = [
+    {x: 10, y: 90},
+    {x: 30, y: 60},
+    {x: 70, y: 60},
+    {x: 90, y: 90},
+];
 const color1 = '#223344';
 const color2 = '#2299bb';
 const state = {

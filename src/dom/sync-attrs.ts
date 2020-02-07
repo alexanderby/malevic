@@ -70,7 +70,13 @@ function setEventListener(
     }
 }
 
-const specialAttrs = new Set(['key', 'attached', 'detached', 'updated']);
+const specialAttrs = new Set([
+    'key',
+    'oncreate',
+    'onupdate',
+    'onrender',
+    'onremove',
+]);
 
 export interface PluginSetAttributeProps {
     element: Element;

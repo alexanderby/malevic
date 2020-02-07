@@ -149,15 +149,16 @@ a corresponding event listener is added to a DOM element
 
 ## Lifecycle management
 
-- `attached` handler will be invoked after DOM node is created and appended to parent.
-- `updated` handler will be invoked after all attributes of existing DOM node were synchronized.
-- `detached` handler will be invoked after DOM node was removed.
+- `oncreate` handler will be invoked after DOM node is created and appended to parent.
+- `onupdate` handler will be invoked after all attributes of existing DOM node were synchronized.
+- `onrender` handler will be invoked after DOM node is created or updated.
+- `onremove` handler will be invoked after DOM node was removed.
 
 ```jsx
 function Heading() {
     return (
         <h4
-            attached={(domNode) => {
+            oncreate={(domNode) => {
                 domNode.classList.add('rendered');
                 domNode.textContent = 'Hello';
             }}
@@ -174,9 +175,10 @@ It is possible to assign lifecycle handlers for components as well:
 function Component() {
     const context = getContext();
 
-    context.attached((domNode) => domNode.classList.add('init'));
-    context.detached((domNode) => domNode.parentNode == null);
-    context.updated((domNode) => domNode === context.node);
+    context.onCreate((domNode) => domNode.classList.add('init'));
+    context.onRemove((domNode) => domNode.parentNode == null);
+    context.onUpdate((domNode) => domNode === context.node);
+    context.onRender((domNode) => domNode.dataset.renderCount = ++renderCount);
 
     return <div>Hello</div>;
 }

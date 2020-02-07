@@ -28,7 +28,7 @@ describe('string', () => {
                 ),
                 m('p', {class: null, style: {color: 'red'}},
                     'Paragraph',
-                    m('br', {attached: (node) => alert(node.outerHTML)}),
+                    m('br', {oncreate: (node) => alert(node.outerHTML)}),
                     'Line 1\nLine 2',
                 ),
                 m('label', null,

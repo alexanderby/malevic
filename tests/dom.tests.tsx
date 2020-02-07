@@ -861,11 +861,13 @@ describe('DOM', () => {
 
         let attached: Node;
         let updated: Node;
+        let renderCount = 0;
 
         const Dummy = () => {
             const context = getContext();
-            context.attached((node) => attached = node);
-            context.updated((node) => updated = node);
+            context.onCreate((node) => attached = node);
+            context.onUpdate((node) => updated = node);
+            context.onRender(() => renderCount++);
             if (!context.store.init) {
                 context.store.init = true;
                 return context.leave();
@@ -889,36 +891,41 @@ describe('DOM', () => {
         render(target, <Dummy />);
         expect(target.firstChild).toBe(null);
         expect(attached).toBe(null);
+        expect(renderCount).toBe(1);
 
         render(target, <Dummy />);
         expect(target.firstChild).toBeInstanceOf(HTMLButtonElement);
         expect(updated).toBe(target.firstChild);
+        expect(renderCount).toBe(2);
 
         dispatchClick(target.firstElementChild);
         expect(target.firstElementChild.className).toBe('init awaiting');
 
         render(target, <Dummy />);
         expect(target.firstElementChild.className).toBe('init');
+        expect(renderCount).toBe(3);
     });
 
     test('lifecycle', () => {
         const attachedNodes = [];
         const detachedNodes = [];
         const updatedNodes = [];
+        const renderedNodes = [];
 
-        const attached = (...nodes: Node[]) => attachedNodes.push(...nodes.map((n) => (n as Element).className));
-        const detached = (...nodes: Node[]) => detachedNodes.push(...nodes.map((n) => (n as Element).className));
-        const updated = (...nodes: Node[]) => updatedNodes.push(...nodes.map((n) => (n as Element).className));
+        const oncreate = (...nodes: Node[]) => attachedNodes.push(...nodes.map((n) => (n as Element).className));
+        const onupdate = (...nodes: Node[]) => updatedNodes.push(...nodes.map((n) => (n as Element).className));
+        const onremove = (...nodes: Node[]) => detachedNodes.push(...nodes.map((n) => (n as Element).className));
+        const onrender = (...nodes: Node[]) => renderedNodes.push(...nodes.map((n) => (n as Element).className));
 
         render(target, (
-            m('div', {class: 'n0', attached, detached, updated},
-                m('span', {class: 'n0-0', attached, detached, updated},
-                    m('span', {class: 'n0-0-0', attached, detached, updated}),
-                    m('span', {class: 'n0-0-1', attached, detached, updated}),
+            m('div', {class: 'n0', oncreate, onremove, onupdate, onrender},
+                m('span', {class: 'n0-0', oncreate, onremove, onupdate, onrender},
+                    m('span', {class: 'n0-0-0', oncreate, onremove, onupdate, onrender}),
+                    m('span', {class: 'n0-0-1', oncreate, onremove, onupdate, onrender}),
                 ),
-                m('span', {class: 'n0-1', attached, detached, updated},
+                m('span', {class: 'n0-1', oncreate, onremove, onupdate, onrender},
                     null,
-                    m('span', {class: 'n0-1-1', attached, detached, updated}),
+                    m('span', {class: 'n0-1-1', oncreate, onremove, onupdate, onrender}),
                 ),
             )
         ));
@@ -926,20 +933,22 @@ describe('DOM', () => {
         expect(attachedNodes.join(' ')).toBe('n0-0-0 n0-0-1 n0-0 n0-1-1 n0-1 n0');
         expect(detachedNodes.join(' ')).toBe('');
         expect(updatedNodes.join(' ')).toBe('');
+        expect(renderedNodes.join(' ')).toBe('n0-0-0 n0-0-1 n0-0 n0-1-1 n0-1 n0');
 
         attachedNodes.splice(0);
         detachedNodes.splice(0);
         updatedNodes.splice(0);
+        renderedNodes.splice(0);
 
         render(target, (
-            m('div', {class: 'n0', attached, detached, updated},
-                m('div', {class: 'x0-0', attached, detached, updated},
-                    m('span', {class: 'x0-0-0', attached, detached, updated}),
-                    m('span', {class: 'x0-0-1', attached, detached, updated}),
+            m('div', {class: 'n0', oncreate, onremove, onupdate, onrender},
+                m('div', {class: 'x0-0', oncreate, onremove, onupdate, onrender},
+                    m('span', {class: 'x0-0-0', oncreate, onremove, onupdate, onrender}),
+                    m('span', {class: 'x0-0-1', oncreate, onremove, onupdate, onrender}),
                 ),
-                m('span', {class: 'n0-1', attached, detached, updated},
-                    m('span', {class: 'n0-1-0', attached, detached, updated}),
-                    m('span', {class: 'n0-1-1', attached, detached, updated}),
+                m('span', {class: 'n0-1', oncreate, onremove, onupdate, onrender},
+                    m('span', {class: 'n0-1-0', oncreate, onremove, onupdate, onrender}),
+                    m('span', {class: 'n0-1-1', oncreate, onremove, onupdate, onrender}),
                 ),
             )
         ));
@@ -947,25 +956,29 @@ describe('DOM', () => {
         expect(attachedNodes.join(' ')).toBe('x0-0-0 x0-0-1 x0-0 n0-1-0');
         expect(detachedNodes.join(' ')).toBe('n0-0-0 n0-0-1 n0-0');
         expect(updatedNodes.join(' ')).toBe('n0-1-1 n0-1 n0');
+        expect(renderedNodes.join(' ')).toBe('x0-0-0 x0-0-1 x0-0 n0-1-0 n0-1-1 n0-1 n0');
 
         cleanup();
         attachedNodes.splice(0);
         detachedNodes.splice(0);
         updatedNodes.splice(0);
+        renderedNodes.splice(0);
 
         const Component = ({class: className}, ...children) => {
             const context = getContext();
             const name = className.toUpperCase();
-            context.attached((...nodes) => attachedNodes.push(`${name}(${nodes.filter((n) => n).map((n: Element) => n.className).join(', ')})`));
-            context.detached((...nodes) => detachedNodes.push(`${name}(${nodes.filter((n) => n).map((n: Element) => n.className).join(', ')})`));
-            context.updated((...nodes) => updatedNodes.push(`${name}(${nodes.filter((n) => n).map((n: Element) => n.className).join(', ')})`));
-            return m('div', {class: className, attached, detached, updated}, ...children);
+            context.onCreate((...nodes) => attachedNodes.push(`${name}(${nodes.filter((n) => n).map((n: Element) => n.className).join(', ')})`));
+            context.onUpdate((...nodes) => updatedNodes.push(`${name}(${nodes.filter((n) => n).map((n: Element) => n.className).join(', ')})`));
+            context.onRemove((...nodes) => detachedNodes.push(`${name}(${nodes.filter((n) => n).map((n: Element) => n.className).join(', ')})`));
+            context.onRender((...nodes) => renderedNodes.push(`${name}(${nodes.filter((n) => n).map((n: Element) => n.className).join(', ')})`));
+            return m('div', {class: className, oncreate, onremove, onupdate, onrender}, ...children);
         };
         const Wrapper = ({name, shouldUpdate}, ...children) => {
             const context = getContext();
-            context.attached((...nodes) => attachedNodes.push(`${name}(${nodes.filter((n) => n).map((n: Element) => n.className).join(', ')})`));
-            context.detached((...nodes) => detachedNodes.push(`${name}(${nodes.filter((n) => n).map((n: Element) => n.className).join(', ')})`));
-            context.updated((...nodes) => updatedNodes.push(`${name}(${nodes.filter((n) => n).map((n: Element) => n.className).join(', ')})`));
+            context.onCreate((...nodes) => attachedNodes.push(`${name}(${nodes.filter((n) => n).map((n: Element) => n.className).join(', ')})`));
+            context.onUpdate((...nodes) => updatedNodes.push(`${name}(${nodes.filter((n) => n).map((n: Element) => n.className).join(', ')})`));
+            context.onRemove((...nodes) => detachedNodes.push(`${name}(${nodes.filter((n) => n).map((n: Element) => n.className).join(', ')})`));
+            context.onRender((...nodes) => renderedNodes.push(`${name}(${nodes.filter((n) => n).map((n: Element) => n.className).join(', ')})`));
             if (!shouldUpdate) {
                 return context.leave();
             }
@@ -1000,10 +1013,12 @@ describe('DOM', () => {
         expect(attachedNodes.join(' ')).toBe('c1 C1(c1) c4 C4(c4) c3 C3(c3) W5() W2(c3) c0 C0(c0)');
         expect(detachedNodes.join(' ')).toBe('');
         expect(updatedNodes.join(' ')).toBe('');
+        expect(renderedNodes.join(' ')).toBe('c1 C1(c1) c4 C4(c4) c3 C3(c3) W5() W2(c3) c0 C0(c0)');
 
         attachedNodes.splice(0);
         detachedNodes.splice(0);
         updatedNodes.splice(0);
+        renderedNodes.splice(0);
 
         render(target, (
             m(Component, {class: 'c0'},
@@ -1023,10 +1038,12 @@ describe('DOM', () => {
         expect(attachedNodes.join(' ')).toBe('');
         expect(detachedNodes.join(' ')).toBe('c1 C1(c1)');
         expect(updatedNodes.join(' ')).toBe('c0 C0(c0)');
+        expect(renderedNodes.join(' ')).toBe('c0 C0(c0)');
 
         attachedNodes.splice(0);
         detachedNodes.splice(0);
         updatedNodes.splice(0);
+        renderedNodes.splice(0);
 
         const result = render(target, (
             m(Component, {class: 'c0'},
@@ -1046,6 +1063,7 @@ describe('DOM', () => {
         expect(attachedNodes.join(' ')).toBe('c7 C7(c7) c6 C6(c6)');
         expect(detachedNodes.join(' ')).toBe('');
         expect(updatedNodes.join(' ')).toBe('c4 C4(c4) c3 C3(c3) W5(c6) W2(c3, c6) c0 C0(c0)');
+        expect(renderedNodes.join(' ')).toBe('c7 C7(c7) c4 C4(c4) c3 C3(c3) c6 C6(c6) W5(c6) W2(c3, c6) c0 C0(c0)');
 
         expect(result.className).toBe('c0');
         expect(result.childNodes.length).toBe(2);
@@ -1299,7 +1317,7 @@ describe('DOM', () => {
 
         const App = () => {
             const context = getContext();
-            context.attached((node) => attachedNode = node);
+            context.onCreate((node) => attachedNode = node);
             let button: HTMLButtonElement;
             if (context.store.button) {
                 button = context.store.button;
@@ -1329,7 +1347,7 @@ describe('DOM', () => {
         let attachedArticle: Node;
 
         const Article = ({text}) => {
-            return m('article', {attached: (node) => attachedArticle = node},
+            return m('article', {oncreate: (node) => attachedArticle = node},
                 m('p', null, text),
             );
         };
@@ -1338,11 +1356,11 @@ describe('DOM', () => {
 
         const Numbers = ({values}) => {
             const context = getContext();
-            context.attached((...nodes) => attachedNumbers = nodes);
+            context.onCreate((...nodes) => attachedNumbers = nodes);
             return values.map((v) => (
                 m('input', {
                     type: 'number',
-                    attached: (node: HTMLInputElement) => node.value = v,
+                    oncreate: (node: HTMLInputElement) => node.value = v,
                 })
             ));
         };

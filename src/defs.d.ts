@@ -26,9 +26,10 @@ export interface NodeAttrs {
     key?: any;
     class?: string | {[cls: string]: any} | (string | {[cls: string]: any})[];
     style?: string | {[prop: string]: any};
-    attached?: (el: Element) => void;
-    updated?: (el: Element) => void;
-    detached?: (el: Element) => void;
+    oncreate?: (el: Element) => void;
+    onupdate?: (el: Element) => void;
+    onrender?: (el: Element) => void;
+    onremove?: (el: Element) => void;
     [attr: string]: any | DOMEventListener;
 }
 

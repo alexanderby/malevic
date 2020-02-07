@@ -172,23 +172,29 @@ class ElementVNode extends VNodeBase {
     }
 
     attached(context: VNodeContext) {
-        const {attached} = this.spec.props;
-        if (attached) {
-            attached(context.node as Element);
+        const {oncreate, onrender} = this.spec.props;
+        if (oncreate) {
+            oncreate(context.node as Element);
+        }
+        if (onrender) {
+            onrender(context.node as Element);
         }
     }
 
     detached(context: VNodeContext) {
-        const {detached} = this.spec.props;
-        if (detached) {
-            detached(context.node as Element);
+        const {onremove} = this.spec.props;
+        if (onremove) {
+            onremove(context.node as Element);
         }
     }
 
     updated(context: VNodeContext) {
-        const {updated} = this.spec.props;
-        if (updated) {
-            updated(context.node as Element);
+        const {onupdate, onrender} = this.spec.props;
+        if (onupdate) {
+            onupdate(context.node as Element);
+        }
+        if (onrender) {
+            onrender(context.node as Element);
         }
     }
 }
@@ -200,17 +206,19 @@ interface ComponentContext {
     node: Node;
     nodes: Node[];
     parent: Element;
-    attached(fn: (node: Node) => void): void;
-    detached(fn: (node: Node) => void): void;
-    updated(fn: (node: Node) => void): void;
+    onCreate(fn: (node: Node) => void): void;
+    onUpdate(fn: (node: Node) => void): void;
+    onRender(fn: (node: Node) => void): void;
+    onRemove(fn: (node: Node) => void): void;
     refresh(): void;
     leave(): any;
 }
 
 const symbols = {
-    ATTACHED: Symbol(),
-    DETACHED: Symbol(),
+    CREATED: Symbol(),
+    REMOVED: Symbol(),
     UPDATED: Symbol(),
+    RENDERED: Symbol(),
 };
 
 const domPlugins = [
@@ -248,7 +256,7 @@ class ComponentVNode extends VNodeBase {
         return [this.child];
     }
 
-    private createContext(context: VNodeContext) {
+    private createContext(context: VNodeContext): ComponentContext {
         const {parent} = context;
         const {spec, prev, store} = this;
 
@@ -263,9 +271,10 @@ class ComponentVNode extends VNodeBase {
                 return context.nodes;
             },
             parent,
-            attached: (fn) => (store[symbols.ATTACHED] = fn),
-            detached: (fn) => (store[symbols.DETACHED] = fn),
-            updated: (fn) => (store[symbols.UPDATED] = fn),
+            onCreate: (fn) => (store[symbols.CREATED] = fn),
+            onUpdate: (fn) => (store[symbols.UPDATED] = fn),
+            onRemove: (fn) => (store[symbols.REMOVED] = fn),
+            onRender: (fn) => (store[symbols.RENDERED] = fn),
             refresh: () => {
                 if (this.lock) {
                     throw new Error(
@@ -353,16 +362,18 @@ class ComponentVNode extends VNodeBase {
 
     attached(context: VNodeContext) {
         this.deletePlugins();
-        this.handle(symbols.ATTACHED, context);
+        this.handle(symbols.CREATED, context);
+        this.handle(symbols.RENDERED, context);
     }
 
     detached(context: VNodeContext) {
-        this.handle(symbols.DETACHED, context);
+        this.handle(symbols.REMOVED, context);
     }
 
     updated(context: VNodeContext) {
         this.deletePlugins();
         this.handle(symbols.UPDATED, context);
+        this.handle(symbols.RENDERED, context);
     }
 }
 

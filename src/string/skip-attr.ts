@@ -12,7 +12,13 @@ export const pluginsSkipAttribute = createPluginsStore<
     boolean
 >();
 
-const specialAttrs = new Set(['key', 'attached', 'detached', 'updated']);
+const specialAttrs = new Set([
+    'key',
+    'oncreate',
+    'onupdate',
+    'onrender',
+    'onremove',
+]);
 
 export function shouldSkipAttribute(attr: string, value: any) {
     if (!pluginsSkipAttribute.empty()) {
