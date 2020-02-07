@@ -292,6 +292,7 @@ class ComponentVNode extends VNodeBase {
                 const prevChild = this.child;
                 this.child = createVNode(unboxed, this);
                 context.vdom.execute(this.child, prevChild);
+                this.updated(context);
             },
             leave: () => context.vdom.LEAVE,
         };

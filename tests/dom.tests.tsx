@@ -1072,6 +1072,27 @@ describe('DOM', () => {
         expect((result.childNodes.item(0).childNodes.item(0) as Element).className).toBe('c7');
         expect((result.childNodes.item(0).childNodes.item(1) as Element).className).toBe('c4');
         expect((result.childNodes.item(1) as Element).className).toBe('c6');
+
+        teardown(target);
+
+        let renderCount = 0;
+        const C = () => {
+            const context = getContext();
+            context.onRender(() => renderCount++);
+            return <button onclick={() => context.refresh()} />;
+        };
+
+        const c = render(target, <C />).firstElementChild;
+        expect(renderCount).toBe(1);
+
+        render(target, <C />);
+        expect(renderCount).toBe(2);
+
+        dispatchClick(c);
+        expect(renderCount).toBe(3);
+
+        render(target, <C />);
+        expect(renderCount).toBe(4);
     });
 
     test('inline functions', () => {
