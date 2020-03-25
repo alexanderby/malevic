@@ -1,7 +1,7 @@
 import {m} from 'malevic';
 
 function Component({isHidden = false}, ...children) {
-    const style = isHidden ? {'display': 'none'} : null;
+    const style = isHidden ? {display: 'none'} : null;
     return (
         <div class="component" style={style}>
             {children}
@@ -16,7 +16,7 @@ test('spec', () => {
                 Hello <strong>World</strong>
             </Component>
             <Component></Component>
-        </main>
+        </main>,
     ).toEqual({
         type: 'main',
         props: {},
@@ -31,26 +31,24 @@ test('spec', () => {
                     {
                         type: 'strong',
                         props: {},
-                        children: [
-                            'World'
-                        ]
-                    }
-                ]
+                        children: ['World'],
+                    },
+                ],
             },
             {
                 type: Component,
                 props: {},
-                children: []
-            }
-        ]
+                children: [],
+            },
+        ],
     });
 
     expect(
         <Array>
             <header />
-            {...([1, 2, 3].map((n) => <div>{String(n)}</div>))}
+            {...[1, 2, 3].map((n) => <div>{String(n)}</div>)}
             <footer />
-        </Array>
+        </Array>,
     ).toEqual({
         type: Array,
         props: {},
@@ -63,7 +61,7 @@ test('spec', () => {
                 {type: 'div', props: {}, children: ['3']},
             ],
             {type: 'footer', props: {}, children: []},
-        ]
+        ],
     });
 
     const C = {} as any;

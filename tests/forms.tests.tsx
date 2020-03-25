@@ -16,26 +16,40 @@ afterEach(() => {
 
 describe('forms', () => {
     test('input value', () => {
-        const Form = withForms(({text}) => (<Array>
-            <input value={text} />
-            <textarea readonly>
-                {text}
-            </textarea>
-        </Array>));
+        const Form = withForms(({text}) => (
+            <Array>
+                <input value={text} />
+                <textarea readonly>{text}</textarea>
+            </Array>
+        ));
 
         render(container, <Form text="x" />);
         expect(container.firstElementChild).toBeInstanceOf(HTMLInputElement);
         expect(container.lastElementChild).toBeInstanceOf(HTMLTextAreaElement);
-        expect((container.firstElementChild as HTMLInputElement).value).toBe('x');
-        expect((container.lastElementChild as HTMLTextAreaElement).value).toBe('x');
-        expect((container.lastElementChild as HTMLTextAreaElement).readOnly).toBe(true);
+        expect((container.firstElementChild as HTMLInputElement).value).toBe(
+            'x',
+        );
+        expect((container.lastElementChild as HTMLTextAreaElement).value).toBe(
+            'x',
+        );
+        expect(
+            (container.lastElementChild as HTMLTextAreaElement).readOnly,
+        ).toBe(true);
 
         render(container, <Form text="y" />);
-        expect((container.firstElementChild as HTMLInputElement).value).toBe('y');
-        expect((container.lastElementChild as HTMLTextAreaElement).value).toBe('y');
+        expect((container.firstElementChild as HTMLInputElement).value).toBe(
+            'y',
+        );
+        expect((container.lastElementChild as HTMLTextAreaElement).value).toBe(
+            'y',
+        );
 
         render(container, <Form text={null} />);
-        expect((container.firstElementChild as HTMLInputElement).value).toBe('');
-        expect((container.lastElementChild as HTMLTextAreaElement).value).toBe('');
+        expect((container.firstElementChild as HTMLInputElement).value).toBe(
+            '',
+        );
+        expect((container.lastElementChild as HTMLTextAreaElement).value).toBe(
+            '',
+        );
     });
 });

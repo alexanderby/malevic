@@ -6,12 +6,4 @@ import * as Forms from './forms';
 import * as State from './state';
 import * as String from './string';
 
-export {
-    m,
-    Animation,
-    Canvas,
-    DOM,
-    Forms,
-    State,
-    String,
-};
+export {m, Animation, Canvas, DOM, Forms, State, String};

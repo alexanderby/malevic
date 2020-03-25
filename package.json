@@ -16,7 +16,7 @@
   "license": "MIT",
   "scripts": {
     "build": "node tasks/build.js --release",
-    "code-style": "prettier --single-quote --tab-width 4 --trailing-comma all --no-bracket-spacing --arrow-parens always --end-of-line lf --write src/**/*.* tasks/**/*.* tests/**/*.* !tests/coverage/**/*.* index.d.ts examples/**/*.*",
+    "code-style": "prettier --single-quote --tab-width 4 --trailing-comma all --no-bracket-spacing --arrow-parens always --end-of-line lf --write 'src/**/*.(js|ts|tsx)' 'tasks/**/*.*' 'tests/**/*.*' '!tests/coverage/**/*.*' 'index.d.ts' 'examples/**/*.*'",
     "examples": "node tasks/build.js --examples",
     "prepublishOnly": "npm test && npm run build",
     "test": "jest --coverage",

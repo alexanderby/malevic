@@ -12,7 +12,10 @@ export interface ComponentSpec<T = any, K = any> {
 
 export type Spec = NodeSpec | ComponentSpec;
 
-export type Component<T = any, K = Child> = (props: T & {key?: any}, ...children: RecursiveArray<Child>) => K | RecursiveArray<K> | any;
+export type Component<T = any, K = Child> = (
+    props: T & {key?: any},
+    ...children: RecursiveArray<Child>
+) => K | RecursiveArray<K> | any;
 
 export type InlineFunction<T = any, R = any> = (context: T) => R;
 

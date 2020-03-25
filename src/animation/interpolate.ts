@@ -6,7 +6,7 @@ function interpolate(t: number, from: number, to: number) {
     return from * (1 - t) + to * t;
 }
 
-export const interpolateNumbers: Interpolator<number> = function(
+export const interpolateNumbers: Interpolator<number> = function (
     from: number,
     to: number,
 ) {
@@ -27,7 +27,7 @@ function getNumPositions(line: string) {
     return positions;
 }
 
-export const interpolateNumbersInString: Interpolator<string> = function(
+export const interpolateNumbersInString: Interpolator<string> = function (
     from: string,
     to: string,
 ) {

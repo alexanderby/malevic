@@ -9,8 +9,16 @@ import {
 } from './defs';
 import {isObject} from './utils/misc';
 
-export function m(tag: string, attrs: NodeAttrs, ...children: RecursiveArray<Child>): NodeSpec;
-export function m<T>(component: Component<T>, props: T & {key?: any}, ...children: RecursiveArray<Child>): ComponentSpec<T>;
+export function m(
+    tag: string,
+    attrs: NodeAttrs,
+    ...children: RecursiveArray<Child>
+): NodeSpec;
+export function m<T>(
+    component: Component<T>,
+    props: T & {key?: any},
+    ...children: RecursiveArray<Child>
+): ComponentSpec<T>;
 export function m(
     tagOrComponent: string | Component<any>,
     props: any,

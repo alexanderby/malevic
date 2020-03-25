@@ -1,9 +1,11 @@
 export function dispatchClick(el: Element) {
-    el.dispatchEvent(new MouseEvent('click', {
-        view: window,
-        bubbles: true,
-        cancelable: true
-    }));
+    el.dispatchEvent(
+        new MouseEvent('click', {
+            view: window,
+            bubbles: true,
+            cancelable: true,
+        }),
+    );
 }
 
 export function createAnimationSemaphore() {
@@ -28,7 +30,7 @@ export function createAnimationSemaphore() {
         },
         tick($time: number) {
             time = $time;
-            const queue = Array.from(callbacks.values())
+            const queue = Array.from(callbacks.values());
             callbacks.clear();
             queue.forEach((cb) => cb(time));
         },

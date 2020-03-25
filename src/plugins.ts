@@ -59,17 +59,26 @@ function iterateComponentPlugins(
     pairs
         .filter(([key]) => type[key])
         .forEach(([key, plugins]) => {
-            return type[key]
-                .forEach((plugin) => iterator(plugins, plugin));
+            return type[key].forEach((plugin) => iterator(plugins, plugin));
         });
 }
 
-export function addComponentPlugins(type: Component, pairs: [symbol, PluginsStore<any>][]) {
-    iterateComponentPlugins(type, pairs, (plugins, plugin) => plugins.add(plugin));
+export function addComponentPlugins(
+    type: Component,
+    pairs: [symbol, PluginsStore<any>][],
+) {
+    iterateComponentPlugins(type, pairs, (plugins, plugin) =>
+        plugins.add(plugin),
+    );
 }
 
-export function deleteComponentPlugins(type: Component, pairs: [symbol, PluginsStore<any>][]) {
-    iterateComponentPlugins(type, pairs, (plugins, plugin) => plugins.delete(plugin));
+export function deleteComponentPlugins(
+    type: Component,
+    pairs: [symbol, PluginsStore<any>][],
+) {
+    iterateComponentPlugins(type, pairs, (plugins, plugin) =>
+        plugins.delete(plugin),
+    );
 }
 
 interface PluginsAPI<T, K = any> {

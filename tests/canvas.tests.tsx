@@ -51,7 +51,8 @@ test('canvas', () => {
     );
 
     const data = canvas.getContext('2d').getImageData(0, 0, width, height).data;
-    const pixel = (x, y) => [0, 1, 2, 3].map((i) => data[4 * (y * height + x) + i]);
+    const pixel = (x, y) =>
+        [0, 1, 2, 3].map((i) => data[4 * (y * height + x) + i]);
 
     expect(pixel(0, 0)).toEqual([255, 0, 0, 255]);
     expect(pixel(1, 0)).toEqual([255, 0, 0, 255]);
@@ -70,5 +71,7 @@ test('canvas', () => {
     expect(pixel(2, 3)).toEqual([0, 0, 255, 255]);
     expect(pixel(3, 3)).toEqual([0, 0, 255, 255]);
 
-    expect(() => draw(canvas.getContext('2d'), <div />)).toThrow(/Unable to draw spec/);
+    expect(() => draw(canvas.getContext('2d'), <div />)).toThrow(
+        /Unable to draw spec/,
+    );
 });

@@ -7,12 +7,15 @@ describe('utils', () => {
     test('attrs', () => {
         expect(classes()).toBe('');
         expect(classes('c')).toBe('c');
-        expect(classes('a', {'b': true, 'c': false})).toBe('a b');
-        expect(classes('a', null, 'b', 0 as any, 'c', true as any)).toBe('a b c');
+        expect(classes('a', {b: true, c: false})).toBe('a b');
+        expect(classes('a', null, 'b', 0 as any, 'c', true as any)).toBe(
+            'a b c',
+        );
 
-        expect(styles({'color': null})).toBe('');
-        expect(styles({'background-color': 'red !important', 'color': 'blue'}))
-            .toBe('background-color: red !important; color: blue;');
+        expect(styles({color: null})).toBe('');
+        expect(
+            styles({'background-color': 'red !important', color: 'blue'}),
+        ).toBe('background-color: red !important; color: blue;');
     });
 
     test('math', () => {
