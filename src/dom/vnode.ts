@@ -219,6 +219,7 @@ const symbols = {
     REMOVED: Symbol(),
     UPDATED: Symbol(),
     RENDERED: Symbol(),
+    ACTIVE: Symbol(),
 };
 
 const domPlugins = [
@@ -239,6 +240,7 @@ class ComponentVNode extends VNodeBase {
         this.spec = spec;
         this.prev = null;
         this.store = {};
+        this.store[symbols.ACTIVE] = this;
     }
 
     matches(other: VNode) {
@@ -275,7 +277,10 @@ class ComponentVNode extends VNodeBase {
             onUpdate: (fn) => (store[symbols.UPDATED] = fn),
             onRemove: (fn) => (store[symbols.REMOVED] = fn),
             onRender: (fn) => (store[symbols.RENDERED] = fn),
-            refresh: () => this.freshener.refresh(context),
+            refresh: () => {
+                const activeVNode = store[symbols.ACTIVE] as ComponentVNode;
+                activeVNode.refresh(context);
+            },
             leave: () => context.vdom.LEAVE,
         };
     }
@@ -299,8 +304,6 @@ class ComponentVNode extends VNodeBase {
         }
         return unboxed;
     }
-
-    private freshener = this;
 
     private refresh(context: VNodeContext) {
         if (this.lock) {
@@ -340,7 +343,7 @@ class ComponentVNode extends VNodeBase {
     update(prev: ComponentVNode, context: VNodeContext) {
         this.store = prev.store;
         this.prev = prev.spec;
-        prev.freshener = this;
+        this.store[symbols.ACTIVE] = this;
         const prevContext = context.vdom.getVNodeContext(prev);
 
         this.addPlugins();

@@ -673,6 +673,8 @@ describe('DOM', () => {
         expect(v).toBe(3);
         render(target, <C1 r="r4" p={4} />);
         expect(v).toBe(4);
+        refs['r1']();
+        expect(v).toBe(4);
     });
 
     test('DOM node as a child', () => {
