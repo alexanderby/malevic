@@ -275,25 +275,7 @@ class ComponentVNode extends VNodeBase {
             onUpdate: (fn) => (store[symbols.UPDATED] = fn),
             onRemove: (fn) => (store[symbols.REMOVED] = fn),
             onRender: (fn) => (store[symbols.RENDERED] = fn),
-            refresh: () => {
-                if (this.lock) {
-                    throw new Error(
-                        'Calling refresh during unboxing causes infinite loop',
-                    );
-                }
-
-                this.prev = this.spec;
-                const latestContext = context.vdom.getVNodeContext(this);
-                const unboxed = this.unbox(latestContext);
-                if (unboxed === context.vdom.LEAVE) {
-                    return;
-                }
-
-                const prevChild = this.child;
-                this.child = createVNode(unboxed, this);
-                context.vdom.execute(this.child, prevChild);
-                this.updated(context);
-            },
+            refresh: () => this.freshener.refresh(context),
             leave: () => context.vdom.LEAVE,
         };
     }
@@ -318,6 +300,28 @@ class ComponentVNode extends VNodeBase {
         return unboxed;
     }
 
+    private freshener = this;
+
+    private refresh(context: VNodeContext) {
+        if (this.lock) {
+            throw new Error(
+                'Calling refresh during unboxing causes infinite loop',
+            );
+        }
+
+        this.prev = this.spec;
+        const latestContext = context.vdom.getVNodeContext(this);
+        const unboxed = this.unbox(latestContext);
+        if (unboxed === context.vdom.LEAVE) {
+            return;
+        }
+
+        const prevChild = this.child;
+        this.child = createVNode(unboxed, this);
+        context.vdom.execute(this.child, prevChild);
+        this.updated(context);
+    }
+
     private addPlugins() {
         addComponentPlugins(this.spec.type, domPlugins);
     }
@@ -336,6 +340,7 @@ class ComponentVNode extends VNodeBase {
     update(prev: ComponentVNode, context: VNodeContext) {
         this.store = prev.store;
         this.prev = prev.spec;
+        prev.freshener = this;
         const prevContext = context.vdom.getVNodeContext(prev);
 
         this.addPlugins();

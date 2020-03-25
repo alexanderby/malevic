@@ -650,6 +650,29 @@ describe('DOM', () => {
         };
         expect(() => render(target, m(Refresher, null))).toThrow(/infinite loop/);
         expect(getContext()).toBe(null);
+
+        cleanup();
+
+        const refs = {};
+        let v;
+        const C1 = ({r, p}) => {
+            const context = getContext();
+            refs[r] = context.refresh;
+            v = p;
+            return <section />;
+        };
+        render(target, <C1 r="r1" p={1} />);
+        expect(v).toBe(1);
+        render(target, <C1 r="r2" p={2} />);
+        expect(v).toBe(2);
+        refs['r1']();
+        expect(v).toBe(2);
+        render(target, <C1 r="r3" p={3} />);
+        expect(v).toBe(3);
+        refs['r2']();
+        expect(v).toBe(3);
+        render(target, <C1 r="r4" p={4} />);
+        expect(v).toBe(4);
     });
 
     test('DOM node as a child', () => {
