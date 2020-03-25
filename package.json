@@ -1,6 +1,6 @@
 {
   "name": "malevic",
-  "version": "0.18.0",
+  "version": "0.18.1",
   "description": "Malevič.js - minimalistic reactive UI library",
   "keywords": [
     "ui",
