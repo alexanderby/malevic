@@ -30,6 +30,7 @@ export function render<T extends Element>(
         element,
         Array.isArray(spec) ? spec : [spec],
         null,
+        false,
     );
     realize(element, vnode);
     return element;
