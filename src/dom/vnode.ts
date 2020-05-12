@@ -161,14 +161,14 @@ class ElementVNode extends VNodeBase {
         }
 
         syncAttrs(element, this.spec.props, null);
-        this.child = createDOMVNode(element, this.spec.children, this);
+        this.child = createDOMVNode(element, this.spec.children, this, false);
     }
 
     update(prev: ElementVNode, context: VNodeContext) {
         const prevContext = context.vdom.getVNodeContext(prev);
         const element = prevContext.node as Element;
         syncAttrs(element, this.spec.props, prev.spec.props);
-        this.child = createDOMVNode(element, this.spec.children, this);
+        this.child = createDOMVNode(element, this.spec.children, this, false);
     }
 
     attached(context: VNodeContext) {
@@ -504,11 +504,18 @@ class DOMVNode extends VNodeBase {
     readonly node: Node;
     private childSpecs: RecursiveArray<Child>;
     private childVNodes: VNode[];
+    private isNative: boolean;
 
-    constructor(node: Node, childSpecs: RecursiveArray<Child>, parent: VNode) {
+    constructor(
+        node: Node,
+        childSpecs: RecursiveArray<Child>,
+        parent: VNode,
+        isNative: boolean,
+    ) {
         super(parent);
         this.node = node;
         this.childSpecs = childSpecs;
+        this.isNative = isNative;
     }
 
     matches(other: VNode) {
@@ -548,7 +555,7 @@ class DOMVNode extends VNodeBase {
         this.insertNode(context);
     }
 
-    private refine(context: VNodeContext) {
+    private cleanupDOMChildren(context: VNodeContext) {
         const element = this.node as Element;
         for (let current: Node = element.lastChild; current != null; ) {
             if (context.vdom.isDOMNodeCaptured(current)) {
@@ -559,6 +566,14 @@ class DOMVNode extends VNodeBase {
                 current = prev;
             }
         }
+    }
+
+    private refine(context: VNodeContext) {
+        if (!this.isNative) {
+            this.cleanupDOMChildren(context);
+        }
+
+        const element = this.node as Element;
         markElementAsRefined(element, context.vdom);
     }
 
@@ -586,8 +601,9 @@ export function createDOMVNode(
     node: Node,
     childSpecs: RecursiveArray<Child>,
     parent: VNode,
+    isNative: boolean,
 ) {
-    return new DOMVNode(node, childSpecs, parent);
+    return new DOMVNode(node, childSpecs, parent, isNative);
 }
 
 class ArrayVNode extends VNodeBase {
@@ -654,7 +670,7 @@ export function createVNode(
     }
 
     if (spec instanceof Node) {
-        return createDOMVNode(spec, [], parent);
+        return createDOMVNode(spec, [], parent, true);
     }
 
     if (Array.isArray(spec)) {

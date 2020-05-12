@@ -734,6 +734,41 @@ describe('DOM', () => {
         expect((target.childNodes.item(1) as HTMLElement).className).toBe(
             'a b',
         );
+
+        cleanup();
+
+        const node = render(
+            document.createElement('div'),
+            <div class="n1">
+                <span class="n2"></span>
+            </div>,
+        ).firstElementChild;
+        render(target, <div class="n0">{node}</div>);
+        expect(target.childElementCount).toBe(1);
+        const n0 = target.firstElementChild;
+        expect(n0).toBeInstanceOf(HTMLDivElement);
+        expect(n0.className).toBe('n0');
+        expect(n0.childElementCount).toBe(1);
+        const n1 = n0.firstElementChild;
+        expect(n1).toBeInstanceOf(HTMLDivElement);
+        expect(n1.className).toBe('n1');
+        expect(n1.childElementCount).toBe(1);
+        const n2 = n1.firstElementChild;
+        expect(n2).toBeInstanceOf(HTMLSpanElement);
+        expect(n2.className).toBe('n2');
+        expect(n2.childElementCount).toBe(0);
+
+        render(target, <div class="n0">{node}</div>);
+        expect(n0.firstElementChild).toBe(n1);
+        expect(n1.firstElementChild).toBe(n2);
+
+        render(target, <div class="n0"></div>);
+        expect(n0.childElementCount).toBe(0);
+
+        render(target, <div class="n0">{node}</div>);
+        expect(n0.childElementCount).toBe(1);
+        expect(n0.firstElementChild).toBe(n1);
+        expect(n1.firstElementChild).toBe(n2);
     });
 
     test('match by key', () => {
