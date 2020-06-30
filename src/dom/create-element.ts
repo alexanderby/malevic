@@ -26,8 +26,11 @@ export function createElement(spec: NodeSpec, parent: Element) {
     if (tag === 'svg') {
         return document.createElementNS(SVG_NS, 'svg');
     }
-    if (parent.namespaceURI === XHTML_NS) {
+
+    const namespace = parent.namespaceURI;
+    if (namespace === XHTML_NS || namespace == null) {
         return document.createElement(tag);
     }
-    return document.createElementNS(parent.namespaceURI, tag);
+
+    return document.createElementNS(namespace, tag);
 }

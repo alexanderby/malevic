@@ -270,6 +270,12 @@ describe('DOM', () => {
         expect(text.textContent).toBe('y');
     });
 
+    test('render inside fragment', () => {
+        const fragment = document.createDocumentFragment();
+        const el = render(fragment, <div />).firstElementChild;
+        expect(el).toBeInstanceOf(HTMLDivElement);
+    });
+
     test('events', () => {
         let count = 0;
 
@@ -443,15 +449,15 @@ describe('DOM', () => {
                         `prev.props.char: ${prev ? prev.props.char : '-'}`,
                         `children: ${children.join(', ')}`,
                         `prev.children: ${
-                            prev ? prev.children.join(', ') : null
+                        prev ? prev.children.join(', ') : null
                         }`,
                         `nodes.length: ${nodes.length}`,
                         `node is Button: ${node instanceof HTMLButtonElement}`,
                         `node[0] is Button: ${
-                            nodes[0] instanceof HTMLButtonElement
+                        nodes[0] instanceof HTMLButtonElement
                         }`,
                         `node[1] is Label: ${
-                            nodes[1] instanceof HTMLLabelElement
+                        nodes[1] instanceof HTMLLabelElement
                         }`,
                     ].join('; '),
                 ),

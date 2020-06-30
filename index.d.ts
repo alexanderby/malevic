@@ -249,7 +249,7 @@ declare namespace Malevic {
          * @param element Target element.
          * @param spec Child specification or multiple specifications.
          */
-        function render<T extends Element>(
+        function render<T extends (Element | Document | DocumentFragment)>(
             element: T,
             spec: Child | Child[],
         ): T;
