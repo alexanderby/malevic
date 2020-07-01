@@ -15,9 +15,9 @@
   "author": "Alexander Shutau <shutovby@gmail.com> (http://shutov.by/)",
   "license": "MIT",
   "scripts": {
-    "build": "node tasks/build.js --release",
+    "build": "node --experimental-modules --es-module-specifier-resolution=node tasks/build.js --release",
     "code-style": "prettier --single-quote --tab-width 4 --trailing-comma all --no-bracket-spacing --arrow-parens always --end-of-line lf --write 'src/**/*.(js|ts|tsx)' 'tasks/**/*.*' 'tests/**/*.*' '!tests/coverage/**/*.*' 'index.d.ts' 'examples/**/*.*'",
-    "examples": "node tasks/build.js --examples",
+    "examples": "node --experimental-modules --es-module-specifier-resolution=node tasks/build.js --examples",
     "prepublishOnly": "npm test && npm run build",
     "test": "jest --coverage",
     "test:debug": "node --inspect-brk ./node_modules/jest/bin/jest --runInBand --no-cache --watch",
@@ -30,6 +30,7 @@
   "bugs": {
     "url": "https://github.com/alexanderby/malevic/issues"
   },
+  "type": "module",
   "main": "umd/index.js",
   "module": "index.mjs",
   "devDependencies": {
