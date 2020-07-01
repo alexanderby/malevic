@@ -22,7 +22,7 @@ function realize(node: Node, vnode: VNode): VNodeContext {
     return vdom.getVNodeContext(vnode);
 }
 
-export function render<T extends (Element | Document | DocumentFragment)>(
+export function render<T extends Element | Document | DocumentFragment>(
     element: T,
     spec: Child | Child[],
 ): T {

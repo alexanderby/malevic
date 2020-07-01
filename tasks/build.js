@@ -1,5 +1,5 @@
 const rollup = require('rollup');
-const rollupPluginTypescript = require('rollup-plugin-typescript');
+const rollupPluginTypescript = require('@rollup/plugin-typescript');
 const rollupPluginUglify = require('rollup-plugin-uglify');
 const typescript = require('typescript');
 const package = require('../package');
@@ -27,15 +27,11 @@ async function buildJS({
         input: src,
         external: dependencies ? Object.keys(dependencies) : null,
         plugins: [
-            rollupPluginTypescript(
-                Object.assign(
-                    {
-                        typescript,
-                        removeComments: true,
-                    },
-                    ts,
-                ),
-            ),
+            rollupPluginTypescript({
+                typescript,
+                removeComments: true,
+                ...ts,
+            }),
             minify
                 ? rollupPluginUglify.uglify({
                       output: {preamble: banner},

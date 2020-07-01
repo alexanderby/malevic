@@ -12,7 +12,7 @@
     "react",
     "d3"
   ],
-  "author": "Alexander Shutov <shutovby@gmail.com> (http://shutov.by/)",
+  "author": "Alexander Shutau <shutovby@gmail.com> (http://shutov.by/)",
   "license": "MIT",
   "scripts": {
     "build": "node tasks/build.js --release",
@@ -33,15 +33,15 @@
   "main": "umd/index.js",
   "module": "index.mjs",
   "devDependencies": {
-    "@types/jest": "25.1.4",
+    "@rollup/plugin-typescript": "5.0.1",
+    "@types/jest": "26.0.3",
     "canvas": "2.6.1",
-    "jest": "25.1.0",
-    "prettier": "2.0.2",
-    "rollup": "2.2.0",
-    "rollup-plugin-typescript": "1.0.1",
+    "jest": "26.1.0",
+    "prettier": "2.0.5",
+    "rollup": "2.18.1",
     "rollup-plugin-uglify": "6.0.4",
-    "ts-jest": "25.2.1",
-    "tslib": "1.11.1",
-    "typescript": "3.8.3"
+    "ts-jest": "26.1.1",
+    "tslib": "2.0.0",
+    "typescript": "3.9.5"
   }
 }
