@@ -324,6 +324,11 @@ declare namespace Malevic {
              */
             onRemove(fn: (node: Node) => void): void;
             /**
+             * Returns component's store.
+             * @param defaults Default store values.
+             */
+            getStore<T>(defaults?: T): T;
+            /**
              * Refreshes the component subtree.
              */
             refresh(): void;

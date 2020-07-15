@@ -416,7 +416,7 @@ describe('DOM', () => {
                 node,
                 nodes,
                 parent,
-                store,
+                getStore,
                 refresh,
                 spec,
                 prev,
@@ -425,7 +425,7 @@ describe('DOM', () => {
             expect(spec.type).toBe(Component);
             expect(spec.props).toEqual(props);
             expect(spec.children).toEqual(children);
-            const {count = 0} = store;
+            const store = getStore({count: 0});
 
             return m(
                 Array,
@@ -434,7 +434,7 @@ describe('DOM', () => {
                     'button',
                     {
                         onclick: () => {
-                            store.count = count + 1;
+                            store.count++;
                             refresh();
                         },
                     },
@@ -444,7 +444,7 @@ describe('DOM', () => {
                     'label',
                     null,
                     [
-                        `store.count: ${count || 0}`,
+                        `store.count: ${store.count}`,
                         `props.char: ${props.char || '-'}`,
                         `prev.props.char: ${prev ? prev.props.char : '-'}`,
                         `children: ${children.join(', ')}`,
@@ -461,7 +461,7 @@ describe('DOM', () => {
                         }`,
                     ].join('; '),
                 ),
-                count < 2 ? null : 'Extra',
+                store.count < 2 ? null : 'Extra',
             );
         };
 
@@ -580,7 +580,8 @@ describe('DOM', () => {
         };
         const B = ({x, extra}, ...children) => {
             const context = getContext();
-            const {b1 = 1, b2 = 1} = context.store;
+            const store = context.getStore({b1: 1, b2: 1});
+            const {b1, b2} = store;
             const onB1Click = () => {
                 context.store.b1 = b1 + 1;
                 context.refresh();
@@ -878,8 +879,9 @@ describe('DOM', () => {
             return m(Item, null);
         };
         const Item = () => {
-            const {store} = getContext();
-            const {times = 0} = store;
+            const context = getContext();
+            const store = context.getStore({times: 0});
+            const {times} = store;
             store.times = times + 1;
             switch (store.times) {
                 case 1: {

@@ -202,7 +202,7 @@ class ElementVNode extends VNodeBase {
 interface ComponentContext {
     spec: Spec;
     prev: Spec;
-    store: any;
+    store: {[key: string]: any};
     node: Node;
     nodes: Node[];
     parent: Element;
@@ -212,6 +212,7 @@ interface ComponentContext {
     onRemove(fn: (node: Node) => void): void;
     refresh(): void;
     leave(): any;
+    getStore<T extends object>(defaults?: T): T;
 }
 
 const symbols = {
@@ -220,6 +221,7 @@ const symbols = {
     UPDATED: Symbol(),
     RENDERED: Symbol(),
     ACTIVE: Symbol(),
+    DEFAULTS_ASSIGNED: Symbol(),
 };
 
 const domPlugins = [
@@ -282,6 +284,15 @@ class ComponentVNode extends VNodeBase {
                 activeVNode.refresh(context);
             },
             leave: () => context.vdom.LEAVE,
+            getStore: (defaults?) => {
+                if (defaults && !store[symbols.DEFAULTS_ASSIGNED]) {
+                    Object.entries(defaults).forEach(([prop, value]) => {
+                        store[prop] = value;
+                    });
+                    store[symbols.DEFAULTS_ASSIGNED] = true;
+                }
+                return store;
+            },
         };
     }
 

@@ -440,6 +440,9 @@ State plug-in is a shorthand for manipulating `context.store` property and `cont
 `context.store` is an object that is transferred between matched virtual nodes.
 Any values can be stored there and used when the next component unboxing happens.
 
+`context.getStore(defaults)` returns a store
+and assigns it's default values.
+
 `context.refresh()` function refreshes a part of the virtual DOM.
 It should not be called during the component's unboxing.
 
@@ -449,11 +452,11 @@ import {getContext} from 'malevic/dom';
 
 function Stateful(({items}) {
     const context = getContext();
-    const {store} = context;
+    const store = context.getStore({isExpanded: false});
     return (	
         <div>	
             <button onclick={() => {
-                context.store.isExpanded = !store.isExpanded;
+                store.isExpanded = !store.isExpanded;
                 context.refresh();
             }}>	
                 Expand	
