@@ -105,6 +105,7 @@ declare namespace Malevic {
         onkeyup?: DOMEventListener<KeyboardEvent, E, T>;
         onkeypress?: DOMEventListener<KeyboardEvent, E, T>;
         onscroll?: DOMEventListener<Event, E, T>;
+        onwheel?: DOMEventListener<WheelEvent, E, T>;
     }
 
     type Plugin<P, R = any> = (props: P) => R;
