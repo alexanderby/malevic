@@ -1,5 +1,5 @@
 import {m} from 'malevic';
-import {render, getContext} from 'malevic/dom';
+import {render} from 'malevic/dom';
 
 function Heading({text}) {
     return <h3>{text}</h3>;
