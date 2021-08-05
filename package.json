@@ -20,6 +20,7 @@
     "examples": "node --experimental-modules --es-module-specifier-resolution=node tasks/build.js --examples",
     "prepublishOnly": "npm test && npm run build",
     "test": "jest --coverage",
+    "test:clear-cache": "jest --clearCache",
     "test:debug": "node --inspect-brk ./node_modules/jest/bin/jest --runInBand --no-cache --watch",
     "test:watch": "jest --watch"
   },
@@ -33,15 +34,15 @@
   "main": "umd/index.js",
   "module": "index.mjs",
   "devDependencies": {
-    "@rollup/plugin-typescript": "5.0.1",
-    "@types/jest": "26.0.3",
-    "canvas": "2.6.1",
-    "jest": "26.1.0",
-    "prettier": "2.0.5",
-    "rollup": "2.18.2",
+    "@rollup/plugin-typescript": "8.2.5",
+    "@types/jest": "26.0.24",
+    "canvas": "2.8.0",
+    "jest": "27.0.6",
+    "prettier": "2.3.2",
+    "rollup": "2.56.0",
     "rollup-plugin-uglify": "6.0.4",
-    "ts-jest": "26.1.1",
-    "tslib": "2.0.0",
-    "typescript": "3.9.6"
+    "ts-jest": "27.0.4",
+    "tslib": "2.3.0",
+    "typescript": "4.3.5"
   }
 }
