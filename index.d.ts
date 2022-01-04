@@ -234,7 +234,7 @@ declare namespace Malevic {
          * Returns component context.
          */
         function getContext<
-            T extends RenderingContext = CanvasRenderingContext2D
+            T extends RenderingContext = CanvasRenderingContext2D,
         >(): T;
 
         type RenderingContext =

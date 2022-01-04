@@ -87,9 +87,8 @@ export interface PluginSetAttributeProps {
 
 export const PLUGINS_SET_ATTRIBUTE = Symbol();
 
-export const pluginsSetAttribute = createPluginsStore<
-    PluginSetAttributeProps
->();
+export const pluginsSetAttribute =
+    createPluginsStore<PluginSetAttributeProps>();
 
 function getPropertyValue(obj: any, prop: string) {
     return obj && obj.hasOwnProperty(prop) ? obj[prop] : null;

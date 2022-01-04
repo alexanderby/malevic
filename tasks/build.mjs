@@ -1,6 +1,6 @@
 import {rollup} from 'rollup';
 import rollupPluginTypescript from '@rollup/plugin-typescript';
-import rollupPluginUglify from 'rollup-plugin-uglify';
+import {terser as rollupPluginTerser} from 'rollup-plugin-terser';
 import pkg from '../package.json';
 
 const date = new Date().toLocaleDateString('en-us', {
@@ -29,14 +29,11 @@ async function buildJS({
         external: dependencies ? Object.keys(dependencies) : null,
         plugins: [
             rollupPluginTypescript({
-                removeComments: true,
                 ...ts,
+                removeComments: true,
+                noEmitOnError: true,
             }),
-            minify
-                ? rollupPluginUglify.uglify({
-                      output: {preamble: banner},
-                  })
-                : null,
+            minify ? rollupPluginTerser() : null,
         ].filter((p) => p),
     });
 

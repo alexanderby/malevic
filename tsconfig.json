@@ -8,6 +8,10 @@
             "es2015",
             "dom"
         ],
+        "types": [
+            "jest",
+            "offscreencanvas"
+        ],
         "target": "es2015",
         "jsx": "react",
         "jsxFactory": "m",

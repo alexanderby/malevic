@@ -54,12 +54,9 @@ test('spec', () => {
         props: {},
         children: [
             {type: 'header', props: {}, children: []},
-            // hmmm, why it was wrapped into an array?
-            [
-                {type: 'div', props: {}, children: ['1']},
-                {type: 'div', props: {}, children: ['2']},
-                {type: 'div', props: {}, children: ['3']},
-            ],
+            {type: 'div', props: {}, children: ['1']},
+            {type: 'div', props: {}, children: ['2']},
+            {type: 'div', props: {}, children: ['3']},
             {type: 'footer', props: {}, children: []},
         ],
     });

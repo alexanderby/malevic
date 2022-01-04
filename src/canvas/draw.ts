@@ -17,7 +17,7 @@ type RenderingContext =
     | WebGLRenderingContext;
 
 export function getContext<
-    T extends RenderingContext = CanvasRenderingContext2D
+    T extends RenderingContext = CanvasRenderingContext2D,
 >() {
     return currentContext as T;
 }

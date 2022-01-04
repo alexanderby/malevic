@@ -319,8 +319,10 @@ describe('DOM', () => {
         cleanup();
 
         let x = 0;
-        const button2 = render(target, m('button', {onclick: null}, 'Click me'))
-            .firstElementChild;
+        const button2 = render(
+            target,
+            m('button', {onclick: null}, 'Click me'),
+        ).firstElementChild;
         render(target, m('button', {onclick: () => x++}, 'Click me'));
         dispatchClick(button2);
 
@@ -412,15 +414,8 @@ describe('DOM', () => {
 
     test('component context', () => {
         const Component = (props, ...children) => {
-            const {
-                node,
-                nodes,
-                parent,
-                getStore,
-                refresh,
-                spec,
-                prev,
-            } = getContext();
+            const {node, nodes, parent, getStore, refresh, spec, prev} =
+                getContext();
             expect(parent).toBe(target);
             expect(spec.type).toBe(Component);
             expect(spec.props).toEqual(props);
@@ -646,8 +641,10 @@ describe('DOM', () => {
         expect(b1.textContent).toBe('5');
         expect(b2.textContent).toBe('5');
 
-        const a2 = render(target, m(A, {x: 0}, m(B, {x: 0, extra: true})))
-            .firstElementChild;
+        const a2 = render(
+            target,
+            m(A, {x: 0}, m(B, {x: 0, extra: true})),
+        ).firstElementChild;
 
         expect(a2).toBe(a);
         expect(a.className).toBe('a');
@@ -1450,15 +1447,16 @@ describe('DOM', () => {
                                 !Array.isArray(prev) ||
                                 !value.every((v, i) => v[i] === prev[i]);
                             if (shouldUpdate) {
-                                (element as HTMLElement).style.color = `rgb(${value[0]}, ${value[1]}, ${value[2]})`;
+                                (
+                                    element as HTMLElement
+                                ).style.color = `rgb(${value[0]}, ${value[1]}, ${value[2]})`;
                             }
                         } else {
                             (element as HTMLElement).style.color = '';
                         }
                         if (prev) {
-                            (element as HTMLElement).dataset.prevRGB = prev.join(
-                                ' ',
-                            );
+                            (element as HTMLElement).dataset.prevRGB =
+                                prev.join(' ');
                         }
                         return true;
                     }
@@ -1780,7 +1778,7 @@ describe('DOM', () => {
             </svg>,
         );
         expect(target.firstElementChild).toBeInstanceOf(SVGSVGElement);
-        expect(target.firstElementChild.firstChild.namespaceURI).toBe(
+        expect(target.firstElementChild.firstElementChild.namespaceURI).toBe(
             target.firstElementChild.namespaceURI,
         );
 
