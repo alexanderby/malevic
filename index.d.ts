@@ -20,15 +20,15 @@ declare namespace Malevic {
     /**
      * Specification for a component virtual node
      */
-    interface ComponentSpec<T = any, K = any> {
+    interface ComponentSpec<TProps = any, TChild = any> {
         /**
          * A component function.
          */
-        type: Component<T, K>;
+        type: Component<TProps, TChild>;
         /**
          * Properties of a component.
          */
-        props: T & {key?: any};
+        props: TProps & {key?: any};
         /**
          * Child specifications.
          */
@@ -43,29 +43,38 @@ declare namespace Malevic {
     /**
      * Component function.
      */
-    type Component<T = any, K = Child> = (
-        props: T & {key?: any},
+    type Component<TProps = any, TChild = Child> = (
+        props: TProps & {key?: any},
         ...children: RecursiveArray<Child>
-    ) => K | RecursiveArray<K> | any;
+    ) => TChild | RecursiveArray<TChild> | any;
 
     /**
      * A function that returns a spec.
      */
-    type InlineFunction<T = any, R = any> = (context: T) => R;
+    type InlineFunction<TContext = any, TResult = any> = (
+        context: TContext,
+    ) => TResult;
 
     /**
      * Possible specification child type.
      */
     type Child = Spec | string | Node | InlineFunction | null;
 
-    interface DOMEventListener<Ev = Event, El = Element, T = Element> {
-        (this: El, e: Ev & {target: T; currentTarget: El}): void;
+    interface DOMEventListener<
+        TEvent = Event,
+        TElement = Element,
+        TTarget = Element,
+    > {
+        (
+            this: TElement,
+            e: TEvent & {target: TTarget; currentTarget: TElement},
+        ): void;
     }
 
     /**
      * Attributes and event listeners of a DOM element.
      */
-    interface NodeAttrs<E = Element, T = Element> {
+    interface NodeAttrs<TElement = Element, TTarget = Element> {
         key?: any;
         class?:
             | string
@@ -75,43 +84,46 @@ declare namespace Malevic {
         /**
          * Is invoked when DOM node was created or inserted into DOM.
          */
-        oncreate?: (el: E) => void;
+        oncreate?: (el: TElement) => void;
         /**
          * Is invoked when DOM node and all descendants was updated.
          */
-        onupdate?: (el: E) => void;
+        onupdate?: (el: TElement) => void;
         /**
          * Is invoked when DOM node was created or updated.
          */
-        onrender?: (el: E) => void;
+        onrender?: (el: TElement) => void;
         /**
          * Is invoked when DOM node was removed.
          */
-        onremove?: (el: E) => void;
+        onremove?: (el: TElement) => void;
         [attr: string]: any | DOMEventListener;
 
-        onclick?: DOMEventListener<MouseEvent, E, T>;
-        ondblclick?: DOMEventListener<MouseEvent, E, T>;
-        oncontextmenu?: DOMEventListener<MouseEvent, E, T>;
-        onmousedown?: DOMEventListener<MouseEvent, E, T>;
-        onmousemove?: DOMEventListener<MouseEvent, E, T>;
-        onmouseenter?: DOMEventListener<MouseEvent, E, T>;
-        onmouseleave?: DOMEventListener<MouseEvent, E, T>;
-        onmouseup?: DOMEventListener<MouseEvent, E, T>;
-        ontouchstart?: DOMEventListener<TouchEvent, E, T>;
-        ontouchmove?: DOMEventListener<TouchEvent, E, T>;
-        ontouchend?: DOMEventListener<TouchEvent, E, T>;
-        onkeydown?: DOMEventListener<KeyboardEvent, E, T>;
-        onkeyup?: DOMEventListener<KeyboardEvent, E, T>;
-        onkeypress?: DOMEventListener<KeyboardEvent, E, T>;
-        onscroll?: DOMEventListener<Event, E, T>;
-        onwheel?: DOMEventListener<WheelEvent, E, T>;
+        onclick?: DOMEventListener<MouseEvent, TElement, TTarget>;
+        ondblclick?: DOMEventListener<MouseEvent, TElement, TTarget>;
+        oncontextmenu?: DOMEventListener<MouseEvent, TElement, TTarget>;
+        onmousedown?: DOMEventListener<MouseEvent, TElement, TTarget>;
+        onmousemove?: DOMEventListener<MouseEvent, TElement, TTarget>;
+        onmouseenter?: DOMEventListener<MouseEvent, TElement, TTarget>;
+        onmouseleave?: DOMEventListener<MouseEvent, TElement, TTarget>;
+        onmouseup?: DOMEventListener<MouseEvent, TElement, TTarget>;
+        ontouchstart?: DOMEventListener<TouchEvent, TElement, TTarget>;
+        ontouchmove?: DOMEventListener<TouchEvent, TElement, TTarget>;
+        ontouchend?: DOMEventListener<TouchEvent, TElement, TTarget>;
+        onkeydown?: DOMEventListener<KeyboardEvent, TElement, TTarget>;
+        onkeyup?: DOMEventListener<KeyboardEvent, TElement, TTarget>;
+        onkeypress?: DOMEventListener<KeyboardEvent, TElement, TTarget>;
+        onscroll?: DOMEventListener<Event, TElement, TTarget>;
+        onwheel?: DOMEventListener<WheelEvent, TElement, TTarget>;
     }
 
-    type Plugin<P, R = any> = (props: P) => R;
+    type Plugin<TProps, TResult = any> = (props: TProps) => TResult;
 
-    interface PluginsAPI<T, K = any> {
-        add(type: Component, plugin: Plugin<T, K>): PluginsAPI<T, K>;
+    interface PluginsAPI<TProps, TResult = any> {
+        add(
+            type: Component,
+            plugin: Plugin<TProps, TResult>,
+        ): PluginsAPI<TProps, TResult>;
     }
 
     interface RecursiveArray<T> extends Array<T | RecursiveArray<T>> {}
@@ -133,31 +145,31 @@ declare namespace Malevic {
      * @param props Properties of a component.
      * @param children Child specifications.
      */
-    function m<T>(
-        component: Component<T>,
-        props: T & {key?: any},
+    function m<TProps>(
+        component: Component<TProps>,
+        props: TProps & {key?: any},
         ...children: RecursiveArray<Child>
-    ): ComponentSpec<T>;
+    ): ComponentSpec<TProps>;
 
     namespace Animation {
-        interface AnimationDeclaration<T = any, R = any> {
+        interface AnimationDeclaration<TValue = any, TResult = any> {
             /**
              * Sets the value to start animation from.
              * @param from Value to start animation from.
              */
-            from(from: T): this;
+            from(from: TValue): this;
             /**
              * Adds a new keyframe.
              * @param to Keyframe value.
              * @param timing Transition timing parameters.
              */
-            to(to: T, timing?: Partial<TimingSpec>): this;
+            to(to: TValue, timing?: Partial<TimingSpec>): this;
             /**
              * Sets the initial value, that will be to start
              * animation from if there were no previous value.
              * @param from Initial value.
              */
-            initial(from: T): this;
+            initial(from: TValue): this;
             /**
              * Sets a function, that interpolates between
              * start and end transition values.
@@ -169,7 +181,7 @@ declare namespace Malevic {
              * into an attribute or CSS value.
              * @param transformer A transformer function.
              */
-            output(transformer: (value: T) => R): this;
+            output(transformer: (value: TValue) => TResult): this;
             /**
              * Sets a function to be called when animation ends.
              * @param callback Callback function.
@@ -216,7 +228,9 @@ declare namespace Malevic {
          * Makes component's DOM nodes to be animatable.
          * @param type Component function.
          */
-        function withAnimation<T extends Component>(type: T): T;
+        function withAnimation<TComponent extends Component>(
+            type: TComponent,
+        ): TComponent;
     }
 
     namespace Canvas {
@@ -225,8 +239,8 @@ declare namespace Malevic {
          * @param context Canvas rendering context.
          * @param spec Component spec to draw on canvas.
          */
-        function draw<T extends RenderingContext>(
-            context: T,
+        function draw<TContext extends RenderingContext>(
+            context: TContext,
             spec: Child | RecursiveArray<Child>,
         ): void;
 
@@ -234,8 +248,8 @@ declare namespace Malevic {
          * Returns component context.
          */
         function getContext<
-            T extends RenderingContext = CanvasRenderingContext2D,
-        >(): T;
+            TContext extends RenderingContext = CanvasRenderingContext2D,
+        >(): TContext;
 
         type RenderingContext =
             | CanvasRenderingContext2D
@@ -250,17 +264,20 @@ declare namespace Malevic {
          * @param element Target element.
          * @param spec Child specification or multiple specifications.
          */
-        function render<T extends Element | Document | DocumentFragment>(
-            element: T,
+        function render<TElement extends Element | Document | DocumentFragment>(
+            element: TElement,
             spec: Child | Child[],
-        ): T;
+        ): TElement;
 
         /**
          * Synchronizes DOM element with specification.
          * @param element Target DOM element.
          * @param spec Specification.
          */
-        function sync<T extends Element>(element: T, spec: Spec): T;
+        function sync<TElement extends Element>(
+            element: TElement,
+            spec: Spec,
+        ): TElement;
         /**
          * Sets text node content.
          * @param node Target text node.
@@ -407,7 +424,9 @@ declare namespace Malevic {
          * Makes component's input fields react on value attribute.
          * @param type Component function.
          */
-        function withForms<T extends Component>(type: T): T;
+        function withForms<TComponent extends Component>(
+            type: TComponent,
+        ): TComponent;
     }
 
     namespace State {
@@ -416,24 +435,26 @@ declare namespace Malevic {
          * for updating state.
          * @param initialState Initial state of a component.
          */
-        function useState<S extends {[prop: string]: any}>(
-            initialState: S,
+        function useState<TState extends {[prop: string]: any}>(
+            initialState: TState,
         ): {
             /**
              * Component's state.
              */
-            state: S;
+            state: TState;
             /**
              * Sets state and refreshes the component.
              */
-            setState: (newState: Partial<S>) => void;
+            setState: (newState: Partial<TState>) => void;
         };
 
         /**
          * Provides an API for reacting on state changes.
          * @param type Component function.
          */
-        function withState<T extends Component>(type: T): T;
+        function withState<TComponent extends Component>(
+            type: TComponent,
+        ): TComponent;
     }
 
     namespace String {
