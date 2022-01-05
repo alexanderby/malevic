@@ -47,6 +47,19 @@ render(document.body,
 );
 ```
 
+or
+
+```javascript
+import {render, tag} from 'malevic/dom';
+const anchor = tag('a');
+
+render(document.body,
+    anchor({href: '/'},
+        'Click Me',
+    )
+);
+```
+
 When DOM node already exists, a `sync()` function can be used:
 
 ```javascript

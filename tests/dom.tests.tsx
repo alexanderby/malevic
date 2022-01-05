@@ -7,6 +7,7 @@ import {
     plugins,
     component,
     tags,
+    tag,
 } from 'malevic/dom';
 import {dispatchClick} from './utils';
 
@@ -1815,7 +1816,8 @@ describe('DOM', () => {
     });
 
     test('VanillaJS component', () => {
-        const {button, label} = tags;
+        const {label} = tags;
+        const button = tag('button');
         const Component = component(
             (
                 {node, nodes, parent, getStore, refresh, spec, prev},
