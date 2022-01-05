@@ -9,24 +9,34 @@ interface TagFunction {
     (...children: RecursiveArray<Child>): NodeSpec;
 }
 
+function normalize(
+    attrsOrChild: NodeAttrs | Child,
+    ...otherChildren: RecursiveArray<Child>
+) {
+    const attrs =
+        isObject(attrsOrChild) && !isSpec(attrsOrChild) ? attrsOrChild : null;
+    const children =
+        attrs == null
+            ? [attrsOrChild as Child].concat(otherChildren as Child[])
+            : otherChildren;
+    return {attrs, children};
+}
+
+export function createTagFunction(tag: string) {
+    return (
+        attrsOrChild: NodeAttrs | Child,
+        ...otherChildren: RecursiveArray<Child>
+    ) => {
+        const {attrs, children} = normalize(attrsOrChild, otherChildren);
+        return m(tag, attrs, children);
+    };
+}
+
 export const tags: {[tag: string]: TagFunction} = new Proxy(
     {},
     {
         get: (_, tag: string) => {
-            return (
-                attrsOrChild: NodeAttrs | Child,
-                ...children: RecursiveArray<Child>
-            ) => {
-                const attrs =
-                    isObject(attrsOrChild) && !isSpec(attrsOrChild)
-                        ? attrsOrChild
-                        : null;
-                const allChildren =
-                    attrs == null
-                        ? [attrsOrChild as Child].concat(children as Child[])
-                        : children;
-                return m(tag, attrs, allChildren);
-            };
+            return createTagFunction(tag);
         },
     },
 );

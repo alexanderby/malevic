@@ -11,7 +11,7 @@ export {getComponentContext as getContext} from './vnode';
 
 export {createComponent as component} from './component';
 
-export {tags} from './tags';
+export {tags, createTagFunction as tag} from './tags';
 
 export const plugins = {
     createElement: createPluginsAPI<PluginCreateElementProps, Element>(

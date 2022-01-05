@@ -400,6 +400,15 @@ declare namespace Malevic {
         }
 
         /**
+         * Creates a shorthand for `m(tag, attrs, ...children)`
+         * for use with VanillaJS.
+         * The resulting function will generate DOM node specifications
+         * for the tag name specified.
+         * `attrs` argument can be omitted.
+         */
+        function tag(tag: string): TagFunction;
+
+        /**
          * By invoking the properties of this object,
          * helper functions for generating DOM node specifications
          * for corresponding tag names are created.
