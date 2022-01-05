@@ -9,6 +9,10 @@ export {render, sync, teardown} from './render';
 
 export {getComponentContext as getContext} from './vnode';
 
+export {createComponent as component} from './component';
+
+export {tags} from './tags';
+
 export const plugins = {
     createElement: createPluginsAPI<PluginCreateElementProps, Element>(
         PLUGINS_CREATE_ELEMENT,

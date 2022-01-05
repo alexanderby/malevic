@@ -26,49 +26,87 @@ necessary nodes or attributes are replaced.
 import {m} from 'malevic';
 import {render} from 'malevic/dom';
 
-render(document.body, (
+render(document.body,
     m('h3', {class: 'heading'},
         'Hello, World!'
     )
-));
+);
+```
+
+Shorthand tag functions can be used:
+
+```javascript
+import {render, tags} from 'malevic/dom';
+const {h3, strong} = tags;
+
+render(document.body,
+    h3({class: 'heading'},
+        'Hello, ',
+        strong('World!')
+    )
+);
 ```
 
 When DOM node already exists, a `sync()` function can be used:
 
 ```javascript
-import {m} from 'malevic';
-import {sync} from 'malevic/dom';
+import {sync, tags} from 'malevic/dom';
+const {body, h1} = tags;
 
-const body = sync(document.body, (
-    m('body', {class: 'app'},
-        m('h1', null,
+sync(document.body,
+    body({class: 'app'},
+        h1(
             'Hello, World!'
         )
     )
-));
+);
 ```
 
 Functions can be used as components like this:
 
 ```javascript
-import {m} from 'malevic';
-import {sync} from 'malevic/dom';
+import {sync, tags} from 'malevic/dom';
+const {body, span, h1, button} = tags;
 
-function Button({handler}, ...children) {
-    return m('button', {onclick: handler},
+function Button(props, ...children) {
+    return button({onclick: props.handler},
+        span({class: 'icon'}),
         ...children
     );
 }
 
-const body = sync(document.body, (
-    m('body', {class: 'app'},
-        m('h1', null, 'App'),
-        m(Button, {handler: (e)=> alert(e.target)},
+sync(document.body,
+    body({class: 'app'},
+        h1('App'),
+        Button({handler: (e) => alert(e.target)},
             'Click me'
         )
     )
-));
+);
 ```
+
+For more complex components, that need to store some state or access the DOM nodes,
+the `component()` function should be used:
+
+```javascript
+import {component, tags} from 'malevic/dom';
+const {button, img, span} = tags;
+
+const Button = component((context, props, ...children) => {
+    const store = context.getStore({clicks: 0});
+    const onClick = () => {
+        store.clicks = store.clicks + 1;
+        context.refresh();
+    };
+    return button({onclick: onClick},
+        img({src: props.icon}),
+        span('Clicks' + store.clicks),
+        ...children
+    );
+});
+```
+
+See the description for the `context` object below.
 
 ## JSX
 
@@ -171,7 +209,24 @@ render(document.body, <Heading/>);
 
 It is possible to assign lifecycle handlers for components as well:
 
+```javascript
+import {component, tags} from 'malevic/dom';
+const {div} = tags;
+
+const Component = component((context) => {
+    context.onCreate((domNode) => domNode.classList.add('init'));
+    context.onRemove((domNode) => domNode.parentNode == null);
+    context.onUpdate((domNode) => domNode === context.node);
+    context.onRender((domNode) => domNode.dataset.renderCount = ++renderCount);
+
+    return div('Hello');
+}
+```
+
+With JSX it will look like:
 ```jsx
+import {getContext} from 'malevic/dom';
+
 function Component() {
     const context = getContext();
 

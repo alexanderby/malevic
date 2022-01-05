@@ -1,5 +1,13 @@
 import {m} from 'malevic';
-import {render, sync, teardown, getContext, plugins} from 'malevic/dom';
+import {
+    render,
+    sync,
+    teardown,
+    getContext,
+    plugins,
+    component,
+    tags,
+} from 'malevic/dom';
 import {dispatchClick} from './utils';
 
 let target: Element = null;
@@ -1803,6 +1811,155 @@ describe('DOM', () => {
         );
         expect(() => render(target, m('div', null, 0 as any))).toThrow(
             /Unable to create virtual node for spec/,
+        );
+    });
+
+    test('VanillaJS component', () => {
+        const {button, label} = tags;
+        const Component = component(
+            (
+                {node, nodes, parent, getStore, refresh, spec, prev},
+                props,
+                ...children
+            ) => {
+                expect(parent).toBe(target);
+                expect(spec.type).toBeInstanceOf(Function);
+                expect(spec.props).toEqual(props);
+                expect(spec.children).toEqual(children);
+                const store = getStore({count: 0});
+
+                return [
+                    button(
+                        {
+                            onclick: () => {
+                                store.count++;
+                                refresh();
+                            },
+                        },
+                        'Click me',
+                    ),
+                    label(
+                        [
+                            `store.count: ${store.count}`,
+                            `props.char: ${props.char || '-'}`,
+                            `prev.props.char: ${prev ? prev.props.char : '-'}`,
+                            `children: ${children.join(', ')}`,
+                            `prev.children: ${
+                                prev ? prev.children.join(', ') : null
+                            }`,
+                            `nodes.length: ${nodes.length}`,
+                            `node is Button: ${
+                                node instanceof HTMLButtonElement
+                            }`,
+                            `node[0] is Button: ${
+                                nodes[0] instanceof HTMLButtonElement
+                            }`,
+                            `node[1] is Label: ${
+                                nodes[1] instanceof HTMLLabelElement
+                            }`,
+                        ].join('; '),
+                    ),
+                    store.count < 2 ? null : 'Extra',
+                ];
+            },
+        );
+
+        const result = render(target, Component({char: 'x'}, 'A', 'B'));
+
+        expect(result.childNodes.length).toBe(2);
+
+        const buttonEl = result.childNodes.item(0);
+        const labelEl = result.childNodes.item(1);
+        expect(buttonEl).toBeInstanceOf(HTMLButtonElement);
+        expect(labelEl).toBeInstanceOf(HTMLLabelElement);
+        expect(labelEl.textContent).toBe(
+            [
+                'store.count: 0',
+                'props.char: x',
+                'prev.props.char: -',
+                'children: A, B',
+                'prev.children: null',
+                'nodes.length: 0',
+                'node is Button: false',
+                'node[0] is Button: false',
+                'node[1] is Label: false',
+            ].join('; '),
+        );
+
+        dispatchClick(buttonEl as Element);
+        expect(result.childNodes.length).toBe(2);
+        expect(result.childNodes.item(0)).toBe(buttonEl);
+        expect(result.childNodes.item(1)).toBe(labelEl);
+        expect(labelEl.textContent).toBe(
+            [
+                'store.count: 1',
+                'props.char: x',
+                'prev.props.char: x',
+                'children: A, B',
+                'prev.children: A, B',
+                'nodes.length: 2',
+                'node is Button: true',
+                'node[0] is Button: true',
+                'node[1] is Label: true',
+            ].join('; '),
+        );
+
+        render(target, Component({char: 'y'}, 'C', 'D'));
+        expect(result.childNodes.length).toBe(2);
+        expect(result.childNodes.item(0)).toBe(buttonEl);
+        expect(result.childNodes.item(1)).toBe(labelEl);
+        expect(labelEl.textContent).toBe(
+            [
+                'store.count: 1',
+                'props.char: y',
+                'prev.props.char: x',
+                'children: C, D',
+                'prev.children: A, B',
+                'nodes.length: 2',
+                'node is Button: true',
+                'node[0] is Button: true',
+                'node[1] is Label: true',
+            ].join('; '),
+        );
+
+        dispatchClick(buttonEl as Element);
+        expect(result.childNodes.length).toBe(3);
+        expect(result.childNodes.item(0)).toBe(buttonEl);
+        expect(result.childNodes.item(1)).toBe(labelEl);
+        expect(target.childNodes.item(2)).toBeInstanceOf(Text);
+        expect(target.childNodes.item(2).textContent).toBe('Extra');
+        expect(labelEl.textContent).toBe(
+            [
+                'store.count: 2',
+                'props.char: y',
+                'prev.props.char: y',
+                'children: C, D',
+                'prev.children: C, D',
+                'nodes.length: 2',
+                'node is Button: true',
+                'node[0] is Button: true',
+                'node[1] is Label: true',
+            ].join('; '),
+        );
+
+        render(target, Component({char: 'y'}, 'C', 'D'));
+        expect(result.childNodes.length).toBe(3);
+        expect(result.childNodes.item(0)).toBe(buttonEl);
+        expect(result.childNodes.item(1)).toBe(labelEl);
+        expect(target.childNodes.item(2)).toBeInstanceOf(Text);
+        expect(target.childNodes.item(2).textContent).toBe('Extra');
+        expect(labelEl.textContent).toBe(
+            [
+                'store.count: 2',
+                'props.char: y',
+                'prev.props.char: y',
+                'children: C, D',
+                'prev.children: C, D',
+                'nodes.length: 3',
+                'node is Button: true',
+                'node[0] is Button: true',
+                'node[1] is Label: true',
+            ].join('; '),
         );
     });
 });

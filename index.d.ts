@@ -20,11 +20,11 @@ declare namespace Malevic {
     /**
      * Specification for a component virtual node
      */
-    interface ComponentSpec<TProps = any, TChild = any> {
+    interface ComponentSpec<TProps = any, TResult = any> {
         /**
          * A component function.
          */
-        type: Component<TProps, TChild>;
+        type: Component<TProps, TResult>;
         /**
          * Properties of a component.
          */
@@ -43,10 +43,10 @@ declare namespace Malevic {
     /**
      * Component function.
      */
-    type Component<TProps = any, TChild = Child> = (
+    type Component<TProps = any, TResult = Child> = (
         props: TProps & {key?: any},
         ...children: RecursiveArray<Child>
-    ) => TChild | RecursiveArray<TChild> | any;
+    ) => TResult | RecursiveArray<TResult> | any;
 
     /**
      * A function that returns a spec.
@@ -376,6 +376,36 @@ declare namespace Malevic {
          * Returns a context of a component being unboxed.
          */
         function getContext(): ComponentContext;
+
+        /**
+         * Creates a component for convenient use in VanillaJS.
+         * @param fn Component function
+         */
+        function component<TProps = any, TResult = any>(
+            fn: (
+                context: ComponentContext,
+                props: TProps,
+                ...children: RecursiveArray<Child>
+            ) => TResult,
+        ): (
+            props: TProps & {key: any},
+            ...children: RecursiveArray<Child>
+        ) => ComponentSpec<TProps, TResult>;
+
+        interface TagFunction {
+            (attrs: NodeAttrs, ...children: RecursiveArray<Child>): NodeSpec;
+        }
+        interface TagFunction {
+            (...children: RecursiveArray<Child>): NodeSpec;
+        }
+
+        /**
+         * By invoking the properties of this object,
+         * helper functions for generating DOM node specifications
+         * for corresponding tag names are created.
+         * This should be convenient for use in VanillaJS.
+         */
+        const tags: {[tag: string]: TagFunction};
 
         interface PluginCreateElementProps {
             /**
