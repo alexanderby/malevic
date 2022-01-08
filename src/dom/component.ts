@@ -8,10 +8,7 @@ export function createComponent<TProps, TResult>(
         props: TProps,
         ...children: RecursiveArray<Child>
     ) => TResult,
-): (
-    props: TProps & {key: any},
-    ...children: RecursiveArray<Child>
-) => ComponentSpec<TProps, TResult> {
+): Component<TProps, TResult> {
     const component: Component<TProps, TResult> = (props, ...children) => {
         const context = getComponentContext();
         return fn(context, props, ...children);

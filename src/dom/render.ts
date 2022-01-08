@@ -1,4 +1,4 @@
-import {Spec, Child} from '../defs';
+import {Spec, Child, RecursiveArray} from '../defs';
 import {createVDOM, VDOM, VNodeContext} from './vdom';
 import {createVNode, createDOMVNode, VNode} from './vnode';
 
@@ -24,7 +24,7 @@ function realize(node: Node, vnode: VNode): VNodeContext {
 
 export function render<T extends Element | Document | DocumentFragment>(
     element: T,
-    spec: Child | Child[],
+    spec: Child | Child[] | RecursiveArray<Child>,
 ): T {
     const vnode = createDOMVNode(
         element,

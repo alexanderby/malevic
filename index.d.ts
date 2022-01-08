@@ -266,7 +266,7 @@ declare namespace Malevic {
          */
         function render<TElement extends Element | Document | DocumentFragment>(
             element: TElement,
-            spec: Child | Child[],
+            spec: Child | Child[] | RecursiveArray<Child>,
         ): TElement;
 
         /**
@@ -387,10 +387,7 @@ declare namespace Malevic {
                 props: TProps,
                 ...children: RecursiveArray<Child>
             ) => TResult,
-        ): (
-            props: TProps & {key: any},
-            ...children: RecursiveArray<Child>
-        ) => ComponentSpec<TProps, TResult>;
+        ): Component<TProps, TResult>;
 
         interface TagFunction {
             (attrs: NodeAttrs, ...children: RecursiveArray<Child>): NodeSpec;
