@@ -39,7 +39,7 @@ test('canvas', () => {
     const canvas = createCanvas(width, height);
 
     draw(
-        canvas.getContext('2d'),
+        canvas.getContext('2d') as any,
         <Array>
             <Background color="yellow" />
             <Rect fill="red" x={0} y={0} width={2} height={2} />
@@ -71,7 +71,7 @@ test('canvas', () => {
     expect(pixel(2, 3)).toEqual([0, 0, 255, 255]);
     expect(pixel(3, 3)).toEqual([0, 0, 255, 255]);
 
-    expect(() => draw(canvas.getContext('2d'), <div />)).toThrow(
+    expect(() => draw(canvas.getContext('2d') as any, <div />)).toThrow(
         /Unable to draw spec/,
     );
 });

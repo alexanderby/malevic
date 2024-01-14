@@ -1,7 +1,10 @@
+import {readFileSync} from 'fs';
 import {rollup} from 'rollup';
+import rollupPluginTerser from '@rollup/plugin-terser';
 import rollupPluginTypescript from '@rollup/plugin-typescript';
-import {terser as rollupPluginTerser} from 'rollup-plugin-terser';
-import pkg from '../package.json';
+
+const pkg = JSON.parse(readFileSync('./package.json'));
+console.log(process.cwd())
 
 const date = new Date().toLocaleDateString('en-us', {
     month: 'short',

@@ -255,7 +255,8 @@ declare namespace Malevic {
             | CanvasRenderingContext2D
             | OffscreenCanvasRenderingContext2D
             | ImageBitmapRenderingContext
-            | WebGLRenderingContext;
+            | WebGLRenderingContext
+            | WebGL2RenderingContext;
     }
 
     namespace DOM {
