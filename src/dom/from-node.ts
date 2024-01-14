@@ -12,21 +12,14 @@ function walkNode(node: Node): NodeSpec | string | null {
             .replaceAll(/\r/g, '')
             .replaceAll(/\s*?\n\s*/g, '\n');
     }
-    if (node instanceof Comment) {
-        return null;
-    }
     if (!(node instanceof Element)) {
-        return undefined;
+        return null;
     }
     const tag = node.tagName.toLocaleLowerCase();
     const attrs: Record<string, string | number | boolean> = {};
-    const simpleTypes = ['string', 'number', 'boolean'];
     for (let i = 0; i < node.attributes.length; i++) {
         const attr = node.attributes[i];
-        const value = simpleTypes.includes(typeof attr.value)
-            ? attr.value
-            : String(attr.value);
-        attrs[attr.name] = value;
+        attrs[attr.name] = String(attr.value);
     }
     const children = Array.from(node.childNodes)
         .map(walkNode)

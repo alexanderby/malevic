@@ -1727,7 +1727,7 @@ describe('DOM', () => {
             '<div class="app">',
             '  <span class="first"></span>',
             '  <span class="second"></span>',
-            // '  <!---->', // BUG: Comment node shifts to right
+            '  <!---->',
             '  <span class="third"></span>',
             '  <span class="last"></span>',
             '</div>',
