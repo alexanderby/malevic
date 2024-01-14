@@ -13,6 +13,8 @@ export {createComponent as component} from './component';
 
 export {tags, createTagFunction as tag} from './tags';
 
+export {specFromNode} from './from-node';
+
 export const plugins = {
     createElement: createPluginsAPI<PluginCreateElementProps, Element>(
         PLUGINS_CREATE_ELEMENT,

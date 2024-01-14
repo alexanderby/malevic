@@ -454,6 +454,11 @@ declare namespace Malevic {
              */
             setAttribute: PluginsAPI<PluginSetAttributeProps>;
         };
+
+        /**
+         * Creates a specification from a DOM element.
+         */
+        function specFromNodeNode(node: Node): NodeSpec;
     }
 
     namespace Forms {
