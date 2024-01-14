@@ -1457,9 +1457,8 @@ describe('DOM', () => {
                                 !Array.isArray(prev) ||
                                 !value.every((v, i) => v[i] === prev[i]);
                             if (shouldUpdate) {
-                                (
-                                    element as HTMLElement
-                                ).style.color = `rgb(${value[0]}, ${value[1]}, ${value[2]})`;
+                                (element as HTMLElement).style.color =
+                                    `rgb(${value[0]}, ${value[1]}, ${value[2]})`;
                             }
                         } else {
                             (element as HTMLElement).style.color = '';
@@ -1989,9 +1988,7 @@ describe('DOM', () => {
                 {
                     type: 'h1',
                     props: {},
-                    children: [
-                        'Heading',
-                    ],
+                    children: ['Heading'],
                 },
                 null,
                 {
@@ -2001,9 +1998,7 @@ describe('DOM', () => {
                         {
                             type: 'p',
                             props: {},
-                            children: [
-                                `Line 1\nLine 2`,
-                            ],
+                            children: [`Line 1\nLine 2`],
                         },
                     ],
                 },

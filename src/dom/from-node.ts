@@ -23,11 +23,18 @@ function walkNode(node: Node): NodeSpec | string | null {
     const simpleTypes = ['string', 'number', 'boolean'];
     for (let i = 0; i < node.attributes.length; i++) {
         const attr = node.attributes[i];
-        const value = simpleTypes.includes(typeof attr.value) ? attr.value : String(attr.value);
+        const value = simpleTypes.includes(typeof attr.value)
+            ? attr.value
+            : String(attr.value);
         attrs[attr.name] = value;
     }
     const children = Array.from(node.childNodes)
         .map(walkNode)
-        .filter((c) => c === null || (typeof c === 'string' && c !== '') || typeof c === 'object');
+        .filter(
+            (c) =>
+                c === null ||
+                (typeof c === 'string' && c !== '') ||
+                typeof c === 'object',
+        );
     return m(tag, attrs, ...children);
 }

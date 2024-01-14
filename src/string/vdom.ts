@@ -111,7 +111,13 @@ class VElement extends VNode {
             } else {
                 lines.push(open);
                 this.children.forEach((child) =>
-                    lines.push(child.stringify({indent, depth: depth + 1, xmlSelfClosing})),
+                    lines.push(
+                        child.stringify({
+                            indent,
+                            depth: depth + 1,
+                            xmlSelfClosing,
+                        }),
+                    ),
                 );
                 lines.push(`${left}${close}`);
             }

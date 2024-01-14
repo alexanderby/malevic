@@ -77,8 +77,8 @@ export class Animation<T = any, R = any> {
             duration < start
                 ? 0
                 : start === end
-                ? 1
-                : clamp((duration - start) / (end - start), 0, 1);
+                  ? 1
+                  : clamp((duration - start) / (end - start), 0, 1);
         const eased = ease(t);
         const value = interval.interpolate.call(null, eased);
 

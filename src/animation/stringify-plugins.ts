@@ -10,8 +10,8 @@ function getStartOutput(spec: AnimationSpec) {
         spec.timeline[0].from != null
             ? spec.timeline[0].from
             : spec.initial != null
-            ? spec.initial
-            : last(spec.timeline).to,
+              ? spec.initial
+              : last(spec.timeline).to,
     );
 }
 
