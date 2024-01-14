@@ -8,8 +8,7 @@
             "dom"
         ],
         "types": [
-            "jest",
-            "offscreencanvas"
+            "jest"
         ],
         "target": "es2015",
         "jsx": "react",

@@ -6,6 +6,7 @@ import {
     getContext,
     plugins,
     component,
+    specFromNode,
     tags,
     tag,
 } from 'malevic/dom';
@@ -1963,5 +1964,55 @@ describe('DOM', () => {
                 'node[1] is Label: true',
             ].join('; '),
         );
+    });
+
+    test('creating spec from DOM node', () => {
+        target.innerHTML = [
+            '<div class="app">',
+            '  \n',
+            '  <h1>Heading</h1>',
+            '  <!---->',
+            '  <article>',
+            '    <p>',
+            '      Line 1',
+            '      Line 2',
+            '    </p>',
+            '  </article>',
+            '  <input type="number" value="0">',
+            '</div>',
+        ].join('\n');
+        const spec = specFromNode(target.firstElementChild);
+        expect(spec).toEqual({
+            type: 'div',
+            props: {class: 'app'},
+            children: [
+                {
+                    type: 'h1',
+                    props: {},
+                    children: [
+                        'Heading',
+                    ],
+                },
+                null,
+                {
+                    type: 'article',
+                    props: {},
+                    children: [
+                        {
+                            type: 'p',
+                            props: {},
+                            children: [
+                                `Line 1\nLine 2`,
+                            ],
+                        },
+                    ],
+                },
+                {
+                    type: 'input',
+                    props: {type: 'number', value: '0'},
+                    children: [],
+                },
+            ],
+        });
     });
 });

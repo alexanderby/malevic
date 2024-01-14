@@ -7,11 +7,16 @@ export function specFromNode(node: Node): NodeSpec {
 
 function walkNode(node: Node): NodeSpec | string | null {
     if (node instanceof Text) {
-        const text = node.textContent.trim();
-        return text ?? null;
+        return node.textContent
+            .trim()
+            .replaceAll(/\r/g, '')
+            .replaceAll(/\s*?\n\s*/g, '\n');
+    }
+    if (node instanceof Comment) {
+        return null;
     }
     if (!(node instanceof Element)) {
-        return null;
+        return undefined;
     }
     const tag = node.tagName.toLocaleLowerCase();
     const attrs: Record<string, string | number | boolean> = {};
@@ -23,6 +28,6 @@ function walkNode(node: Node): NodeSpec | string | null {
     }
     const children = Array.from(node.childNodes)
         .map(walkNode)
-        .filter(Boolean);
-    return m(tag, attrs, children);
+        .filter((c) => c === null || (typeof c === 'string' && c !== '') || typeof c === 'object');
+    return m(tag, attrs, ...children);
 }

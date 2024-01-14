@@ -458,7 +458,7 @@ declare namespace Malevic {
         /**
          * Creates a specification from a DOM element.
          */
-        function specFromNodeNode(node: Node): NodeSpec;
+        function specFromNode(node: Node): NodeSpec;
     }
 
     namespace Forms {
