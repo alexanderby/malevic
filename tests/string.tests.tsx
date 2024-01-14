@@ -90,6 +90,35 @@ describe('string', () => {
         );
     });
 
+    test('XML self-closing tags', () => {
+        const html = stringify(
+            m(
+                'svg',
+                {xmlns: 'http://www.w3.org/2000/svg'},
+                m('defs', null),
+                m(
+                    'g',
+                    null,
+                    m('rect', {width: 8, height: 8}),
+                    m('text', {x: 0, y: 8}, 'Hello'),
+                ),
+            ),
+            {xmlSelfClosing: true},
+        );
+
+        expect(html).toBe(
+            [
+                '<svg xmlns="http://www.w3.org/2000/svg">',
+                '    <defs/>',
+                '    <g>',
+                '        <rect width="8" height="8"/>',
+                '        <text x="0" y="8">Hello</text>',
+                '    </g>',
+                '</svg>',
+            ].join('\n'),
+        );
+    });
+
     test('plugins', () => {
         const Doc = ({}, ...children) => m('div', null, ...children);
         plugins.stringifyAttribute.add(Doc, ({attr, value}) => {

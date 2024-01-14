@@ -526,6 +526,11 @@ declare namespace Malevic {
              * (count of initial indents)
              */
             depth: number;
+            /**
+             * Indicates whether empty elements should
+             * use XML self closing tags.
+             */
+            xmlSelfClosing: boolean;
         }
 
         interface PluginStringifyAttributeProps {

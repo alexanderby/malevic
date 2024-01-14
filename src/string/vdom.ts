@@ -48,6 +48,7 @@ const stringifyPlugins = [
 export interface StringifyOptions {
     indent: string;
     depth: number;
+    xmlSelfClosing: boolean;
 }
 
 abstract class VNode {
@@ -77,7 +78,7 @@ class VElement extends VNode {
         this.isVoid = isVoidTag(this.tag);
     }
 
-    stringify({indent, depth}: StringifyOptions) {
+    stringify({indent, depth, xmlSelfClosing}: StringifyOptions) {
         const lines: string[] = [];
 
         const left = leftPad(indent, depth);
@@ -86,9 +87,10 @@ class VElement extends VNode {
                 value === '' ? attr : `${attr}="${value}"`,
             )
             .join(' ');
-        const open = `${left}<${this.tag}${attrs ? ` ${attrs}` : ''}>`;
+        const isEmptyXML = xmlSelfClosing && this.children.length === 0;
+        const open = `${left}<${this.tag}${attrs ? ` ${attrs}` : ''}${isEmptyXML ? '/>' : '>'}`;
 
-        if (this.isVoid) {
+        if (this.isVoid || isEmptyXML) {
             lines.push(open);
         } else {
             const close = `</${this.tag}>`;
@@ -103,12 +105,13 @@ class VElement extends VNode {
                     `${open}${this.children[0].stringify({
                         indent,
                         depth: 0,
+                        xmlSelfClosing,
                     })}${close}`,
                 );
             } else {
                 lines.push(open);
                 this.children.forEach((child) =>
-                    lines.push(child.stringify({indent, depth: depth + 1})),
+                    lines.push(child.stringify({indent, depth: depth + 1, xmlSelfClosing})),
                 );
                 lines.push(`${left}${close}`);
             }

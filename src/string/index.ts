@@ -9,11 +9,11 @@ import {PLUGINS_SKIP_ATTRIBUTE, PluginSkipAttributeProps} from './skip-attr';
 import {buildVDOM, getStringifyContext} from './vdom';
 import {PLUGINS_IS_VOID_TAG} from './void';
 
-export function stringify(spec: Spec, {indent = '    ', depth = 0} = {}) {
+export function stringify(spec: Spec, {indent = '    ', depth = 0, xmlSelfClosing = false} = {}) {
     if (isSpec(spec)) {
         const vnodes = buildVDOM(spec);
         return vnodes
-            .map((vnode) => vnode.stringify({indent, depth}))
+            .map((vnode) => vnode.stringify({indent, depth, xmlSelfClosing}))
             .join('\n');
     }
     throw new Error('Not a spec');
