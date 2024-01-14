@@ -2010,4 +2010,62 @@ describe('DOM', () => {
             ],
         });
     });
+
+    test('creating spec SVG node', () => {
+        target.innerHTML = [
+            '<svg>',
+            '  <defs>',
+            '    <radialGradient id="g1">',
+            '      <stop offset="0%" stop-color="black"/>',
+            '      <stop offset="100%" stop-color="white"/>',
+            '    </radialGradient>',
+            '  </defs>',
+            '  <rect width="8" height="8" fill="url(#g1)"/>',
+            '</svg>',
+        ].join('\n');
+        const spec = specFromNode(target.firstElementChild);
+        expect(spec).toEqual({
+            type: 'svg',
+            props: {},
+            children: [
+                {
+                    type: 'defs',
+                    props: {},
+                    children: [
+                        {
+                            type: 'radialGradient',
+                            props: {id: 'g1'},
+                            children: [
+                                {
+                                    type: 'stop',
+                                    props: {
+                                        offset: '0%',
+                                        'stop-color': 'black',
+                                    },
+                                    children: [],
+                                },
+                                {
+                                    type: 'stop',
+                                    props: {
+                                        offset: '100%',
+                                        'stop-color': 'white',
+                                    },
+                                    children: [],
+                                },
+                            ],
+                        },
+                    ],
+                },
+                {
+                    type: 'rect',
+                    props: {
+                        width: '8',
+                        height: '8',
+                        fill: 'url(#g1)',
+                    },
+                    children: [],
+                },
+            ],
+        });
+    });
 });

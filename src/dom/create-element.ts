@@ -1,8 +1,6 @@
 import {NodeSpec} from '../defs';
 import {createPluginsStore} from '../plugins';
-
-const XHTML_NS = 'http://www.w3.org/1999/xhtml';
-const SVG_NS = 'http://www.w3.org/2000/svg';
+import {XHTML_NS, SVG_NS} from './namespace';
 
 export interface PluginCreateElementProps {
     spec: NodeSpec;

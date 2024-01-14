@@ -17,6 +17,7 @@ import {
     pluginsCreateElement,
     PLUGINS_CREATE_ELEMENT,
 } from './create-element';
+import {XHTML_NS} from './namespace';
 import {
     syncAttrs,
     pluginsSetAttribute,
@@ -79,7 +80,12 @@ abstract class VNodeBase implements VNode {
 }
 
 function nodeMatchesSpec(node: Node, spec: NodeSpec): boolean {
-    return node instanceof Element && spec.type === node.tagName.toLowerCase();
+    return (
+        node instanceof Element &&
+        ((node.namespaceURI === XHTML_NS &&
+            spec.type === node.tagName.toLocaleLowerCase()) ||
+            (node.namespaceURI !== XHTML_NS && spec.type === node.tagName))
+    );
 }
 
 const refinedElements = new WeakMap<VDOM, WeakSet<Node>>();

@@ -1,5 +1,6 @@
 import {NodeSpec} from '../defs';
 import {m} from '../spec';
+import {XHTML_NS} from './namespace';
 
 export function specFromNode(node: Node): NodeSpec {
     return walkNode(node) as NodeSpec;
@@ -15,7 +16,10 @@ function walkNode(node: Node): NodeSpec | string | null {
     if (!(node instanceof Element)) {
         return null;
     }
-    const tag = node.tagName.toLocaleLowerCase();
+    const tag =
+        node.namespaceURI === XHTML_NS
+            ? node.tagName.toLocaleLowerCase()
+            : node.tagName;
     const attrs: Record<string, string | number | boolean> = {};
     for (let i = 0; i < node.attributes.length; i++) {
         const attr = node.attributes[i];
