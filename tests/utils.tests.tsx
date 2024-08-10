@@ -11,6 +11,12 @@ describe('utils', () => {
         expect(classes('a', null, 'b', 0 as any, 'c', true as any)).toBe(
             'a b c',
         );
+        expect(classes('a', ['b', 'c'])).toBe(
+            'a b c',
+        );
+        expect(classes('a', ['b', {c: true, d: false}])).toBe(
+            'a b c',
+        );
 
         expect(styles({color: null})).toBe('');
         expect(

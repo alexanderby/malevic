@@ -1,12 +1,18 @@
-export function classes(...args: Array<string | {[cls: string]: boolean}>) {
+type ClsArg = string | {[cls: string]: boolean} | Array<string | {[cls: string]: boolean}>;
+
+export function classes(...args: ClsArg[]) {
     const classes = [];
-    args.filter((c) => Boolean(c)).forEach((c) => {
+    const process = (c: ClsArg) => {
+        if (!c) return;
         if (typeof c === 'string') {
             classes.push(c);
+        } else if (Array.isArray(c)) {
+            c.forEach(process);
         } else if (typeof c === 'object') {
             classes.push(...Object.keys(c).filter((key) => Boolean(c[key])));
         }
-    });
+    };
+    args.forEach(process);
     return classes.join(' ');
 }
 

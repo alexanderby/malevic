@@ -2011,7 +2011,7 @@ describe('DOM', () => {
         });
     });
 
-    test('creating spec SVG node', () => {
+    test('creating spec from SVG node', () => {
         target.innerHTML = [
             '<svg>',
             '  <defs>',
