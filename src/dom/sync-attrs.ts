@@ -120,6 +120,7 @@ export function syncAttrs(element: Element, attrs: NodeAttrs, prev: NodeAttrs) {
             const event = attr.substring(2);
             setEventListener(element, event, value);
         } else if (specialAttrs.has(attr)) {
+        } else if (value === getPropertyValue(prev, attr)) {
         } else if (value == null || value === false) {
             element.removeAttribute(attr);
         } else {
