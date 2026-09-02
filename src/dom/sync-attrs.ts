@@ -16,8 +16,10 @@ function setClassObject(
         ? classes(...classObj)
         : classes(classObj);
     if (cls) {
-        element.setAttribute('class', cls);
-    } else {
+        if (element.getAttribute('class') !== cls) {
+            element.setAttribute('class', cls);
+        }
+    } else if (element.hasAttribute('class')) {
         element.removeAttribute('class');
     }
 }
