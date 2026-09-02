@@ -607,7 +607,7 @@ declare module 'malevic/string' {
 
 declare namespace JSX {
     interface IntrinsicElements {
-        [tag: string]: Malevic.NodeAttrs;
+        [tag: string]: Malevic.NodeAttrs<any, any>;
         input: Malevic.NodeAttrs<HTMLInputElement, HTMLInputElement> & {
             value?: any;
             onchange?: Malevic.DOMEventListener<
