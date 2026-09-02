@@ -53,9 +53,11 @@ function setStyleObject(
     }
 
     const declarations = mergeValues(styleObj, prevObj);
-    declarations.forEach(($value, prop) =>
-        setInlineCSSPropertyValue(element, prop, $value),
-    );
+    declarations.forEach(($value, prop) => {
+        if ($value !== prevObj[prop]) {
+            setInlineCSSPropertyValue(element, prop, $value);
+        }
+    });
 }
 
 function setEventListener(
