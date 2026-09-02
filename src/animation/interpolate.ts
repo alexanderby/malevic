@@ -33,25 +33,34 @@ export const interpolateNumbersInString: Interpolator<string> = function (
 ) {
     const posFrom = getNumPositions(from);
     const posTo = getNumPositions(to);
+
+    const numsFrom = posFrom.map((p) =>
+        parseFloat(from.substring(p.index, p.index + p.length)),
+    );
+    const numsTo = posTo.map((p) =>
+        parseFloat(to.substring(p.index, p.index + p.length)),
+    );
+    const segments: string[] = [];
+    let last = 0;
+    for (let i = 0; i < posTo.length; i++) {
+        segments.push(to.substring(last, posTo[i].index));
+        last = posTo[i].index + posTo[i].length;
+    }
+    const tail = to.substring(last);
+
     return (t) => {
         let result = '';
         let na: number, nb: number, n: number;
-        let last = 0;
-        for (let i = 0; i < posTo.length; i++) {
-            result += to.substring(last, posTo[i].index);
-            nb = parseFloat(to.substr(posTo[i].index, posTo[i].length));
-            if (i < posFrom.length) {
-                na = parseFloat(
-                    from.substr(posFrom[i].index, posFrom[i].length),
-                );
+        for (let i = 0; i < numsTo.length; i++) {
+            na = numsFrom[i];
+            nb = numsTo[i];
+            if (i < numsFrom.length) {
                 n = interpolate(t, na, nb);
             } else {
                 n = nb;
             }
-            result += n.toString();
-            last = posTo[i].index + posTo[i].length;
+            result += segments[i] + n.toString();
         }
-        result += to.substring(last);
-        return result;
+        return result + tail;
     };
 };
