@@ -1,4 +1,7 @@
-type ClsArg = string | {[cls: string]: boolean} | Array<string | {[cls: string]: boolean}>;
+type ClsArg =
+    | string
+    | {[cls: string]: boolean}
+    | Array<string | {[cls: string]: boolean}>;
 
 export function classes(...args: ClsArg[]) {
     const classes = [];

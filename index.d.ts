@@ -77,9 +77,7 @@ declare namespace Malevic {
     interface NodeAttrs<TElement = Element, TTarget = Element> {
         key?: any;
         class?:
-            | string
-            | {[cls: string]: any}
-            | (string | {[cls: string]: any})[];
+            string | {[cls: string]: any} | (string | {[cls: string]: any})[];
         style?: string | {[prop: string]: any};
         /**
          * Is invoked when DOM node was created or inserted into DOM.

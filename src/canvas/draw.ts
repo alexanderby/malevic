@@ -18,8 +18,7 @@ type RenderingContext =
     | WebGL2RenderingContext;
 
 export function getContext():
-    | CanvasRenderingContext2D
-    | OffscreenCanvasRenderingContext2D;
+    CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 export function getContext(
     type: '2d',
 ): CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
