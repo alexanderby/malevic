@@ -1,8 +1,10 @@
 {
     "compilerOptions": {
+        "strict": false,
         "module": "es2015",
         "moduleResolution": "node",
         "esModuleInterop": true,
+        "ignoreDeprecations": "6.0",
         "lib": [
             "ESNext",
             "dom"
