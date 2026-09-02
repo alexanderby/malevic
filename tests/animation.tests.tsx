@@ -126,6 +126,27 @@ describe('animation', () => {
         expect(text.style.left).toBe('40px');
     });
 
+    test('string interpolation', () => {
+        const Box = withAnimation(({to}) => (
+            <span
+                transform={animate(to, {
+                    duration: 250,
+                    easing: 'linear',
+                }).initial('translate(0px)')}
+            />
+        ));
+
+        render(target, <Box to="translate(100px) rotate(90deg)" />);
+        const box = target.firstElementChild as HTMLSpanElement;
+        expect(box.getAttribute('transform')).toBe('translate(0px) rotate(90deg)');
+
+        semaphore.tick(125);
+        expect(box.getAttribute('transform')).toBe('translate(50px) rotate(90deg)');
+
+        semaphore.tick(250);
+        expect(box.getAttribute('transform')).toBe('translate(100px) rotate(90deg)');
+    });
+
     test('numeric values', () => {
         const Box = withAnimation(({x}) => (
             <rect x={animate(x, {duration: 250, easing: 'linear'})} />

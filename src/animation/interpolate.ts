@@ -39,9 +39,15 @@ export const interpolateNumbersInString: Interpolator<string> = function (
         let last = 0;
         for (let i = 0; i < posTo.length; i++) {
             result += to.substring(last, posTo[i].index);
-            na = parseFloat(from.substr(posFrom[i].index, posFrom[i].length));
             nb = parseFloat(to.substr(posTo[i].index, posTo[i].length));
-            n = interpolate(t, na, nb);
+            if (i < posFrom.length) {
+                na = parseFloat(
+                    from.substr(posFrom[i].index, posFrom[i].length),
+                );
+                n = interpolate(t, na, nb);
+            } else {
+                n = nb;
+            }
             result += n.toString();
             last = posTo[i].index + posTo[i].length;
         }
